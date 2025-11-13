@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Video Poker Trainer - 9/6 Double Double Bonus</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 10px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: #764ba2;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .stats-container {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .stat {
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .game-area {
+            background: #0a5f38;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cards-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            gap: 5px;
+        }
+
+        .card-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .key-hint {
+            position: absolute;
+            top: -25px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .card {
+            width: 100%;
+            aspect-ratio: 2.5/3.5;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .card.selected {
+            transform: translateY(-10px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.6);
+            border: 3px solid #ffd700;
+        }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .hold-indicator {
+            margin-top: 8px;
+            padding: 4px 8px;
+            background: #ffd700;
+            color: #333;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card-wrapper.held .hold-indicator {
+            opacity: 1;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .button.primary {
+            background: #ffd700;
+            color: #333;
+        }
+
+        .button.primary:hover {
+            background: #ffed4e;
+            transform: scale(1.02);
+        }
+
+        .button.secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .button.secondary:hover {
+            background: #2d3748;
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .feedback {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .feedback.correct {
+            background: #48bb78;
+            color: white;
+        }
+
+        .feedback.incorrect {
+            background: #f56565;
+            color: white;
+        }
+
+        .feedback-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .strategy-context {
+            font-size: 0.8rem;
+            line-height: 1.4;
+            font-family: monospace;
+        }
+
+        .strategy-line {
+            padding: 2px 0;
+            opacity: 0.7;
+        }
+
+        .strategy-line.current {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            opacity: 1;
+            margin: 2px -6px;
+        }
+
+        .strategy-indicator {
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        @media (max-width: 400px) {
+            .card-wrapper {
+                gap: 2px;
+            }
+
+            h1 {
+                font-size: 1.25rem;
+            }
+
+            .button {
+                font-size: 0.9rem;
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Video Poker Trainer</h1>
+            <div class="subtitle">9/6 Double Double Bonus Strategy</div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat">
+                <div class="stat-label">Correct</div>
+                <div class="stat-value" id="correct">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Total</div>
+                <div class="stat-value" id="total">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Accuracy</div>
+                <div class="stat-value" id="accuracy">0%</div>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: -5px; margin-bottom: 10px;">
+            <button id="reset-stats-btn" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.3s ease; margin-right: 5px;"
+                onmouseover="this.style.background='rgba(245, 101, 101, 0.3)'"
+                onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">Reset Stats</button>
+            <button id="review-btn" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.3s ease; position: relative;"
+                onmouseover="this.style.background='rgba(72, 187, 120, 0.3)'"
+                onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">Review Missed <span id="missed-count" style="background: #f56565; padding: 1px 4px; border-radius: 10px; margin-left: 3px; display: none;">0</span></button>
+        </div>
+
+        <div class="game-area">
+            <div class="loading active" id="loading">
+                Loading game...
+            </div>
+
+            <div class="cards-container" id="cards-container" style="display: none;">
+                <div class="card-wrapper" data-index="0">
+                    <div class="key-hint">D</div>
+                    <div class="card" id="card-0">
+                        <img src="" alt="Card">
+                    </div>
+                    <div class="hold-indicator">HOLD</div>
+                </div>
+                <div class="card-wrapper" data-index="1">
+                    <div class="key-hint">F</div>
+                    <div class="card" id="card-1">
+                        <img src="" alt="Card">
+                    </div>
+                    <div class="hold-indicator">HOLD</div>
+                </div>
+                <div class="card-wrapper" data-index="2">
+                    <div class="key-hint">J</div>
+                    <div class="card" id="card-2">
+                        <img src="" alt="Card">
+                    </div>
+                    <div class="hold-indicator">HOLD</div>
+                </div>
+                <div class="card-wrapper" data-index="3">
+                    <div class="key-hint">K</div>
+                    <div class="card" id="card-3">
+                        <img src="" alt="Card">
+                    </div>
+                    <div class="hold-indicator">HOLD</div>
+                </div>
+                <div class="card-wrapper" data-index="4">
+                    <div class="key-hint">L</div>
+                    <div class="card" id="card-4">
+                        <img src="" alt="Card">
+                    </div>
+                    <div class="hold-indicator">HOLD</div>
+                </div>
+            </div>
+
+            <div class="feedback" id="feedback" style="display: none;">
+                <div class="feedback-title"></div>
+                <div class="strategy-context" id="strategy-context"></div>
+            </div>
+
+            <div class="controls">
+                <button class="button primary" id="submit-btn" style="display: none;">Submit Answer</button>
+                <button class="button secondary" id="deal-btn">Deal New Hand</button>
+
+                <!-- Review mode controls -->
+                <div id="review-controls" style="display: none;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <button class="button secondary" id="prev-review-btn" style="flex: 1;">← Previous</button>
+                        <button class="button secondary" id="next-review-btn" style="flex: 1;">Next →</button>
+                    </div>
+                    <div style="text-align: center; color: white; font-size: 0.9rem; margin-bottom: 10px;">
+                        Hand <span id="review-current">1</span> of <span id="review-total">1</span>
+                    </div>
+                    <button class="button primary" id="exit-review-btn">Exit Review Mode</button>
+                </div>
+
+                <div style="margin-top: 10px; text-align: center; color: rgba(255, 255, 255, 0.8); font-size: 0.75rem;">
+                    <div>Keyboard: D/F/J/K/L = Hold cards • Space/Enter = Submit/Next</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let currentHand = [];
+        let selectedCards = new Set();
+        let stats = {
+            correct: 0,
+            total: 0
+        };
+        let isWaitingForAnswer = true;
+        let missedHands = []; // Store missed hands for review
+        let currentReviewIndex = 0; // Track which missed hand we're reviewing
+        let isReviewMode = false; // Track if we're in review mode
+
+        // Card representation
+        const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+        const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        const rankValues = {
+            '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+            '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14
+        };
+
+        // Complete strategy guide with rankings
+        const strategyGuide = [
+            { rank: 1, text: "Royal Flush" },
+            { rank: 2, text: "Four Aces/2s/3s/4s with A/2/3/4 kicker" },
+            { rank: 3, text: "4 of a kind" },
+            { rank: 4, text: "Straight Flush" },
+            { rank: 5, text: "4 to a Royal Flush" },
+            { rank: 6, text: "3 of a kind: Aces" },
+            { rank: 7, text: "Full House" },
+            { rank: 8, text: "Flush" },
+            { rank: 9, text: "Straight" },
+            { rank: 10, text: "3 of a kind: 2s thru Ks" },
+            { rank: 11, text: "4 to a Straight Flush" },
+            { rank: 12, text: "1 pair: Aces" },
+            { rank: 13, text: "2 pair" },
+            { rank: 14, text: "3 to a Royal Flush: JQK" },
+            { rank: 15, text: "1 pair: Kings" },
+            { rank: 16, text: "3 to a Royal Flush: TJQ" },
+            { rank: 17, text: "1 pair: Jacks or Queens" },
+            { rank: 18, text: "4 to a Flush" },
+            { rank: 19, text: "3 to a Royal Flush: TJK/TQK, TJA/TQA/TKA/JQA/JKA/QKA" },
+            { rank: 19.5, text: "3 to a Royal Flush (other)" },
+            { rank: 20, text: "4 to a Straight: 89TJ, 9TJQ, TJQK" },
+            { rank: 21, text: "1 pair: 2s thru 10s" },
+            { rank: 22, text: "4 to a Straight: 2345, 3456, 4567, 5678, 6789, 789T" },
+            { rank: 23, text: "3 to a Straight Flush: 345, 456, 567, 678, 789, 89T, 89J/8TJ, 8JQ, 9TJ, 9TQ/9JQ, 9JK/9QK" },
+            { rank: 24, text: "4 to a Straight: JQKA" },
+            { rank: 24.5, text: "2 to a Royal Flush: JQ, JK/QK, JA/QA/KA" },
+            { rank: 25, text: "4 to a Straight: 9JQK, TJQA/TJKA/TQKA" },
+            { rank: 25.5, text: "3 to a Straight Flush: Ace-low" },
+            { rank: 26, text: "3 to a Straight Flush: 234/235/245, 346/356, 457/467, 568/578, 679/689, 78T/78J/79J, 79T/7TJ, 89Q/8TQ, 9TK" },
+            { rank: 27, text: "3 to a Straight: JQK" },
+            { rank: 28, text: "4 to a Straight: 89JQ/8TJQ, 9TJK/9TQK" },
+            { rank: 29, text: "2 to a Straight: JQ" },
+            { rank: 30, text: "1 high card: Ace" },
+            { rank: 31, text: "2 to a Royal Flush: TJ" },
+            { rank: 32, text: "2 to a Straight: JK/QK" },
+            { rank: 33, text: "3 to a Flush: 2TK to 8TK" },
+            { rank: 34, text: "2 to a Royal Flush: TQ, TK" },
+            { rank: 35, text: "1 high card: J/Q/K" },
+            { rank: 36, text: "3 to a Straight Flush: 236/246/256, 347/357/367, 458/468/478, 569/579/589, 67T/68T/69T" },
+            { rank: 37, text: "4 to a Straight: 2346/2356/2456, 3457/3467/3567, 4568/4578/4678, 5679/5689/5789, 678T/679T/689T" },
+            { rank: 999, text: "Discard everything" }
+        ];
+
+        // Card image URL function (using deckofcardsapi.com format)
+        function getCardImageUrl(card) {
+            const rankMap = {
+                '10': '0',
+                'J': 'J',
+                'Q': 'Q',
+                'K': 'K',
+                'A': 'A'
+            };
+            const suitMap = {
+                'hearts': 'H',
+                'diamonds': 'D',
+                'clubs': 'C',
+                'spades': 'S'
+            };
+            const rankCode = rankMap[card.rank] || card.rank;
+            const suitCode = suitMap[card.suit];
+            return `https://deckofcardsapi.com/static/img/${rankCode}${suitCode}.png`;
+        }
+
+        // Create a deck
+        function createDeck() {
+            const deck = [];
+            for (const suit of suits) {
+                for (const rank of ranks) {
+                    deck.push({ rank, suit });
+                }
+            }
+            return deck;
+        }
+
+        // Shuffle deck
+        function shuffle(deck) {
+            const shuffled = [...deck];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Deal a hand
+        function dealHand() {
+            const deck = shuffle(createDeck());
+            return deck.slice(0, 5);
+        }
+
+        // Display hand
+        function displayHand(hand) {
+            document.getElementById('loading').classList.remove('active');
+            document.getElementById('cards-container').style.display = 'flex';
+
+            hand.forEach((card, index) => {
+                const cardElement = document.getElementById(`card-${index}`);
+                const imgElement = cardElement.querySelector('img');
+                imgElement.src = getCardImageUrl(card);
+                imgElement.alt = `${card.rank} of ${card.suit}`;
+            });
+        }
+
+        // Helper function to convert ranks to pattern string with T for 10
+        function toPatternString(ranks) {
+            return ranks.map(r => r === '10' ? 'T' : r).join('');
+        }
+
+        // Strategy evaluation logic
+        function evaluateHand(hand) {
+            // This function will return the best hold pattern according to the strategy
+            const strategies = [];
+
+            // Helper functions
+            function countRank(cards, rank) {
+                return cards.filter(c => c.rank === rank).length;
+            }
+
+            function isFlush(cards) {
+                if (cards.length !== 5) return false;
+                return cards.every(c => c.suit === cards[0].suit);
+            }
+
+            function isStraight(cards) {
+                if (cards.length !== 5) return false;
+                const values = cards.map(c => rankValues[c.rank]).sort((a, b) => a - b);
+
+                // Check for regular straight
+                let isRegularStraight = true;
+                for (let i = 1; i < values.length; i++) {
+                    if (values[i] !== values[i-1] + 1) {
+                        isRegularStraight = false;
+                        break;
+                    }
+                }
+
+                // Check for A-2-3-4-5
+                const isWheelStraight =
+                    values[0] === 2 && values[1] === 3 &&
+                    values[2] === 4 && values[3] === 5 && values[4] === 14;
+
+                return isRegularStraight || isWheelStraight;
+            }
+
+            function isRoyalFlush(cards) {
+                if (!isFlush(cards) || cards.length !== 5) return false;
+                const ranks = cards.map(c => c.rank).sort();
+                return ranks.join('') === '10AJKQ' || ranks.join('') === '10AJQK';
+            }
+
+            function isStraightFlush(cards) {
+                return isFlush(cards) && isStraight(cards) && !isRoyalFlush(cards);
+            }
+
+            function getRankCounts(cards) {
+                const counts = {};
+                cards.forEach(card => {
+                    counts[card.rank] = (counts[card.rank] || 0) + 1;
+                });
+                return counts;
+            }
+
+            function getPairs(cards) {
+                const counts = getRankCounts(cards);
+                return Object.entries(counts)
+                    .filter(([rank, count]) => count === 2)
+                    .map(([rank]) => rank);
+            }
+
+            function getTrips(cards) {
+                const counts = getRankCounts(cards);
+                return Object.entries(counts)
+                    .filter(([rank, count]) => count === 3)
+                    .map(([rank]) => rank);
+            }
+
+            function getQuads(cards) {
+                const counts = getRankCounts(cards);
+                return Object.entries(counts)
+                    .filter(([rank, count]) => count === 4)
+                    .map(([rank]) => rank);
+            }
+
+            // Generate all possible holds
+            function generateHolds(hand) {
+                const holds = [];
+                for (let i = 0; i < 32; i++) {
+                    const holdPattern = [];
+                    const holdCards = [];
+                    for (let j = 0; j < 5; j++) {
+                        if (i & (1 << j)) {
+                            holdPattern.push(j);
+                            holdCards.push(hand[j]);
+                        }
+                    }
+                    holds.push({ pattern: holdPattern, cards: holdCards });
+                }
+                return holds;
+            }
+
+            // Evaluate each possible hold
+            const allHolds = generateHolds(hand);
+
+            for (const hold of allHolds) {
+                const { pattern, cards } = hold;
+                let strategyRank = 999; // Default to lowest priority
+                let strategyName = "Discard everything";
+
+                // Check made hands (5 cards)
+                if (cards.length === 5) {
+                    if (isRoyalFlush(cards)) {
+                        strategyRank = 1;
+                        strategyName = "Royal Flush";
+                    } else if (getQuads(cards).length > 0) {
+                        const quadRank = getQuads(cards)[0];
+                        if (['A', '2', '3', '4'].includes(quadRank)) {
+                            // Check for kicker
+                            const otherCard = cards.find(c => c.rank !== quadRank);
+                            if (['A', '2', '3', '4'].includes(otherCard.rank)) {
+                                strategyRank = 2;
+                                strategyName = `Four ${quadRank}s with ${otherCard.rank} kicker`;
+                            } else {
+                                strategyRank = 3;
+                                strategyName = "4 of a kind";
+                            }
+                        } else {
+                            strategyRank = 3;
+                            strategyName = "4 of a kind";
+                        }
+                    } else if (isStraightFlush(cards)) {
+                        strategyRank = 4;
+                        strategyName = "Straight Flush";
+                    } else if (getTrips(cards).length > 0 && getPairs(cards).length > 0) {
+                        strategyRank = 7;
+                        strategyName = "Full House";
+                    } else if (isFlush(cards)) {
+                        strategyRank = 8;
+                        strategyName = "Flush";
+                    } else if (isStraight(cards)) {
+                        strategyRank = 9;
+                        strategyName = "Straight";
+                    } else if (getTrips(cards).length > 0) {
+                        const tripRank = getTrips(cards)[0];
+                        if (tripRank === 'A') {
+                            strategyRank = 6;
+                            strategyName = "3 of a kind: Aces";
+                        } else {
+                            strategyRank = 10;
+                            strategyName = `3 of a kind: ${tripRank}s`;
+                        }
+                    }
+                    // Note: We don't handle 2 pair or 1 pair for 5-card holds
+                    // as we should only hold the pairs themselves (4 cards for 2 pair, 2 cards for 1 pair)
+                }
+
+                // Check for 2 pair (4 cards)
+                if (cards.length === 4) {
+                    const pairs = getPairs(cards);
+                    if (pairs.length === 2) {
+                        strategyRank = 13;
+                        strategyName = "2 pair";
+                    }
+                }
+
+                // Check 4-card draws
+                if (cards.length === 4) {
+                    const sortedCards = [...cards].sort((a, b) => rankValues[a.rank] - rankValues[b.rank]);
+                    const ranks = sortedCards.map(c => c.rank);
+                    const suits = sortedCards.map(c => c.suit);
+                    const allSameSuit = suits.every(s => s === suits[0]);
+
+                    // 4 to a Royal Flush
+                    if (allSameSuit) {
+                        const royalRanks = ['10', 'J', 'Q', 'K', 'A'];
+                        if (ranks.filter(r => royalRanks.includes(r)).length === 4) {
+                            strategyRank = 5;
+                            strategyName = "4 to a Royal Flush";
+                        }
+                        // 4 to a Straight Flush
+                        else {
+                            const values = sortedCards.map(c => rankValues[c.rank]);
+                            let isSF = true;
+                            for (let i = 1; i < values.length; i++) {
+                                if (values[i] !== values[i-1] + 1) {
+                                    isSF = false;
+                                    break;
+                                }
+                            }
+                            if (isSF) {
+                                strategyRank = 11;
+                                strategyName = "4 to a Straight Flush";
+                            }
+                            // 4 to a Flush
+                            else {
+                                strategyRank = 18;
+                                strategyName = "4 to a Flush";
+                            }
+                        }
+                    }
+
+                    // 4 to a Straight
+                    const values = sortedCards.map(c => rankValues[c.rank]);
+                    const patternStr = toPatternString(ranks);
+
+                    // Check if it's a 4-card straight draw (can make a straight)
+                    // This includes both consecutive and gap straights
+                    let is4ToStraight = false;
+
+                    // Check for consecutive straight draw
+                    let isConsecutive = true;
+                    for (let i = 1; i < values.length; i++) {
+                        if (values[i] !== values[i-1] + 1) {
+                            isConsecutive = false;
+                            break;
+                        }
+                    }
+
+                    // Check if cards span exactly 5 ranks (gap straight)
+                    const range = values[3] - values[0];
+                    const isGapStraight = range === 4 && !isConsecutive;
+
+                    // Check for special cases (A-high straights)
+                    const isSpecialStraight = ['JQKA', '9JQK', 'TJQA', 'TJKA', 'TQKA', '89JQ', '8TJQ', '9TJK', '9TQK'].includes(patternStr);
+
+                    is4ToStraight = isConsecutive || isGapStraight || isSpecialStraight;
+
+                    if (is4ToStraight) {
+                        // Categorize the straight draw by priority
+                        // Pattern 1: 4 to a Straight: 89TJ, 9TJQ, TJQK
+                        if (['89TJ', '9TJQ', 'TJQK'].includes(patternStr)) {
+                            strategyRank = 20;
+                            strategyName = "4 to a Straight: 89TJ, 9TJQ, TJQK";
+                        }
+                        // Pattern 2: 4 to a Straight: 2345, 3456, 4567, 5678, 6789, 789T
+                        else if (['2345', '3456', '4567', '5678', '6789', '789T'].includes(patternStr)) {
+                            strategyRank = 22;
+                            strategyName = "4 to a Straight: 2345, 3456, 4567, 5678, 6789, 789T";
+                        }
+                        // Pattern 4: 4 to a Straight: JQKA
+                        else if (patternStr === 'JQKA') {
+                            strategyRank = 24;
+                            strategyName = "4 to a Straight: JQKA";
+                        }
+                        // Pattern 5: 4 to a Straight: 9JQK, TJQA/TJKA/TQKA
+                        else if (['9JQK', 'TJQA', 'TJKA', 'TQKA'].includes(patternStr)) {
+                            strategyRank = 25;
+                            strategyName = "4 to a Straight: 9JQK, TJQA/TJKA/TQKA";
+                        }
+                        // Pattern 8: 4 to a Straight: 89JQ/8TJQ, 9TJK/9TQK (both slash variants)
+                        else if (['89JQ', '8TJQ', '9TJK', '9TQK'].includes(patternStr)) {
+                            strategyRank = 28;
+                            strategyName = "4 to a Straight: 89JQ/8TJQ, 9TJK/9TQK";
+                        }
+                        // Pattern 10: Gap straights - explicitly check all patterns
+                        else if (['2346', '2356', '2456', '3457', '3467', '3567',
+                                  '4568', '4578', '4678', '5679', '5689', '5789',
+                                  '678T', '679T', '689T'].includes(patternStr)) {
+                            strategyRank = 37;
+                            strategyName = "4 to a Straight: 2346/2356/2456, 3457/3467/3567, 4568/4578/4678, 5679/5689/5789, 678T/679T/689T";
+                        }
+                    }
+                }
+
+                // Check 3-card draws
+                if (cards.length === 3) {
+                    const sortedCards = [...cards].sort((a, b) => rankValues[a.rank] - rankValues[b.rank]);
+                    const ranks = sortedCards.map(c => c.rank);
+                    const suits = sortedCards.map(c => c.suit);
+                    const allSameSuit = suits.every(s => s === suits[0]);
+                    const patternStr = toPatternString(ranks);
+
+                    // 3 to a Royal Flush
+                    if (allSameSuit) {
+                        const royalRanks = ['10', 'J', 'Q', 'K', 'A'];
+                        const royalCards = ranks.filter(r => royalRanks.includes(r));
+                        if (royalCards.length === 3) {
+                            const royalPattern = toPatternString(royalCards.sort((a, b) => rankValues[a] - rankValues[b]));
+                            if (royalPattern === 'JQK') {
+                                strategyRank = 14;
+                                strategyName = "3 to a Royal Flush: JQK";
+                            } else if (royalPattern === 'TJQ') {
+                                strategyRank = 16;
+                                strategyName = "3 to a Royal Flush: TJQ";
+                            } else if (['TJK', 'TQK', 'TJA', 'TQA', 'TKA', 'JQA', 'JKA', 'QKA'].includes(royalPattern)) {
+                                strategyRank = 19;
+                                strategyName = "3 to a Royal Flush: TJK/TQK, TJA/TQA/TKA/JQA/JKA/QKA";
+                            } else {
+                                strategyRank = 19.5; // Other 3 to RF patterns not specifically listed
+                                strategyName = `3 to a Royal Flush (other)`;
+                            }
+                        }
+
+                        // 3 to a Straight Flush - cards must be within 5 ranks
+                        const values = sortedCards.map(c => rankValues[c.rank]);
+                        const range = values[2] - values[0]; // Difference between highest and lowest
+
+                        // Check for A-low straight flush patterns specifically
+                        const hasAce = ranks.includes('A');
+                        let isAceLowSF = false;
+                        let aceLowPattern = '';
+
+                        if (hasAce && allSameSuit) {
+                            // Get the other two cards (not the Ace)
+                            const nonAceCards = sortedCards.filter(c => c.rank !== 'A');
+                            if (nonAceCards.length === 2) {
+                                const v1 = rankValues[nonAceCards[0].rank];
+                                const v2 = rankValues[nonAceCards[1].rank];
+                                // Check if both cards are 5 or lower (making A-low straight flush possible)
+                                if (v1 <= 5 && v2 <= 5) {
+                                    isAceLowSF = true;
+                                    // Create pattern string with cards in ascending order (but A at end for matching)
+                                    aceLowPattern = nonAceCards.map(c => c.rank).join('') + 'A';
+                                }
+                            }
+                        }
+
+                        if (allSameSuit && (range <= 4 || isAceLowSF)) {
+                            // Use normalized pattern string with T for 10
+                            const sfPatternStr = isAceLowSF ? aceLowPattern.replace('10', 'T') : patternStr;
+
+                            // Pattern 3: 3 to SF: 345, 456, 567, 678, 789, 89T, 89J/8TJ, 8JQ, 9TJ, 9TQ/9JQ, 9JK/9QK
+                            // All slash variants expanded
+                            if (['345', '456', '567', '678', '789', '89T', '89J', '8TJ', '8JQ', '9TJ', '9TQ', '9JQ', '9JK', '9QK'].includes(sfPatternStr)) {
+                                strategyRank = 23;
+                                strategyName = `3 to a Straight Flush: 345, 456, 567, 678, 789, 89T, 89J/8TJ, 8JQ, 9TJ, 9TQ/9JQ, 9JK/9QK`;
+                            }
+                            // Pattern 6: Ace-low 3 to SF patterns
+                            else if (isAceLowSF && ['23A', '24A', '25A', '34A', '35A', '45A'].includes(sfPatternStr)) {
+                                strategyRank = 25.5;
+                                strategyName = `3 to a Straight Flush: Ace-low`;
+                            }
+                            // Pattern 7: 3 to SF: 234/235/245, 346/356, 457/467, 568/578, 679/689, 78T/78J/79J, 79T/7TJ, 89Q/8TQ, 9TK
+                            // All slash variants expanded
+                            else if (['234', '235', '245', '346', '356', '457', '467', '568', '578',
+                                     '679', '689', '78T', '78J', '79J', '79T', '7TJ', '89Q', '8TQ', '9TK'].includes(sfPatternStr)) {
+                                strategyRank = 26;
+                                strategyName = `3 to a Straight Flush: 234/235/245, 346/356, 457/467, 568/578, 679/689, 78T/78J/79J, 79T/7TJ, 89Q/8TQ, 9TK`;
+                            }
+                            // Pattern 9: 3 to SF: 236/246/256, 347/357/367, 458/468/478, 569/579/589, 67T/68T/69T
+                            // All slash variants expanded
+                            else if (['236', '246', '256', '347', '357', '367', '458', '468', '478',
+                                     '569', '579', '589', '67T', '68T', '69T'].includes(sfPatternStr)) {
+                                strategyRank = 36;
+                                strategyName = `3 to a Straight Flush: 236/246/256, 347/357/367, 458/468/478, 569/579/589, 67T/68T/69T`;
+                            }
+                        }
+                    }
+
+                    // 3 to a Straight
+                    if (patternStr === 'JQK') {
+                        strategyRank = 27;
+                        strategyName = "3 to a Straight: JQK";
+                    }
+
+                    // 3 to a Flush with specific pattern (2TK to 8TK)
+                    if (allSameSuit) {
+                        const hasT = ranks.includes('10');
+                        const hasK = ranks.includes('K');
+                        const lowCard = sortedCards[0];
+                        if (hasT && hasK && rankValues[lowCard.rank] >= 2 && rankValues[lowCard.rank] <= 8) {
+                            const flushPattern = toPatternString([lowCard.rank, '10', 'K']);
+                            strategyRank = 33;
+                            strategyName = `3 to a Flush: 2TK to 8TK`;
+                        }
+                    }
+                }
+
+                // Check 2-card draws
+                if (cards.length === 2) {
+                    const sortedCards = [...cards].sort((a, b) => rankValues[a.rank] - rankValues[b.rank]);
+                    const ranks = sortedCards.map(c => c.rank);
+                    const suits = sortedCards.map(c => c.suit);
+                    const sameSuit = suits[0] === suits[1];
+                    const patternStr = toPatternString(ranks);
+
+                    // 2 to a Royal Flush
+                    if (sameSuit) {
+                        const royalRanks = ['10', 'J', 'Q', 'K', 'A'];
+                        if (ranks.every(r => royalRanks.includes(r))) {
+                            // Note: When sorted, A comes after K, so AK becomes KA, AJ becomes JA, AQ becomes QA
+                            if (patternStr === 'JQ') {
+                                strategyRank = 24.5;
+                                strategyName = "2 to a Royal Flush: JQ, JK/QK, JA/QA/KA";
+                            } else if (['JK', 'QK'].includes(patternStr)) {
+                                strategyRank = 24.5;
+                                strategyName = "2 to a Royal Flush: JQ, JK/QK, JA/QA/KA";
+                            } else if (['JA', 'QA', 'KA'].includes(patternStr)) {
+                                // These are the correct sorted orders for AJ, AQ, AK
+                                strategyRank = 24.5;
+                                strategyName = "2 to a Royal Flush: JQ, JK/QK, JA/QA/KA";
+                            } else if (patternStr === 'TJ') {
+                                strategyRank = 31;
+                                strategyName = "2 to a Royal Flush: TJ";
+                            } else if (['TQ', 'TK'].includes(patternStr)) {
+                                strategyRank = 34;
+                                strategyName = "2 to a Royal Flush: TQ, TK";
+                            }
+                        }
+                    }
+
+                    // 2 to a Straight (high cards)
+                    if (!sameSuit) {  // Not suited
+                        if (patternStr === 'JQ') {
+                            strategyRank = 29;
+                            strategyName = "2 to a Straight: JQ";
+                        } else if (['JK', 'QK'].includes(patternStr)) {
+                            strategyRank = 32;
+                            strategyName = "2 to a Straight: JK/QK";
+                        }
+                    }
+                }
+
+                // Check 1-card holds
+                if (cards.length === 1) {
+                    const card = cards[0];
+                    if (card.rank === 'A') {
+                        strategyRank = 30;
+                        strategyName = "1 high card: Ace";
+                    } else if (['J', 'Q', 'K'].includes(card.rank)) {
+                        strategyRank = 35;
+                        strategyName = "1 high card: J/Q/K";
+                    }
+                }
+
+                // Check pairs
+                if (cards.length === 2 && cards[0].rank === cards[1].rank) {
+                    const pairRank = cards[0].rank;
+                    if (pairRank === 'A') {
+                        strategyRank = 12;
+                        strategyName = "1 pair: Aces";
+                    } else if (pairRank === 'K') {
+                        strategyRank = 15;
+                        strategyName = "1 pair: Kings";
+                    } else if (['J', 'Q'].includes(pairRank)) {
+                        strategyRank = 17;
+                        strategyName = "1 pair: Jacks or Queens";
+                    } else {
+                        strategyRank = 21;
+                        strategyName = "1 pair: 2s thru 10s";
+                    }
+                }
+
+                // Check trips
+                if (cards.length === 3) {
+                    const counts = getRankCounts(cards);
+                    const tripRank = Object.entries(counts).find(([r, c]) => c === 3)?.[0];
+                    if (tripRank) {
+                        if (tripRank === 'A') {
+                            strategyRank = 6;
+                            strategyName = "3 of a kind: Aces";
+                        } else {
+                            strategyRank = 10;
+                            strategyName = `3 of a kind: ${tripRank}s`;
+                        }
+                    }
+                }
+
+                strategies.push({
+                    pattern,
+                    cards,
+                    rank: strategyRank,
+                    name: strategyName
+                });
+            }
+
+            // Sort strategies by rank (lower is better)
+            strategies.sort((a, b) => a.rank - b.rank);
+
+            // Return the best strategy
+            return strategies[0];
+        }
+
+        // Toggle card selection
+        function toggleCard(index) {
+            if (!isWaitingForAnswer) return;
+
+            const card = document.getElementById(`card-${index}`);
+            const wrapper = card.parentElement;
+
+            if (selectedCards.has(index)) {
+                selectedCards.delete(index);
+                card.classList.remove('selected');
+                wrapper.classList.remove('held');
+            } else {
+                selectedCards.add(index);
+                card.classList.add('selected');
+                wrapper.classList.add('held');
+            }
+        }
+
+        // Initialize game
+        function initGame() {
+            // Load saved stats
+            const saved = localStorage.getItem('vpTrainerStats');
+            if (saved) {
+                stats = JSON.parse(saved);
+                updateStatsDisplay();
+            }
+
+            // Add click handlers for cards
+            document.querySelectorAll('.card').forEach((card, index) => {
+                card.addEventListener('click', () => {
+                    toggleCard(index);
+                });
+            });
+
+            // Add keyboard handlers
+            document.addEventListener('keydown', (event) => {
+                const key = event.key.toLowerCase();
+
+                // Review mode navigation
+                if (isReviewMode) {
+                    if (key === 'arrowleft') {
+                        event.preventDefault();
+                        prevReviewHand();
+                    } else if (key === 'arrowright') {
+                        event.preventDefault();
+                        nextReviewHand();
+                    } else if (key === 'escape') {
+                        event.preventDefault();
+                        exitReviewMode();
+                    }
+                    return; // Don't process other keys in review mode
+                }
+
+                // Card selection shortcuts (D, F, J, K, L for cards 1-5)
+                const keyMap = {
+                    'd': 0,  // Card 1
+                    'f': 1,  // Card 2
+                    'j': 2,  // Card 3
+                    'k': 3,  // Card 4
+                    'l': 4   // Card 5
+                };
+
+                if (keyMap.hasOwnProperty(key)) {
+                    event.preventDefault();
+                    toggleCard(keyMap[key]);
+                }
+
+                // Space or Enter to submit answer or deal next hand
+                if (key === ' ' || key === 'enter') {
+                    event.preventDefault();
+                    if (isWaitingForAnswer) {
+                        submitAnswer();
+                    } else {
+                        dealNewHand();
+                    }
+                }
+
+                // N for next hand (when answer has been submitted)
+                if (key === 'n' && !isWaitingForAnswer) {
+                    event.preventDefault();
+                    dealNewHand();
+                }
+
+                // R for review mode
+                if (key === 'r' && missedHands.length > 0) {
+                    event.preventDefault();
+                    enterReviewMode();
+                }
+            });
+
+            // Add button handlers
+            document.getElementById('submit-btn').addEventListener('click', submitAnswer);
+            document.getElementById('deal-btn').addEventListener('click', dealNewHand);
+
+            // Add reset stats button handler
+            document.getElementById('reset-stats-btn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to reset your statistics? This cannot be undone.')) {
+                    stats = {
+                        correct: 0,
+                        total: 0
+                    };
+                    missedHands = []; // Also clear missed hands
+                    updateStatsDisplay();
+                    updateMissedCount();
+                    saveStats();
+                    // Optional: Show a brief confirmation
+                    const resetBtn = document.getElementById('reset-stats-btn');
+                    const originalText = resetBtn.textContent;
+                    resetBtn.textContent = 'Stats Reset!';
+                    resetBtn.style.background = '#48bb78';
+                    setTimeout(() => {
+                        resetBtn.textContent = originalText;
+                        resetBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+                    }, 1500);
+                }
+            });
+
+            // Add review button handler
+            document.getElementById('review-btn').addEventListener('click', enterReviewMode);
+
+            // Add review navigation handlers
+            document.getElementById('exit-review-btn').addEventListener('click', exitReviewMode);
+            document.getElementById('prev-review-btn').addEventListener('click', prevReviewHand);
+            document.getElementById('next-review-btn').addEventListener('click', nextReviewHand);
+
+            // Deal first hand
+            dealNewHand();
+        }
+
+        // Deal new hand
+        function dealNewHand() {
+            currentHand = dealHand();
+            selectedCards.clear();
+            isWaitingForAnswer = true;
+
+            // Reset UI
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelectorAll('.card-wrapper').forEach(wrapper => {
+                wrapper.classList.remove('held');
+            });
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'block';
+            document.getElementById('deal-btn').textContent = 'Deal New Hand';
+            document.getElementById('deal-btn').disabled = true;
+
+            displayHand(currentHand);
+        }
+
+        // Submit answer
+        function submitAnswer() {
+            if (!isWaitingForAnswer) return;
+
+            isWaitingForAnswer = false;
+
+            // Get the best play
+            const bestPlay = evaluateHand(currentHand);
+            const userHold = Array.from(selectedCards).sort();
+            const correctHold = bestPlay.pattern.sort();
+
+            // Check if correct
+            const isCorrect = JSON.stringify(userHold) === JSON.stringify(correctHold);
+
+            // Update stats
+            stats.total++;
+            if (isCorrect) {
+                stats.correct++;
+            } else {
+                // Save missed hand for review
+                missedHands.push({
+                    hand: [...currentHand], // Copy the hand
+                    userHold: userHold,
+                    correctHold: correctHold,
+                    bestPlay: bestPlay
+                });
+                updateMissedCount();
+            }
+            updateStatsDisplay();
+            saveStats();
+
+            // Show feedback
+            const feedback = document.getElementById('feedback');
+            feedback.style.display = 'flex';
+            feedback.className = isCorrect ? 'feedback correct' : 'feedback incorrect';
+
+            const title = feedback.querySelector('.feedback-title');
+            const strategyContext = document.getElementById('strategy-context');
+
+            if (isCorrect) {
+                title.textContent = '✓ Correct!';
+            } else {
+                title.textContent = '✗ Incorrect';
+
+                // Highlight correct cards
+                document.querySelectorAll('.card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                document.querySelectorAll('.card-wrapper').forEach(wrapper => {
+                    wrapper.classList.remove('held');
+                });
+
+                bestPlay.pattern.forEach(index => {
+                    document.getElementById(`card-${index}`).classList.add('selected');
+                    document.querySelectorAll('.card-wrapper')[index].classList.add('held');
+                });
+            }
+
+            // Display strategy context
+            const contextLines = getStrategyContext(bestPlay.rank);
+            let contextHTML = '';
+
+            contextLines.forEach(line => {
+                if (line.isCurrent) {
+                    const indicator = isCorrect ? '→' : '✓';
+                    contextHTML += `<div class="strategy-line current"><span class="strategy-indicator">${indicator}</span>${line.text}</div>`;
+                } else {
+                    contextHTML += `<div class="strategy-line"><span class="strategy-indicator"> </span>${line.text}</div>`;
+                }
+            });
+
+            strategyContext.innerHTML = contextHTML;
+
+            // Update buttons
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('deal-btn').disabled = false;
+            document.getElementById('deal-btn').textContent = 'Next Hand';
+        }
+
+        // Get strategy context with surrounding lines
+        function getStrategyContext(strategyRank) {
+            // Find the matching strategy line
+            let currentIndex = strategyGuide.findIndex(s => Math.abs(s.rank - strategyRank) < 0.1);
+
+            // If not found exactly, find the closest
+            if (currentIndex === -1) {
+                let minDiff = Infinity;
+                strategyGuide.forEach((s, i) => {
+                    const diff = Math.abs(s.rank - strategyRank);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        currentIndex = i;
+                    }
+                });
+            }
+
+            // Get 2 lines before and 2 lines after
+            const contextLines = [];
+            const start = Math.max(0, currentIndex - 2);
+            const end = Math.min(strategyGuide.length - 1, currentIndex + 2);
+
+            for (let i = start; i <= end; i++) {
+                const isCurrent = i === currentIndex;
+                contextLines.push({
+                    text: strategyGuide[i].text,
+                    isCurrent: isCurrent
+                });
+            }
+
+            return contextLines;
+        }
+
+        // Update stats display
+        function updateStatsDisplay() {
+            document.getElementById('correct').textContent = stats.correct;
+            document.getElementById('total').textContent = stats.total;
+            const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+        }
+
+        // Save stats
+        function saveStats() {
+            localStorage.setItem('vpTrainerStats', JSON.stringify(stats));
+        }
+
+        // Update missed hands count display
+        function updateMissedCount() {
+            const missedCount = document.getElementById('missed-count');
+            if (missedHands.length > 0) {
+                missedCount.style.display = 'inline';
+                missedCount.textContent = missedHands.length;
+            } else {
+                missedCount.style.display = 'none';
+            }
+        }
+
+        // Enter review mode
+        function enterReviewMode() {
+            if (missedHands.length === 0) {
+                alert('No missed hands to review! Keep practicing.');
+                return;
+            }
+
+            isReviewMode = true;
+            currentReviewIndex = 0;
+
+            // Hide normal controls, show review controls
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('deal-btn').style.display = 'none';
+            document.getElementById('review-controls').style.display = 'block';
+
+            // Update review counter
+            document.getElementById('review-current').textContent = currentReviewIndex + 1;
+            document.getElementById('review-total').textContent = missedHands.length;
+
+            // Show the first missed hand
+            showReviewHand();
+        }
+
+        // Exit review mode
+        function exitReviewMode() {
+            isReviewMode = false;
+
+            // Hide review controls, show normal controls
+            document.getElementById('review-controls').style.display = 'none';
+            document.getElementById('deal-btn').style.display = 'block';
+            document.getElementById('feedback').style.display = 'none';
+
+            // Deal a new hand
+            dealNewHand();
+        }
+
+        // Show a review hand
+        function showReviewHand() {
+            const reviewHand = missedHands[currentReviewIndex];
+
+            // Display the hand
+            currentHand = reviewHand.hand;
+            displayHand(currentHand);
+
+            // Clear selections
+            selectedCards.clear();
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelectorAll('.card-wrapper').forEach(wrapper => {
+                wrapper.classList.remove('held');
+            });
+
+            // Show the correct hold pattern
+            reviewHand.correctHold.forEach(index => {
+                document.getElementById(`card-${index}`).classList.add('selected');
+                document.querySelectorAll('.card-wrapper')[index].classList.add('held');
+            });
+
+            // Show feedback with the correct strategy
+            const feedback = document.getElementById('feedback');
+            feedback.style.display = 'flex';
+            feedback.className = 'feedback';
+
+            const title = feedback.querySelector('.feedback-title');
+            title.textContent = 'Correct Play:';
+
+            // Display strategy context
+            const contextLines = getStrategyContext(reviewHand.bestPlay.rank);
+            let contextHTML = '';
+
+            contextLines.forEach(line => {
+                if (line.isCurrent) {
+                    contextHTML += `<div class="strategy-line current"><span class="strategy-indicator">→</span>${line.text}</div>`;
+                } else {
+                    contextHTML += `<div class="strategy-line"><span class="strategy-indicator"> </span>${line.text}</div>`;
+                }
+            });
+
+            document.getElementById('strategy-context').innerHTML = contextHTML;
+
+            // Update navigation buttons
+            document.getElementById('prev-review-btn').disabled = currentReviewIndex === 0;
+            document.getElementById('next-review-btn').disabled = currentReviewIndex === missedHands.length - 1;
+        }
+
+        // Navigate review hands
+        function nextReviewHand() {
+            if (currentReviewIndex < missedHands.length - 1) {
+                currentReviewIndex++;
+                document.getElementById('review-current').textContent = currentReviewIndex + 1;
+                showReviewHand();
+            }
+        }
+
+        function prevReviewHand() {
+            if (currentReviewIndex > 0) {
+                currentReviewIndex--;
+                document.getElementById('review-current').textContent = currentReviewIndex + 1;
+                showReviewHand();
+            }
+        }
+
+        // Start the game when page loads
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
