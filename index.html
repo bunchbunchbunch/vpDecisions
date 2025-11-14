@@ -673,10 +673,11 @@
                     const suits = sortedCards.map(c => c.suit);
                     const allSameSuit = suits.every(s => s === suits[0]);
 
-                    // 4 to a Royal Flush
+                    // 4 to a Royal Flush - CHECK THIS FIRST, HIGHEST PRIORITY
                     if (allSameSuit) {
                         const royalRanks = ['10', 'J', 'Q', 'K', 'A'];
-                        if (ranks.filter(r => royalRanks.includes(r)).length === 4) {
+                        const royalCount = ranks.filter(r => royalRanks.includes(r)).length;
+                        if (royalCount === 4) {
                             strategyRank = 5;
                             strategyName = "4 to a Royal Flush";
                         }
@@ -702,65 +703,68 @@
                         }
                     }
 
-                    // 4 to a Straight
-                    const values = sortedCards.map(c => rankValues[c.rank]);
-                    const patternStr = toPatternString(ranks);
+                    // 4 to a Straight - only check if we haven't already found a better suited draw
+                    // Don't override Royal Flush or Straight Flush draws!
+                    if (strategyRank > 11) {  // Only check straights if we haven't found RF (5) or SF (11)
+                        const values = sortedCards.map(c => rankValues[c.rank]);
+                        const patternStr = toPatternString(ranks);
 
-                    // Check if it's a 4-card straight draw (can make a straight)
-                    // This includes both consecutive and gap straights
-                    let is4ToStraight = false;
+                        // Check if it's a 4-card straight draw (can make a straight)
+                        // This includes both consecutive and gap straights
+                        let is4ToStraight = false;
 
-                    // Check for consecutive straight draw
-                    let isConsecutive = true;
-                    for (let i = 1; i < values.length; i++) {
-                        if (values[i] !== values[i-1] + 1) {
-                            isConsecutive = false;
-                            break;
+                        // Check for consecutive straight draw
+                        let isConsecutive = true;
+                        for (let i = 1; i < values.length; i++) {
+                            if (values[i] !== values[i-1] + 1) {
+                                isConsecutive = false;
+                                break;
+                            }
                         }
-                    }
 
-                    // Check if cards span exactly 5 ranks (gap straight)
-                    const range = values[3] - values[0];
-                    const isGapStraight = range === 4 && !isConsecutive;
+                        // Check if cards span exactly 5 ranks (gap straight)
+                        const range = values[3] - values[0];
+                        const isGapStraight = range === 4 && !isConsecutive;
 
-                    // Check for special cases (A-high straights)
-                    const isSpecialStraight = ['JQKA', '9JQK', 'TJQA', 'TJKA', 'TQKA', '89JQ', '8TJQ', '9TJK', '9TQK'].includes(patternStr);
+                        // Check for special cases (A-high straights)
+                        const isSpecialStraight = ['JQKA', '9JQK', 'TJQA', 'TJKA', 'TQKA', '89JQ', '8TJQ', '9TJK', '9TQK'].includes(patternStr);
 
-                    is4ToStraight = isConsecutive || isGapStraight || isSpecialStraight;
+                        is4ToStraight = isConsecutive || isGapStraight || isSpecialStraight;
 
-                    if (is4ToStraight) {
-                        // Categorize the straight draw by priority
-                        // Pattern 1: 4 to a Straight: 89TJ, 9TJQ, TJQK
-                        if (['89TJ', '9TJQ', 'TJQK'].includes(patternStr)) {
-                            strategyRank = 20;
-                            strategyName = "4 to a Straight: 89TJ, 9TJQ, TJQK";
-                        }
-                        // Pattern 2: 4 to a Straight: 2345, 3456, 4567, 5678, 6789, 789T
-                        else if (['2345', '3456', '4567', '5678', '6789', '789T'].includes(patternStr)) {
-                            strategyRank = 22;
-                            strategyName = "4 to a Straight: 2345, 3456, 4567, 5678, 6789, 789T";
-                        }
-                        // Pattern 4: 4 to a Straight: JQKA
-                        else if (patternStr === 'JQKA') {
-                            strategyRank = 24;
-                            strategyName = "4 to a Straight: JQKA";
-                        }
-                        // Pattern 5: 4 to a Straight: 9JQK, TJQA/TJKA/TQKA
-                        else if (['9JQK', 'TJQA', 'TJKA', 'TQKA'].includes(patternStr)) {
-                            strategyRank = 25;
-                            strategyName = "4 to a Straight: 9JQK, TJQA/TJKA/TQKA";
-                        }
-                        // Pattern 8: 4 to a Straight: 89JQ/8TJQ, 9TJK/9TQK (both slash variants)
-                        else if (['89JQ', '8TJQ', '9TJK', '9TQK'].includes(patternStr)) {
-                            strategyRank = 28;
-                            strategyName = "4 to a Straight: 89JQ/8TJQ, 9TJK/9TQK";
-                        }
-                        // Pattern 10: Gap straights - explicitly check all patterns
-                        else if (['2346', '2356', '2456', '3457', '3467', '3567',
-                                  '4568', '4578', '4678', '5679', '5689', '5789',
-                                  '678T', '679T', '689T'].includes(patternStr)) {
-                            strategyRank = 37;
-                            strategyName = "4 to a Straight: 2346/2356/2456, 3457/3467/3567, 4568/4578/4678, 5679/5689/5789, 678T/679T/689T";
+                        if (is4ToStraight) {
+                            // Categorize the straight draw by priority
+                            // Pattern 1: 4 to a Straight: 89TJ, 9TJQ, TJQK
+                            if (['89TJ', '9TJQ', 'TJQK'].includes(patternStr)) {
+                                strategyRank = 20;
+                                strategyName = "4 to a Straight: 89TJ, 9TJQ, TJQK";
+                            }
+                            // Pattern 2: 4 to a Straight: 2345, 3456, 4567, 5678, 6789, 789T
+                            else if (['2345', '3456', '4567', '5678', '6789', '789T'].includes(patternStr)) {
+                                strategyRank = 22;
+                                strategyName = "4 to a Straight: 2345, 3456, 4567, 5678, 6789, 789T";
+                            }
+                            // Pattern 4: 4 to a Straight: JQKA
+                            else if (patternStr === 'JQKA') {
+                                strategyRank = 24;
+                                strategyName = "4 to a Straight: JQKA";
+                            }
+                            // Pattern 5: 4 to a Straight: 9JQK, TJQA/TJKA/TQKA
+                            else if (['9JQK', 'TJQA', 'TJKA', 'TQKA'].includes(patternStr)) {
+                                strategyRank = 25;
+                                strategyName = "4 to a Straight: 9JQK, TJQA/TJKA/TQKA";
+                            }
+                            // Pattern 8: 4 to a Straight: 89JQ/8TJQ, 9TJK/9TQK (both slash variants)
+                            else if (['89JQ', '8TJQ', '9TJK', '9TQK'].includes(patternStr)) {
+                                strategyRank = 28;
+                                strategyName = "4 to a Straight: 89JQ/8TJQ, 9TJK/9TQK";
+                            }
+                            // Pattern 10: Gap straights - explicitly check all patterns
+                            else if (['2346', '2356', '2456', '3457', '3467', '3567',
+                                      '4568', '4578', '4678', '5679', '5689', '5789',
+                                      '678T', '679T', '689T'].includes(patternStr)) {
+                                strategyRank = 37;
+                                strategyName = "4 to a Straight: 2346/2356/2456, 3457/3467/3567, 4568/4578/4678, 5679/5689/5789, 678T/679T/689T";
+                            }
                         }
                     }
                 }
