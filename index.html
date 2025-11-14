@@ -703,13 +703,29 @@
                         // 4 to a Straight Flush
                         else {
                             const values = sortedCards.map(c => rankValues[c.rank]);
-                            let isSF = true;
+                            let isSF = false;
+
+                            // Check for consecutive straight flush (e.g., 6-7-8-9)
+                            let isConsecutive = true;
                             for (let i = 1; i < values.length; i++) {
                                 if (values[i] !== values[i-1] + 1) {
-                                    isSF = false;
+                                    isConsecutive = false;
                                     break;
                                 }
                             }
+
+                            // Check for gap straight flush (4 cards within 5 consecutive ranks)
+                            // e.g., 6-7-8-10 (missing 9), or 6-7-9-10 (missing 8)
+                            const range = values[values.length - 1] - values[0];
+                            const isGapSF = range === 4 && values.length === 4;
+
+                            // Check for A-low straight flush (A-2-3-4, A-2-3-5, A-2-4-5, A-3-4-5)
+                            const hasAce = ranks.includes('A');
+                            const hasLowCards = values.filter(v => v >= 2 && v <= 5).length === 3;
+                            const isAceLowSF = hasAce && hasLowCards;
+
+                            isSF = isConsecutive || isGapSF || isAceLowSF;
+
                             if (isSF) {
                                 strategyRank = 11;
                                 strategyName = "4 to a Straight Flush";
