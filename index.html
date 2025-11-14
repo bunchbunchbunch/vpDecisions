@@ -499,9 +499,28 @@
 
             hand.forEach((card, index) => {
                 const cardElement = document.getElementById(`card-${index}`);
-                const imgElement = cardElement.querySelector('img');
-                imgElement.src = getCardImageUrl(card);
-                imgElement.alt = `${card.rank} of ${card.suit}`;
+
+                // Reset the card background
+                cardElement.style.backgroundColor = 'white';
+
+                // Remove the old image element completely
+                const oldImg = cardElement.querySelector('img');
+                if (oldImg) {
+                    oldImg.remove();
+                }
+
+                // Create a new image element
+                const newImg = document.createElement('img');
+                newImg.src = getCardImageUrl(card);
+                newImg.alt = `${card.rank} of ${card.suit}`;
+
+                // Ensure image loads properly
+                newImg.onload = function() {
+                    cardElement.style.backgroundColor = 'white';
+                };
+
+                // Add the new image to the card element
+                cardElement.appendChild(newImg);
             });
         }
 
@@ -1116,6 +1135,9 @@
             // Reset UI
             document.querySelectorAll('.card').forEach(card => {
                 card.classList.remove('selected');
+                // Clear card content while loading new hand
+                card.innerHTML = '';
+                card.style.backgroundColor = '#f0f0f0';
             });
             document.querySelectorAll('.card-wrapper').forEach(wrapper => {
                 wrapper.classList.remove('held');
