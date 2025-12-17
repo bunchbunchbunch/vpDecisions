@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Video Poker Hand Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 550px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 10px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: #764ba2;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .nav-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        .paytable-section {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .paytable-section label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .paytable-select {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .paytable-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .payback-info {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .payback-value {
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .game-area {
+            background: #0a5f38;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .card-picker {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 15px;
+        }
+
+        .card-picker-row {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr);
+            gap: 3px;
+            margin-bottom: 3px;
+        }
+
+        .card-picker-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .picker-card {
+            aspect-ratio: 1;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.7rem;
+            line-height: 1;
+            transition: all 0.15s ease;
+            padding: 2px;
+        }
+
+        .picker-card:hover:not(.used) {
+            background: #f0f0f0;
+            transform: scale(1.1);
+            z-index: 1;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .picker-card.used {
+            opacity: 0.25;
+            cursor: not-allowed;
+            background: #e0e0e0;
+        }
+
+        .picker-card .rank {
+            font-size: 0.75rem;
+        }
+
+        .picker-card .suit {
+            font-size: 0.65rem;
+            margin-top: 1px;
+        }
+
+        .picker-card.red {
+            color: #c0392b;
+        }
+
+        .picker-card.black {
+            color: #333;
+        }
+
+        .cards-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            gap: 5px;
+        }
+
+        .card-slot {
+            flex: 1;
+            aspect-ratio: 2.5/3.5;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-slot.filled {
+            background: white;
+            border: 2px solid white;
+        }
+
+        .card-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-slot .remove-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(245, 101, 101, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .card-slot.filled:hover .remove-btn {
+            display: flex;
+        }
+
+        .card-slot-number {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .button.primary {
+            background: #ffd700;
+            color: #333;
+        }
+
+        .button.primary:hover:not(:disabled) {
+            background: #ffed4e;
+            transform: scale(1.02);
+        }
+
+        .button.secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .button.secondary:hover {
+            background: #2d3748;
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .results-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .result-item {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-item.best {
+            background: #f0fff4;
+            border-left-color: #48bb78;
+        }
+
+        .result-rank {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .result-item.best .result-rank {
+            background: #48bb78;
+        }
+
+        .result-hold {
+            display: inline;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .result-ev {
+            float: right;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .result-description {
+            margin-top: 5px;
+            font-size: 0.85rem;
+            color: #666;
+            margin-left: 34px;
+        }
+
+        .hold-cards {
+            display: inline-flex;
+            gap: 3px;
+            margin-left: 5px;
+        }
+
+        .mini-card {
+            display: inline-block;
+            padding: 2px 5px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .mini-card.red {
+            color: #c0392b;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #764ba2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 500px) {
+            .picker-card .rank {
+                font-size: 0.65rem;
+            }
+
+            .picker-card .suit {
+                font-size: 0.55rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 1.25rem;
+            }
+
+            .button {
+                font-size: 0.9rem;
+                padding: 10px 15px;
+            }
+
+            .card-picker {
+                padding: 4px;
+            }
+
+            .card-picker-row {
+                gap: 2px;
+                margin-bottom: 2px;
+            }
+
+            .picker-card .rank {
+                font-size: 0.6rem;
+            }
+
+            .picker-card .suit {
+                font-size: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Video Poker Hand Analyzer</h1>
+            <div class="subtitle">Calculate optimal holds and expected values</div>
+            <a href="index.html" class="nav-link">&larr; Back to Trainer</a>
+        </div>
+
+        <div class="paytable-section">
+            <label for="paytable-select">Select Game:</label>
+            <select id="paytable-select" class="paytable-select">
+                <optgroup label="Jacks or Better">
+                    <option value="jacks-or-better-9-6">Jacks or Better 9/6 (Full Pay)</option>
+                    <option value="jacks-or-better-8-5">Jacks or Better 8/5</option>
+                    <option value="jacks-or-better-7-5">Jacks or Better 7/5</option>
+                </optgroup>
+                <optgroup label="Bonus Poker">
+                    <option value="bonus-poker-8-5">Bonus Poker 8/5</option>
+                    <option value="bonus-poker-7-5">Bonus Poker 7/5</option>
+                </optgroup>
+                <optgroup label="Double Bonus">
+                    <option value="double-bonus-10-7">Double Bonus 10/7 (Full Pay)</option>
+                    <option value="double-bonus-9-7">Double Bonus 9/7</option>
+                    <option value="double-bonus-9-6">Double Bonus 9/6</option>
+                </optgroup>
+                <optgroup label="Double Double Bonus">
+                    <option value="double-double-bonus-9-6">Double Double Bonus 9/6</option>
+                    <option value="double-double-bonus-9-5">Double Double Bonus 9/5</option>
+                    <option value="double-double-bonus-8-5">Double Double Bonus 8/5</option>
+                </optgroup>
+            </select>
+            <div class="payback-info">
+                Theoretical Payback: <span class="payback-value" id="payback-display">99.54%</span>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="section-title">Select Your Hand</div>
+
+            <div class="card-picker" id="card-picker">
+                <!-- Cards will be generated by JavaScript -->
+            </div>
+
+            <div class="cards-container" id="cards-container">
+                <div class="card-slot" data-index="0">
+                    <span class="card-slot-number">1</span>
+                    <button class="remove-btn">&times;</button>
+                </div>
+                <div class="card-slot" data-index="1">
+                    <span class="card-slot-number">2</span>
+                    <button class="remove-btn">&times;</button>
+                </div>
+                <div class="card-slot" data-index="2">
+                    <span class="card-slot-number">3</span>
+                    <button class="remove-btn">&times;</button>
+                </div>
+                <div class="card-slot" data-index="3">
+                    <span class="card-slot-number">4</span>
+                    <button class="remove-btn">&times;</button>
+                </div>
+                <div class="card-slot" data-index="4">
+                    <span class="card-slot-number">5</span>
+                    <button class="remove-btn">&times;</button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="button secondary" id="clear-btn">Clear</button>
+                <button class="button primary" id="analyze-btn" disabled>Analyze Hand</button>
+            </div>
+
+            <div class="results-section" id="results-section">
+                <div class="empty-state">
+                    <div class="empty-state-icon">&#127183;</div>
+                    <div>Select 5 cards to analyze the optimal play</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div>Calculating expected values...</div>
+        </div>
+    </div>
+
+    <script>
+        // Paytable definitions
+        const PAYTABLES = {
+            'jacks-or-better-9-6': {
+                name: 'Jacks or Better 9/6',
+                payback: 0.9954,
+                gameType: 'jacks-or-better',
+                pays: {
+                    royalFlush: 800,
+                    straightFlush: 50,
+                    fourOfAKind: 25,
+                    fullHouse: 9,
+                    flush: 6,
+                    straight: 4,
+                    threeOfAKind: 3,
+                    twoPair: 2,
+                    jacksOrBetter: 1
+                }
+            },
+            'jacks-or-better-8-5': {
+                name: 'Jacks or Better 8/5',
+                payback: 0.9737,
+                gameType: 'jacks-or-better',
+                pays: {
+                    royalFlush: 800,
+                    straightFlush: 50,
+                    fourOfAKind: 25,
+                    fullHouse: 8,
+                    flush: 5,
+                    straight: 4,
+                    threeOfAKind: 3,
+                    twoPair: 2,
+                    jacksOrBetter: 1
+                }
+            },
+            'jacks-or-better-7-5': {
+                name: 'Jacks or Better 7/5',
+                payback: 0.9615,
+                gameType: 'jacks-or-better',
+                pays: {
+                    royalFlush: 800,
+                    straightFlush: 50,
+                    fourOfAKind: 25,
+                    fullHouse: 7,
+                    flush: 5,
+                    straight: 4,
+                    threeOfAKind: 3,
+                    twoPair: 2,
+                    jacksOrBetter: 1
+                }
+            },
+            'bonus-poker-8-5': {
+                name: 'Bonus Poker 8/5',
+                payback: 0.9917,
+                gameType: 'bonus-poker',
+                pays: {
+                    royalFlush: 800,
+                    straightFlush: 50,
+                    fourAces: 80,
+                    fourTwosThruFours: 40,
+                    fourFivesThruKings: 25,
+                    fullHouse: 8,
+                    flush: 5,
+                    straight: 4,
+                    threeOfAKind: 3,
+                    twoPair: 2,
+                    jacksOrBetter: 1
+                }
+            },
+            'bonus-poker-7-5': {
+                name: 'Bonus Poker 7/5',
+                payback: 0.9801,
+                gameType: 'bonus-poker',
+                pays: {
+                    royalFlush: 800,
+                    straightFlush: 50,
+                    fourAces: 80,
+                    fourTwosThruFours: 40,
+                    fourFivesThruKings: 25,
+                    fullHouse: 7,
+                    flush: 5,
+                    straight: 4,
+                    threeOfAKind: 3,
+                    twoPair: 2,
+                    jacksOrBetter: 1
+                }
+            },
+            'double-bonus-10-7': {
+                name: 'Double Bonus 10/7',
+                payback: 1.0017,
+                gameType: 'double-bonus',
+                pays: {
+                    royalFlush: 800,
+                    straightFlush: 50,
+                    fourAces: 160,
+                    fourTwosThruFours: 80,
+                    fourFivesThruKings: 50,
+                    fullHouse: 10,
+                    flush: 7,
+                    straight: 5,
+                    threeOfAKind: 3,
+                    twoPair: 1,
+                    jacksOrBetter: 1
+                }
+            },
+            'double-bonus-9-7': {
+                name: 'Double Bonus 9/7',
+                payback: 0.9911,
+                gameType: 'double-bonus',
+                pays: {
+                    royalFlush: 800,
+                    straightFlush: 50,
+                    fourAces: 160,
+                    fourTwosThruFours: 80,
+                    fourFivesThruKings: 50,
+                    fullHouse: 9,
+                    flush: 7,
+                    straight: 5,
+                    threeOfAKind: 3,
+                    twoPair: 1,
+                    jacksOrBetter: 1
+                }
+            },
+            'double-bonus-9-6': {
+                name: 'Double Bonus 9/6',
+                payback: 0.9781,
+                gameType: 'double-bonus',
+                pays: {
+                    royalFlush: 800,
+                    straightFlush: 50,
+                    fourAces: 160,
+                    fourTwosThruFours: 80,
+                    fourFivesThruKings: 50,
+                    fullHouse: 9,
+                    flush: 6,
+                    straight: 5,
+                    threeOfAKind: 3,
+                    twoPair: 1,
+                    jacksOrBetter: 1
+                }
+            },
+            'double-double-bonus-9-6': {
+                name: 'Double Double Bonus 9/6',
+                payback: 0.9898,
+                gameType: 'double-double-bonus',
+                pays: {
+                    royalFlush: 800,
+                    straightFlush: 50,
+                    fourAcesWithKicker: 400,
+                    fourAces: 160,
+                    fourTwosThruFoursWithKicker: 160,
+                    fourTwosThruFours: 80,
+                    fourFivesThruKings: 50,
+                    fullHouse: 9,
+                    flush: 6,
+                    straight: 4,
+                    threeOfAKind: 3,
+                    twoPair: 1,
+                    jacksOrBetter: 1
+                }
+            },
+            'double-double-bonus-9-5': {
+                name: 'Double Double Bonus 9/5',
+                payback: 0.9787,
+                gameType: 'double-double-bonus',
+                pays: {
+                    royalFlush: 800,
+                    straightFlush: 50,
+                    fourAcesWithKicker: 400,
+                    fourAces: 160,
+                    fourTwosThruFoursWithKicker: 160,
+                    fourTwosThruFours: 80,
+                    fourFivesThruKings: 50,
+                    fullHouse: 9,
+                    flush: 5,
+                    straight: 4,
+                    threeOfAKind: 3,
+                    twoPair: 1,
+                    jacksOrBetter: 1
+                }
+            },
+            'double-double-bonus-8-5': {
+                name: 'Double Double Bonus 8/5',
+                payback: 0.9679,
+                gameType: 'double-double-bonus',
+                pays: {
+                    royalFlush: 800,
+                    straightFlush: 50,
+                    fourAcesWithKicker: 400,
+                    fourAces: 160,
+                    fourTwosThruFoursWithKicker: 160,
+                    fourTwosThruFours: 80,
+                    fourFivesThruKings: 50,
+                    fullHouse: 8,
+                    flush: 5,
+                    straight: 4,
+                    threeOfAKind: 3,
+                    twoPair: 1,
+                    jacksOrBetter: 1
+                }
+            }
+        };
+
+        // Card representation
+        const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+        const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        const rankValues = {
+            '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
+            '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14
+        };
+
+        // Game state
+        let hand = [null, null, null, null, null];
+        let currentPaytable = PAYTABLES['jacks-or-better-9-6'];
+
+        // Suit symbols for display
+        const suitSymbols = {
+            'spades': '\u2660',
+            'hearts': '\u2665',
+            'diamonds': '\u2666',
+            'clubs': '\u2663'
+        };
+
+        // Display order for ranks (A high to 2 low)
+        const displayRanks = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2'];
+        const displaySuits = ['spades', 'hearts', 'diamonds', 'clubs'];
+
+        // Card image URL function
+        function getCardImageUrl(card) {
+            const rankMap = {
+                '10': '0',
+                'J': 'J',
+                'Q': 'Q',
+                'K': 'K',
+                'A': 'A'
+            };
+            const suitMap = {
+                'hearts': 'H',
+                'diamonds': 'D',
+                'clubs': 'C',
+                'spades': 'S'
+            };
+            const rankCode = rankMap[card.rank] || card.rank;
+            const suitCode = suitMap[card.suit];
+            return `https://deckofcardsapi.com/static/img/${rankCode}${suitCode}.png`;
+        }
+
+        // Helper functions for hand evaluation
+        function isFlush(cards) {
+            if (cards.length !== 5) return false;
+            return cards.every(c => c.suit === cards[0].suit);
+        }
+
+        function isStraight(cards) {
+            if (cards.length !== 5) return false;
+            const values = cards.map(c => rankValues[c.rank]).sort((a, b) => a - b);
+
+            // Check for regular straight
+            let isRegularStraight = true;
+            for (let i = 1; i < values.length; i++) {
+                if (values[i] !== values[i-1] + 1) {
+                    isRegularStraight = false;
+                    break;
+                }
+            }
+
+            // Check for A-2-3-4-5
+            const isWheelStraight =
+                values[0] === 2 && values[1] === 3 &&
+                values[2] === 4 && values[3] === 5 && values[4] === 14;
+
+            return isRegularStraight || isWheelStraight;
+        }
+
+        function isRoyalFlush(cards) {
+            if (!isFlush(cards) || cards.length !== 5) return false;
+            const cardRanks = cards.map(c => c.rank).sort();
+            return cardRanks.join(',') === '10,A,J,K,Q';
+        }
+
+        function isStraightFlush(cards) {
+            return isFlush(cards) && isStraight(cards) && !isRoyalFlush(cards);
+        }
+
+        function getRankCounts(cards) {
+            const counts = {};
+            cards.forEach(card => {
+                counts[card.rank] = (counts[card.rank] || 0) + 1;
+            });
+            return counts;
+        }
+
+        function getPairs(cards) {
+            const counts = getRankCounts(cards);
+            return Object.entries(counts)
+                .filter(([rank, count]) => count === 2)
+                .map(([rank]) => rank);
+        }
+
+        function getTrips(cards) {
+            const counts = getRankCounts(cards);
+            return Object.entries(counts)
+                .filter(([rank, count]) => count === 3)
+                .map(([rank]) => rank);
+        }
+
+        function getQuads(cards) {
+            const counts = getRankCounts(cards);
+            return Object.entries(counts)
+                .filter(([rank, count]) => count === 4)
+                .map(([rank]) => rank);
+        }
+
+        // Classify a final 5-card hand for payout lookup
+        function classifyFinalHand(cards, paytable) {
+            if (cards.length !== 5) return 'nothing';
+
+            // Royal Flush
+            if (isRoyalFlush(cards)) return 'royalFlush';
+
+            // Straight Flush
+            if (isStraightFlush(cards)) return 'straightFlush';
+
+            // Four of a Kind
+            const quads = getQuads(cards);
+            if (quads.length > 0) {
+                const quadRank = quads[0];
+                const gameType = paytable.gameType;
+
+                // Double Double Bonus - check for kicker
+                if (gameType === 'double-double-bonus') {
+                    const kicker = cards.find(c => c.rank !== quadRank);
+                    const kickerIsLow = ['A', '2', '3', '4'].includes(kicker.rank);
+
+                    if (quadRank === 'A' && kickerIsLow) {
+                        return 'fourAcesWithKicker';
+                    }
+                    if (['2', '3', '4'].includes(quadRank) && kickerIsLow) {
+                        return 'fourTwosThruFoursWithKicker';
+                    }
+                }
+
+                // Bonus games distinguish quad types
+                if (gameType === 'bonus-poker' || gameType === 'double-bonus' || gameType === 'double-double-bonus') {
+                    if (quadRank === 'A') return 'fourAces';
+                    if (['2', '3', '4'].includes(quadRank)) return 'fourTwosThruFours';
+                    return 'fourFivesThruKings';
+                }
+
+                return 'fourOfAKind';
+            }
+
+            // Full House
+            const trips = getTrips(cards);
+            const pairs = getPairs(cards);
+            if (trips.length > 0 && pairs.length > 0) return 'fullHouse';
+
+            // Flush
+            if (isFlush(cards)) return 'flush';
+
+            // Straight
+            if (isStraight(cards)) return 'straight';
+
+            // Three of a Kind
+            if (trips.length > 0) return 'threeOfAKind';
+
+            // Two Pair
+            if (pairs.length === 2) return 'twoPair';
+
+            // Jacks or Better (pair of J, Q, K, or A)
+            if (pairs.length === 1 && ['J', 'Q', 'K', 'A'].includes(pairs[0])) {
+                return 'jacksOrBetter';
+            }
+
+            return 'nothing';
+        }
+
+        // Get payout for a hand type
+        function getPayout(handType, paytable) {
+            return paytable.pays[handType] || 0;
+        }
+
+        // Generate all k-combinations of an array (iterative for performance)
+        function getCombinations(arr, k) {
+            if (k === 0) return [[]];
+            if (arr.length < k) return [];
+            if (arr.length === k) return [arr.slice()];
+
+            const results = [];
+            const indices = Array.from({length: k}, (_, i) => i);
+
+            while (true) {
+                results.push(indices.map(i => arr[i]));
+
+                // Find rightmost index that can be incremented
+                let i = k - 1;
+                while (i >= 0 && indices[i] === arr.length - k + i) i--;
+
+                if (i < 0) break;
+
+                indices[i]++;
+                for (let j = i + 1; j < k; j++) {
+                    indices[j] = indices[j-1] + 1;
+                }
+            }
+
+            return results;
+        }
+
+        // Calculate EV for a specific hold pattern
+        function calculateHoldEV(hand, holdIndices, paytable) {
+            const heldCards = holdIndices.map(i => hand[i]);
+            const numToDraw = 5 - heldCards.length;
+
+            // Create remaining deck
+            const remainingDeck = [];
+            for (const suit of suits) {
+                for (const rank of ranks) {
+                    // Check if this card is in the hand
+                    const inHand = hand.some(c => c.rank === rank && c.suit === suit);
+                    if (!inHand) {
+                        remainingDeck.push({ rank, suit });
+                    }
+                }
+            }
+
+            // If holding all 5, just evaluate the hand
+            if (numToDraw === 0) {
+                const handType = classifyFinalHand(heldCards, paytable);
+                return getPayout(handType, paytable);
+            }
+
+            // Get all possible draws
+            const draws = getCombinations(remainingDeck, numToDraw);
+
+            let totalPayout = 0;
+            for (const draw of draws) {
+                const finalHand = [...heldCards, ...draw];
+                const handType = classifyFinalHand(finalHand, paytable);
+                totalPayout += getPayout(handType, paytable);
+            }
+
+            return totalPayout / draws.length;
+        }
+
+        // Generate all 32 hold patterns
+        function generateHoldPatterns() {
+            const patterns = [];
+            for (let i = 0; i < 32; i++) {
+                const pattern = [];
+                for (let j = 0; j < 5; j++) {
+                    if (i & (1 << j)) {
+                        pattern.push(j);
+                    }
+                }
+                patterns.push(pattern);
+            }
+            return patterns;
+        }
+
+        // Describe what's being held
+        function describeHold(holdIndices, hand) {
+            if (holdIndices.length === 0) return 'Discard all';
+            if (holdIndices.length === 5) return 'Hold all 5';
+
+            const heldCards = holdIndices.map(i => hand[i]);
+
+            // Check for patterns
+            const counts = getRankCounts(heldCards);
+            const pairs = getPairs(heldCards);
+            const trips = getTrips(heldCards);
+
+            // Check for same suit
+            const allSameSuit = heldCards.length > 1 && heldCards.every(c => c.suit === heldCards[0].suit);
+
+            if (trips.length > 0) {
+                return `Three ${trips[0]}s`;
+            }
+
+            if (pairs.length === 2) {
+                return `Two Pair: ${pairs[0]}s and ${pairs[1]}s`;
+            }
+
+            if (pairs.length === 1) {
+                return `Pair of ${pairs[0]}s`;
+            }
+
+            if (allSameSuit && heldCards.length >= 3) {
+                const sortedRanks = heldCards.map(c => c.rank).sort((a, b) => rankValues[a] - rankValues[b]);
+                const royalRanks = ['10', 'J', 'Q', 'K', 'A'];
+                const isRoyalDraw = sortedRanks.every(r => royalRanks.includes(r));
+
+                if (isRoyalDraw) {
+                    return `${heldCards.length} to a Royal Flush`;
+                }
+
+                // Check for straight flush draw
+                const values = heldCards.map(c => rankValues[c.rank]).sort((a, b) => a - b);
+                const range = values[values.length - 1] - values[0];
+                if (range <= 4) {
+                    return `${heldCards.length} to a Straight Flush`;
+                }
+
+                return `${heldCards.length} to a Flush`;
+            }
+
+            if (heldCards.length === 4 && !allSameSuit) {
+                const values = heldCards.map(c => rankValues[c.rank]).sort((a, b) => a - b);
+                const range = values[3] - values[0];
+                if (range <= 4) {
+                    return '4 to a Straight';
+                }
+            }
+
+            // High cards
+            const highCards = heldCards.filter(c => ['J', 'Q', 'K', 'A'].includes(c.rank));
+            if (highCards.length === heldCards.length && heldCards.length <= 2) {
+                if (heldCards.length === 1) {
+                    return `High card: ${heldCards[0].rank}`;
+                }
+                return `High cards: ${heldCards.map(c => c.rank).join(', ')}`;
+            }
+
+            return `Hold ${heldCards.length} card${heldCards.length > 1 ? 's' : ''}`;
+        }
+
+        // Analyze the hand and return top 10 plays
+        function analyzeHand(hand, paytable) {
+            const patterns = generateHoldPatterns();
+            const results = [];
+
+            for (const pattern of patterns) {
+                const ev = calculateHoldEV(hand, pattern, paytable);
+                const description = describeHold(pattern, hand);
+
+                results.push({
+                    holdIndices: pattern,
+                    heldCards: pattern.map(i => hand[i]),
+                    ev: ev,
+                    description: description
+                });
+            }
+
+            // Sort by EV descending
+            results.sort((a, b) => b.ev - a.ev);
+
+            return results.slice(0, 10);
+        }
+
+        // Format card for display
+        function formatCard(card) {
+            const suitSymbols = {
+                'hearts': '&#9829;',
+                'diamonds': '&#9830;',
+                'clubs': '&#9827;',
+                'spades': '&#9824;'
+            };
+            const isRed = card.suit === 'hearts' || card.suit === 'diamonds';
+            return `<span class="mini-card${isRed ? ' red' : ''}">${card.rank}${suitSymbols[card.suit]}</span>`;
+        }
+
+        // Display results
+        function displayResults(results) {
+            const section = document.getElementById('results-section');
+
+            if (results.length === 0) {
+                section.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#127183;</div>
+                        <div>Select 5 cards to analyze the optimal play</div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="results-title">Best Plays (by Expected Value)</div>';
+
+            results.forEach((result, index) => {
+                const isBest = index === 0;
+                const holdDisplay = result.heldCards.length > 0
+                    ? result.heldCards.map(c => formatCard(c)).join(' ')
+                    : '<span style="color: #999;">None</span>';
+
+                html += `
+                    <div class="result-item${isBest ? ' best' : ''}">
+                        <span class="result-rank">${index + 1}</span>
+                        <span class="result-hold">Hold:</span>
+                        <span class="hold-cards">${holdDisplay}</span>
+                        <span class="result-ev">EV: ${result.ev.toFixed(4)}</span>
+                        <div class="result-description">${result.description}</div>
+                    </div>
+                `;
+            });
+
+            section.innerHTML = html;
+        }
+
+        // Update card slot display
+        function updateCardSlots() {
+            const slots = document.querySelectorAll('.card-slot');
+
+            slots.forEach((slot, index) => {
+                const card = hand[index];
+                const numberSpan = slot.querySelector('.card-slot-number');
+                const existingImg = slot.querySelector('img');
+
+                if (card) {
+                    slot.classList.add('filled');
+                    if (numberSpan) numberSpan.style.display = 'none';
+
+                    if (existingImg) {
+                        existingImg.src = getCardImageUrl(card);
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = getCardImageUrl(card);
+                        img.alt = `${card.rank} of ${card.suit}`;
+                        slot.appendChild(img);
+                    }
+                } else {
+                    slot.classList.remove('filled');
+                    if (numberSpan) {
+                        numberSpan.style.display = 'block';
+                        numberSpan.textContent = index + 1;
+                    }
+                    if (existingImg) existingImg.remove();
+                }
+            });
+
+            // Update analyze button
+            const filledCount = hand.filter(c => c !== null).length;
+            document.getElementById('analyze-btn').disabled = filledCount !== 5;
+        }
+
+        // Check if card is already in hand
+        function isCardInHand(rank, suit) {
+            return hand.some(c => c && c.rank === rank && c.suit === suit);
+        }
+
+        // Add card to hand
+        function addCard(rank, suit) {
+            if (isCardInHand(rank, suit)) {
+                return; // Silently ignore - card is already used
+            }
+
+            // Find first empty slot
+            let targetSlot = hand.findIndex(c => c === null);
+            if (targetSlot === -1) {
+                return; // Hand is full
+            }
+
+            hand[targetSlot] = { rank, suit };
+            updateCardSlots();
+            updateCardPicker();
+        }
+
+        // Remove card from hand
+        function removeCard(index) {
+            hand[index] = null;
+            updateCardSlots();
+            updateCardPicker();
+
+            // Clear results when hand changes
+            displayResults([]);
+        }
+
+        // Clear entire hand
+        function clearHand() {
+            hand = [null, null, null, null, null];
+            updateCardSlots();
+            updateCardPicker();
+            displayResults([]);
+        }
+
+        // Run analysis
+        function runAnalysis() {
+            const filledCount = hand.filter(c => c !== null).length;
+            if (filledCount !== 5) {
+                alert('Please select exactly 5 cards.');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading-overlay').classList.add('active');
+
+            // Use setTimeout to allow UI to update before heavy calculation
+            setTimeout(() => {
+                const results = analyzeHand(hand, currentPaytable);
+                displayResults(results);
+                document.getElementById('loading-overlay').classList.remove('active');
+            }, 50);
+        }
+
+        // Generate the card picker grid
+        function generateCardPicker() {
+            const picker = document.getElementById('card-picker');
+            let html = '';
+
+            for (const suit of displaySuits) {
+                const isRed = suit === 'hearts' || suit === 'diamonds';
+                html += '<div class="card-picker-row">';
+
+                for (const rank of displayRanks) {
+                    const colorClass = isRed ? 'red' : 'black';
+                    const displayRank = rank === '10' ? 'T' : rank;
+                    html += `
+                        <div class="picker-card ${colorClass}" data-rank="${rank}" data-suit="${suit}">
+                            <span class="rank">${displayRank}</span>
+                            <span class="suit">${suitSymbols[suit]}</span>
+                        </div>
+                    `;
+                }
+
+                html += '</div>';
+            }
+
+            picker.innerHTML = html;
+
+            // Add click handlers
+            picker.querySelectorAll('.picker-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    if (card.classList.contains('used')) return;
+
+                    const rank = card.dataset.rank;
+                    const suit = card.dataset.suit;
+                    addCard(rank, suit);
+                });
+            });
+        }
+
+        // Update card picker to show which cards are used
+        function updateCardPicker() {
+            document.querySelectorAll('.picker-card').forEach(card => {
+                const rank = card.dataset.rank;
+                const suit = card.dataset.suit;
+                const isUsed = isCardInHand(rank, suit);
+                card.classList.toggle('used', isUsed);
+            });
+        }
+
+        // Initialize
+        function init() {
+            // Generate the 52-card picker
+            generateCardPicker();
+
+            // Card slot click handlers (for removal)
+            document.querySelectorAll('.card-slot').forEach(slot => {
+                const index = parseInt(slot.dataset.index);
+
+                slot.addEventListener('click', (e) => {
+                    if (hand[index]) {
+                        removeCard(index);
+                    }
+                });
+
+                // Remove button handler
+                const removeBtn = slot.querySelector('.remove-btn');
+                removeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    removeCard(index);
+                });
+            });
+
+            // Clear button
+            document.getElementById('clear-btn').addEventListener('click', clearHand);
+
+            // Analyze button
+            document.getElementById('analyze-btn').addEventListener('click', runAnalysis);
+
+            // Paytable selector
+            document.getElementById('paytable-select').addEventListener('change', (e) => {
+                currentPaytable = PAYTABLES[e.target.value];
+                document.getElementById('payback-display').textContent =
+                    (currentPaytable.payback * 100).toFixed(2) + '%';
+
+                // Re-analyze if hand is complete
+                const filledCount = hand.filter(c => c !== null).length;
+                if (filledCount === 5) {
+                    runAnalysis();
+                }
+            });
+
+            // Initialize display
+            updateCardSlots();
+        }
+
+        // Start when DOM is ready
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
