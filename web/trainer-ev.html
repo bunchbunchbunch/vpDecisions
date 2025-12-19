@@ -678,6 +678,129 @@
             font-size: 0.75rem;
         }
 
+        .db-status {
+            background: white;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .db-status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .db-status-title {
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: #333;
+        }
+
+        .db-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+        }
+
+        .db-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .db-status-dot.ready {
+            background: #48bb78;
+        }
+
+        .db-status-dot.building {
+            background: #ecc94b;
+            animation: pulse 1s infinite;
+        }
+
+        .db-status-dot.none {
+            background: #a0aec0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .db-progress-container {
+            margin-top: 8px;
+        }
+
+        .db-progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .db-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .db-progress-text {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 4px;
+            text-align: center;
+        }
+
+        .db-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .db-btn {
+            flex: 1;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .db-btn.build {
+            background: #667eea;
+            color: white;
+        }
+
+        .db-btn.build:hover:not(:disabled) {
+            background: #5a6fd6;
+        }
+
+        .db-btn.cancel {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .db-btn.delete {
+            background: #a0aec0;
+            color: white;
+        }
+
+        .db-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .db-eta {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+            text-align: center;
+        }
+
         @media (max-width: 400px) {
             h1 {
                 font-size: 1.25rem;
@@ -733,6 +856,27 @@
                     <option value="double-double-bonus-8-5">Double Double Bonus 8/5 (96.79%)</option>
                 </optgroup>
             </select>
+        </div>
+
+        <!-- Database Status -->
+        <div class="db-status" id="db-status">
+            <div class="db-status-header">
+                <span class="db-status-title">Strategy Database</span>
+                <div class="db-status-indicator">
+                    <span class="db-status-dot none" id="db-status-dot"></span>
+                    <span id="db-status-text">Not built</span>
+                </div>
+            </div>
+            <div class="db-progress-container" id="db-progress-container" style="display: none;">
+                <div class="db-progress-bar">
+                    <div class="db-progress-fill" id="db-progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="db-progress-text" id="db-progress-text">0 / 2,598,960 hands</div>
+                <div class="db-eta" id="db-eta"></div>
+            </div>
+            <div class="db-actions" id="db-actions">
+                <button class="db-btn build" id="db-build-btn">Build Database</button>
+            </div>
         </div>
 
         <!-- Start Screen -->
@@ -851,6 +995,9 @@
     <script>
         const QUIZ_SIZE = 25;
         const CANDIDATE_POOL_SIZE = 200;
+        const TOTAL_HANDS = 2598960;
+        const DB_NAME = 'VideoPokerStrategyDB';
+        const DB_VERSION = 1;
 
         // Game state
         let quizHands = [];        // Pre-generated hands
@@ -861,6 +1008,368 @@
         let selectedCards = new Set();
         let isWaitingForAnswer = true;
         let currentPaytableId = 'jacks-or-better-9-6';
+
+        // Database state
+        let db = null;
+        let dbReady = {};  // { paytableId: true/false }
+        let isBuilding = false;
+        let buildWorker = null;
+        let buildStartTime = 0;
+        let buildPaused = false;
+
+        // ==================== IndexedDB Functions ====================
+
+        async function openDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    // Create one object store per paytable
+                    const paytables = [
+                        'jacks-or-better-9-6', 'jacks-or-better-8-5', 'jacks-or-better-7-5',
+                        'bonus-poker-8-5', 'bonus-poker-7-5',
+                        'double-bonus-10-7', 'double-bonus-9-7', 'double-bonus-9-6',
+                        'double-double-bonus-9-6', 'double-double-bonus-9-5', 'double-double-bonus-8-5'
+                    ];
+                    for (const pt of paytables) {
+                        if (!database.objectStoreNames.contains(pt)) {
+                            database.createObjectStore(pt, { keyPath: 'key' });
+                        }
+                    }
+                };
+            });
+        }
+
+        async function checkDatabaseStatus(paytableId) {
+            if (!db) return false;
+            return new Promise((resolve) => {
+                try {
+                    const tx = db.transaction(paytableId, 'readonly');
+                    const store = tx.objectStore(paytableId);
+                    const countRequest = store.count();
+                    countRequest.onsuccess = () => {
+                        resolve(countRequest.result >= TOTAL_HANDS);
+                    };
+                    countRequest.onerror = () => resolve(false);
+                } catch (e) {
+                    resolve(false);
+                }
+            });
+        }
+
+        async function getHandFromDB(paytableId, handKey) {
+            if (!db) return null;
+            return new Promise((resolve) => {
+                try {
+                    const tx = db.transaction(paytableId, 'readonly');
+                    const store = tx.objectStore(paytableId);
+                    const request = store.get(handKey);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => resolve(null);
+                } catch (e) {
+                    resolve(null);
+                }
+            });
+        }
+
+        async function storeHandsBatch(paytableId, hands) {
+            if (!db) return;
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(paytableId, 'readwrite');
+                const store = tx.objectStore(paytableId);
+                for (const hand of hands) {
+                    store.put(hand);
+                }
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        async function clearDatabase(paytableId) {
+            if (!db) return;
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(paytableId, 'readwrite');
+                const store = tx.objectStore(paytableId);
+                const request = store.clear();
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function getDatabaseCount(paytableId) {
+            if (!db) return 0;
+            return new Promise((resolve) => {
+                try {
+                    const tx = db.transaction(paytableId, 'readonly');
+                    const store = tx.objectStore(paytableId);
+                    const request = store.count();
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => resolve(0);
+                } catch (e) {
+                    resolve(0);
+                }
+            });
+        }
+
+        // ==================== Database Build Functions ====================
+
+        function updateDbStatusUI() {
+            const dot = document.getElementById('db-status-dot');
+            const text = document.getElementById('db-status-text');
+            const actions = document.getElementById('db-actions');
+            const progress = document.getElementById('db-progress-container');
+
+            if (isBuilding) {
+                dot.className = 'db-status-dot building';
+                text.textContent = 'Building...';
+                progress.style.display = 'block';
+                actions.innerHTML = '<button class="db-btn cancel" id="db-cancel-btn">Cancel</button>';
+                document.getElementById('db-cancel-btn').addEventListener('click', cancelBuild);
+            } else if (dbReady[currentPaytableId]) {
+                dot.className = 'db-status-dot ready';
+                text.textContent = 'Ready (instant lookups)';
+                progress.style.display = 'none';
+                actions.innerHTML = '<button class="db-btn delete" id="db-delete-btn">Delete</button>';
+                document.getElementById('db-delete-btn').addEventListener('click', deleteDatabase);
+            } else {
+                dot.className = 'db-status-dot none';
+                text.textContent = 'Not built';
+                progress.style.display = 'none';
+                actions.innerHTML = '<button class="db-btn build" id="db-build-btn">Build Database</button>';
+                document.getElementById('db-build-btn').addEventListener('click', startBuild);
+            }
+        }
+
+        // Inline precalc worker code for portability
+        function getPrecalcWorkerCode() {
+            return [
+                "const PAYTABLES = {",
+                "  'jacks-or-better-9-6': { name: 'Jacks or Better 9/6', gameType: 'jacks-or-better', pays: { royalFlush: 800, straightFlush: 50, fourOfAKind: 25, fullHouse: 9, flush: 6, straight: 4, threeOfAKind: 3, twoPair: 2, jacksOrBetter: 1 } },",
+                "  'jacks-or-better-8-5': { name: 'Jacks or Better 8/5', gameType: 'jacks-or-better', pays: { royalFlush: 800, straightFlush: 50, fourOfAKind: 25, fullHouse: 8, flush: 5, straight: 4, threeOfAKind: 3, twoPair: 2, jacksOrBetter: 1 } },",
+                "  'jacks-or-better-7-5': { name: 'Jacks or Better 7/5', gameType: 'jacks-or-better', pays: { royalFlush: 800, straightFlush: 50, fourOfAKind: 25, fullHouse: 7, flush: 5, straight: 4, threeOfAKind: 3, twoPair: 2, jacksOrBetter: 1 } },",
+                "  'bonus-poker-8-5': { name: 'Bonus Poker 8/5', gameType: 'bonus-poker', pays: { royalFlush: 800, straightFlush: 50, fourAces: 80, fourTwosThruFours: 40, fourFivesThruKings: 25, fullHouse: 8, flush: 5, straight: 4, threeOfAKind: 3, twoPair: 2, jacksOrBetter: 1 } },",
+                "  'bonus-poker-7-5': { name: 'Bonus Poker 7/5', gameType: 'bonus-poker', pays: { royalFlush: 800, straightFlush: 50, fourAces: 80, fourTwosThruFours: 40, fourFivesThruKings: 25, fullHouse: 7, flush: 5, straight: 4, threeOfAKind: 3, twoPair: 2, jacksOrBetter: 1 } },",
+                "  'double-bonus-10-7': { name: 'Double Bonus 10/7', gameType: 'double-bonus', pays: { royalFlush: 800, straightFlush: 50, fourAces: 160, fourTwosThruFours: 80, fourFivesThruKings: 50, fullHouse: 10, flush: 7, straight: 5, threeOfAKind: 3, twoPair: 1, jacksOrBetter: 1 } },",
+                "  'double-bonus-9-7': { name: 'Double Bonus 9/7', gameType: 'double-bonus', pays: { royalFlush: 800, straightFlush: 50, fourAces: 160, fourTwosThruFours: 80, fourFivesThruKings: 50, fullHouse: 9, flush: 7, straight: 5, threeOfAKind: 3, twoPair: 1, jacksOrBetter: 1 } },",
+                "  'double-bonus-9-6': { name: 'Double Bonus 9/6', gameType: 'double-bonus', pays: { royalFlush: 800, straightFlush: 50, fourAces: 160, fourTwosThruFours: 80, fourFivesThruKings: 50, fullHouse: 9, flush: 6, straight: 5, threeOfAKind: 3, twoPair: 1, jacksOrBetter: 1 } },",
+                "  'double-double-bonus-9-6': { name: 'Double Double Bonus 9/6', gameType: 'double-double-bonus', pays: { royalFlush: 800, straightFlush: 50, fourAcesWithKicker: 400, fourAces: 160, fourTwosThruFoursWithKicker: 160, fourTwosThruFours: 80, fourFivesThruKings: 50, fullHouse: 9, flush: 6, straight: 4, threeOfAKind: 3, twoPair: 1, jacksOrBetter: 1 } },",
+                "  'double-double-bonus-9-5': { name: 'Double Double Bonus 9/5', gameType: 'double-double-bonus', pays: { royalFlush: 800, straightFlush: 50, fourAcesWithKicker: 400, fourAces: 160, fourTwosThruFoursWithKicker: 160, fourTwosThruFours: 80, fourFivesThruKings: 50, fullHouse: 9, flush: 5, straight: 4, threeOfAKind: 3, twoPair: 1, jacksOrBetter: 1 } },",
+                "  'double-double-bonus-8-5': { name: 'Double Double Bonus 8/5', gameType: 'double-double-bonus', pays: { royalFlush: 800, straightFlush: 50, fourAcesWithKicker: 400, fourAces: 160, fourTwosThruFoursWithKicker: 160, fourTwosThruFours: 80, fourFivesThruKings: 50, fullHouse: 8, flush: 5, straight: 4, threeOfAKind: 3, twoPair: 1, jacksOrBetter: 1 } }",
+                "};",
+                "var suits = ['hearts', 'diamonds', 'clubs', 'spades'];",
+                "var ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];",
+                "var rankValues = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };",
+                "function indexToCard(index) { return { rank: ranks[index % 13], suit: suits[Math.floor(index / 13)] }; }",
+                "function isFlush(cards) { if (cards.length !== 5) return false; return cards.every(function(c) { return c.suit === cards[0].suit; }); }",
+                "function isStraight(cards) { if (cards.length !== 5) return false; var values = cards.map(function(c) { return rankValues[c.rank]; }).sort(function(a, b) { return a - b; }); var isRegularStraight = true; for (var i = 1; i < values.length; i++) { if (values[i] !== values[i-1] + 1) { isRegularStraight = false; break; } } var isWheelStraight = values[0] === 2 && values[1] === 3 && values[2] === 4 && values[3] === 5 && values[4] === 14; return isRegularStraight || isWheelStraight; }",
+                "function isRoyalFlush(cards) { if (!isFlush(cards) || cards.length !== 5) return false; var cardRanks = cards.map(function(c) { return c.rank; }).sort(); return cardRanks.join(',') === '10,A,J,K,Q'; }",
+                "function isStraightFlush(cards) { return isFlush(cards) && isStraight(cards) && !isRoyalFlush(cards); }",
+                "function getRankCounts(cards) { var counts = {}; cards.forEach(function(card) { counts[card.rank] = (counts[card.rank] || 0) + 1; }); return counts; }",
+                "function getPairs(cards) { var counts = getRankCounts(cards); return Object.entries(counts).filter(function(e) { return e[1] === 2; }).map(function(e) { return e[0]; }); }",
+                "function getTrips(cards) { var counts = getRankCounts(cards); return Object.entries(counts).filter(function(e) { return e[1] === 3; }).map(function(e) { return e[0]; }); }",
+                "function getQuads(cards) { var counts = getRankCounts(cards); return Object.entries(counts).filter(function(e) { return e[1] === 4; }).map(function(e) { return e[0]; }); }",
+                "function classifyFinalHand(cards, paytable) { if (cards.length !== 5) return 'nothing'; if (isRoyalFlush(cards)) return 'royalFlush'; if (isStraightFlush(cards)) return 'straightFlush'; var quads = getQuads(cards); if (quads.length > 0) { var quadRank = quads[0]; var gameType = paytable.gameType; if (gameType === 'double-double-bonus') { var kicker = cards.find(function(c) { return c.rank !== quadRank; }); var kickerIsLow = ['A', '2', '3', '4'].indexOf(kicker.rank) >= 0; if (quadRank === 'A' && kickerIsLow) return 'fourAcesWithKicker'; if (['2', '3', '4'].indexOf(quadRank) >= 0 && kickerIsLow) return 'fourTwosThruFoursWithKicker'; } if (gameType === 'bonus-poker' || gameType === 'double-bonus' || gameType === 'double-double-bonus') { if (quadRank === 'A') return 'fourAces'; if (['2', '3', '4'].indexOf(quadRank) >= 0) return 'fourTwosThruFours'; return 'fourFivesThruKings'; } return 'fourOfAKind'; } var trips = getTrips(cards); var pairs = getPairs(cards); if (trips.length > 0 && pairs.length > 0) return 'fullHouse'; if (isFlush(cards)) return 'flush'; if (isStraight(cards)) return 'straight'; if (trips.length > 0) return 'threeOfAKind'; if (pairs.length === 2) return 'twoPair'; if (pairs.length === 1 && ['J', 'Q', 'K', 'A'].indexOf(pairs[0]) >= 0) return 'jacksOrBetter'; return 'nothing'; }",
+                "function getPayout(handType, paytable) { return paytable.pays[handType] || 0; }",
+                "function getCombinations(arr, k) { if (k === 0) return [[]]; if (arr.length < k) return []; if (arr.length === k) return [arr.slice()]; var results = []; var indices = []; for (var x = 0; x < k; x++) indices.push(x); while (true) { results.push(indices.map(function(i) { return arr[i]; })); var i = k - 1; while (i >= 0 && indices[i] === arr.length - k + i) i--; if (i < 0) break; indices[i]++; for (var j = i + 1; j < k; j++) { indices[j] = indices[j-1] + 1; } } return results; }",
+                "function calculateHoldEV(hand, holdIndices, remainingDeck, paytable) { var heldCards = holdIndices.map(function(i) { return hand[i]; }); var numToDraw = 5 - heldCards.length; if (numToDraw === 0) { var handType = classifyFinalHand(heldCards, paytable); return getPayout(handType, paytable); } var draws = getCombinations(remainingDeck, numToDraw); var totalPayout = 0; for (var d = 0; d < draws.length; d++) { var finalHand = heldCards.concat(draws[d]); var ht = classifyFinalHand(finalHand, paytable); totalPayout += getPayout(ht, paytable); } return totalPayout / draws.length; }",
+                "var HOLD_PATTERNS = []; for (var i = 0; i < 32; i++) { var pattern = []; for (var j = 0; j < 5; j++) { if (i & (1 << j)) pattern.push(j); } HOLD_PATTERNS.push(pattern); }",
+                "function analyzeHand(handIndices, paytable) { var hand = handIndices.map(indexToCard); var handSet = {}; for (var h = 0; h < handIndices.length; h++) handSet[handIndices[h]] = true; var remainingDeck = []; for (var i = 0; i < 52; i++) { if (!handSet[i]) { remainingDeck.push(indexToCard(i)); } } var results = []; for (var p = 0; p < HOLD_PATTERNS.length; p++) { var ev = calculateHoldEV(hand, HOLD_PATTERNS[p], remainingDeck, paytable); results.push({ hold: HOLD_PATTERNS[p], ev: ev }); } results.sort(function(a, b) { return b.ev - a.ev; }); return results.slice(0, 5); }",
+                "var TOTAL_HANDS = 2598960;",
+                "var handGenerator = { c1: 0, c2: 1, c3: 2, c4: 3, c5: 4, done: false, next: function() { if (this.done) return null; var result = [this.c1, this.c2, this.c3, this.c4, this.c5]; this.c5++; if (this.c5 >= 52) { this.c4++; this.c5 = this.c4 + 1; } if (this.c4 >= 51) { this.c3++; this.c4 = this.c3 + 1; this.c5 = this.c4 + 1; } if (this.c3 >= 50) { this.c2++; this.c3 = this.c2 + 1; this.c4 = this.c3 + 1; this.c5 = this.c4 + 1; } if (this.c2 >= 49) { this.c1++; this.c2 = this.c1 + 1; this.c3 = this.c2 + 1; this.c4 = this.c3 + 1; this.c5 = this.c4 + 1; } if (this.c1 >= 48) { this.done = true; } return result; }, reset: function() { this.c1 = 0; this.c2 = 1; this.c3 = 2; this.c4 = 3; this.c5 = 4; this.done = false; }, skipTo: function(n) { this.reset(); for (var i = 0; i < n && !this.done; i++) this.next(); } };",
+                "self.onmessage = function(e) { var type = e.data.type; var paytableId = e.data.paytableId; var startIndex = e.data.startIndex || 0; var batchSize = e.data.batchSize || 1000; if (type === 'calculate') { var paytable = PAYTABLES[paytableId]; if (!paytable) { self.postMessage({ type: 'error', error: 'Unknown paytable: ' + paytableId }); return; } handGenerator.reset(); handGenerator.skipTo(startIndex); var results = []; var count = 0; var currentIndex = startIndex; while (!handGenerator.done && count < batchSize) { var handIndices = handGenerator.next(); if (!handIndices) break; var analysis = analyzeHand(handIndices, paytable); var key = handIndices.join(','); var plays = []; for (var p = 0; p < analysis.length; p++) { var hold = analysis[p].hold; var bitmask = 0; for (var b = 0; b < hold.length; b++) bitmask |= (1 << hold[b]); plays.push({ h: bitmask, e: analysis[p].ev }); } results.push({ key: key, plays: plays }); count++; currentIndex++; } if (handGenerator.done || currentIndex >= TOTAL_HANDS) { self.postMessage({ type: 'complete', results: results, processed: currentIndex, total: TOTAL_HANDS }); } else { self.postMessage({ type: 'batch', results: results, processed: currentIndex, total: TOTAL_HANDS }); } } };"
+            ].join("\n");
+        }
+
+        async function startBuild() {
+            if (isBuilding) return;
+
+            isBuilding = true;
+            buildStartTime = Date.now();
+            updateDbStatusUI();
+
+            // Check for existing progress
+            const existingCount = await getDatabaseCount(currentPaytableId);
+
+            // Create worker from inline code (works with file:// protocol)
+            const workerCode = getPrecalcWorkerCode();
+            console.log('Worker code length:', workerCode.length);
+            console.log('Worker code preview:', workerCode.substring(0, 500));
+
+            try {
+                const blob = new Blob([workerCode], { type: 'application/javascript' });
+                const blobUrl = URL.createObjectURL(blob);
+                buildWorker = new Worker(blobUrl);
+            } catch (err) {
+                console.error('Failed to create worker:', err);
+                isBuilding = false;
+                updateDbStatusUI();
+                alert('Failed to create worker: ' + err.message);
+                return;
+            }
+
+            buildWorker.onerror = (e) => {
+                console.error('Worker error:', e);
+                console.error('Error details - filename:', e.filename, 'lineno:', e.lineno, 'colno:', e.colno);
+                isBuilding = false;
+                buildWorker.terminate();
+                buildWorker = null;
+                updateDbStatusUI();
+                alert('Database build failed: ' + e.message + (e.lineno ? ' at line ' + e.lineno : ''));
+            };
+
+            buildWorker.onmessage = async (e) => {
+                const { type, results, processed, total } = e.data;
+
+                if (type === 'batch' || type === 'complete') {
+                    // Store results in database
+                    await storeHandsBatch(currentPaytableId, results);
+
+                    // Update progress UI
+                    const pct = (processed / total * 100).toFixed(1);
+                    document.getElementById('db-progress-fill').style.width = pct + '%';
+                    document.getElementById('db-progress-text').textContent =
+                        processed.toLocaleString() + ' / ' + total.toLocaleString() + ' hands';
+
+                    // Calculate ETA
+                    const elapsed = (Date.now() - buildStartTime) / 1000;
+                    const rate = processed / elapsed;
+                    const remaining = total - processed;
+                    const eta = remaining / rate;
+                    const etaMin = Math.floor(eta / 60);
+                    const etaSec = Math.floor(eta % 60);
+                    document.getElementById('db-eta').textContent =
+                        `~${etaMin}m ${etaSec}s remaining`;
+
+                    if (type === 'complete') {
+                        // Done!
+                        isBuilding = false;
+                        dbReady[currentPaytableId] = true;
+                        buildWorker.terminate();
+                        buildWorker = null;
+                        updateDbStatusUI();
+                    } else {
+                        // Request next batch
+                        buildWorker.postMessage({
+                            type: 'calculate',
+                            paytableId: currentPaytableId,
+                            startIndex: processed,
+                            batchSize: 10
+                        });
+                    }
+                }
+
+                if (type === 'error') {
+                    console.error('Build error:', e.data.error);
+                    isBuilding = false;
+                    buildWorker.terminate();
+                    buildWorker = null;
+                    updateDbStatusUI();
+                }
+            };
+
+            // Start calculation - use very small batch size for responsive UI
+            // Note: Each hand takes ~100-500ms to analyze, so 10 hands = 1-5 seconds
+            document.getElementById('db-progress-text').textContent = 'Starting calculation...';
+            buildWorker.postMessage({
+                type: 'calculate',
+                paytableId: currentPaytableId,
+                startIndex: existingCount,
+                batchSize: 10
+            });
+        }
+
+        function cancelBuild() {
+            if (buildWorker) {
+                buildWorker.terminate();
+                buildWorker = null;
+            }
+            isBuilding = false;
+            updateDbStatusUI();
+        }
+
+        async function deleteDatabase() {
+            if (confirm('Delete strategy database for this game? You can rebuild it later.')) {
+                await clearDatabase(currentPaytableId);
+                dbReady[currentPaytableId] = false;
+                updateDbStatusUI();
+            }
+        }
+
+        // ==================== Hand Lookup Functions ====================
+
+        function handToKey(hand) {
+            // Convert hand to sorted card indices key
+            const indices = hand.map(card => {
+                const suitIndex = suits.indexOf(card.suit);
+                const rankIndex = ranks.indexOf(card.rank);
+                return suitIndex * 13 + rankIndex;
+            });
+            return indices.sort((a, b) => a - b).join(',');
+        }
+
+        function indexToCard(index) {
+            return {
+                rank: ranks[index % 13],
+                suit: suits[Math.floor(index / 13)]
+            };
+        }
+
+        async function lookupHandInDB(hand) {
+            const key = handToKey(hand);
+            const result = await getHandFromDB(currentPaytableId, key);
+            if (!result) return null;
+
+            // Convert compact format back to full format
+            // result.plays is array of { h: bitmask, e: ev }
+            const keyParts = key.split(',').map(Number);
+            const handCards = keyParts.map(indexToCard);
+
+            return result.plays.map(p => {
+                const holdIndices = [];
+                for (let i = 0; i < 5; i++) {
+                    if (p.h & (1 << i)) holdIndices.push(i);
+                }
+                // Map back to original hand order
+                const originalIndices = holdIndices.map(i => {
+                    const cardToFind = handCards[i];
+                    return hand.findIndex(c => c.rank === cardToFind.rank && c.suit === cardToFind.suit);
+                });
+                return {
+                    holdIndices: originalIndices,
+                    heldCards: originalIndices.map(i => hand[i]),
+                    ev: p.e,
+                    description: describeHoldFromIndices(originalIndices, hand)
+                };
+            });
+        }
+
+        function describeHoldFromIndices(holdIndices, hand) {
+            if (holdIndices.length === 0) return 'Discard all';
+            if (holdIndices.length === 5) return 'Hold all 5';
+            const heldCards = holdIndices.map(i => hand[i]);
+            // Simplified description
+            const counts = {};
+            heldCards.forEach(c => { counts[c.rank] = (counts[c.rank] || 0) + 1; });
+            const pairs = Object.entries(counts).filter(([r, c]) => c === 2).map(([r]) => r);
+            const trips = Object.entries(counts).filter(([r, c]) => c === 3).map(([r]) => r);
+            if (trips.length > 0) return 'Three ' + trips[0] + 's';
+            if (pairs.length === 2) return 'Two Pair';
+            if (pairs.length === 1) return 'Pair of ' + pairs[0] + 's';
+            const allSameSuit = heldCards.length > 1 && heldCards.every(c => c.suit === heldCards[0].suit);
+            if (allSameSuit && heldCards.length >= 3) return heldCards.length + ' to a Flush';
+            const highCards = heldCards.filter(c => ['J', 'Q', 'K', 'A'].includes(c.rank));
+            if (highCards.length === heldCards.length && heldCards.length <= 2) {
+                return heldCards.length === 1 ? 'High card: ' + heldCards[0].rank : 'High cards';
+            }
+            return 'Hold ' + heldCards.length;
+        }
 
         // Close decisions mode
         let closeDecisionsMode = false;
@@ -1320,7 +1829,7 @@ self.onmessage = function(e) {
         }
 
         // Generate all hands and request EV calculations
-        function prepareQuiz() {
+        async function prepareQuiz() {
             // Read close decisions mode from checkbox
             closeDecisionsMode = document.getElementById('close-decisions-checkbox').checked;
 
@@ -1330,49 +1839,94 @@ self.onmessage = function(e) {
             document.getElementById('quiz-complete').style.display = 'none';
             document.getElementById('game-select').disabled = true;
 
-            // Update loading text based on mode
-            document.getElementById('loading-text').textContent =
-                closeDecisionsMode ? 'Finding Close Decisions...' : 'Preparing Quiz...';
-
             quizHands = [];
             quizResults = [];
             quizAnswers = [];
             currentHandIndex = 0;
             correctCount = 0;
 
-            if (closeDecisionsMode) {
-                // Generate 200 candidate hands
-                candidateHands = [];
-                candidateResults = [];
-                pendingCalculations = CANDIDATE_POOL_SIZE;
+            // Check if database is ready for instant lookups
+            const useDatabase = dbReady[currentPaytableId];
 
-                for (let i = 0; i < CANDIDATE_POOL_SIZE; i++) {
-                    const hand = dealHand();
-                    candidateHands.push(hand);
-                    candidateResults.push(null);
+            if (useDatabase) {
+                // INSTANT MODE: Use pre-calculated database
+                document.getElementById('loading-text').textContent =
+                    closeDecisionsMode ? 'Finding Close Decisions...' : 'Loading Hands...';
 
-                    evWorker.postMessage({
-                        type: 'analyze',
-                        hand: hand,
-                        paytableId: currentPaytableId,
-                        requestId: i
-                    });
+                if (closeDecisionsMode) {
+                    // Generate and lookup 200 hands from database
+                    const candidates = [];
+                    for (let i = 0; i < CANDIDATE_POOL_SIZE; i++) {
+                        const hand = dealHand();
+                        const results = await lookupHandInDB(hand);
+                        if (results) {
+                            const evGap = results[0].ev - results[1].ev;
+                            candidates.push({ hand, results, evGap });
+                        }
+                        // Update progress
+                        if (i % 20 === 0) {
+                            document.getElementById('loading-progress').textContent =
+                                `Checking hand ${i + 1} of ${CANDIDATE_POOL_SIZE}`;
+                        }
+                    }
+
+                    // Sort by EV gap and take closest 25
+                    candidates.sort((a, b) => a.evGap - b.evGap);
+                    const closest25 = candidates.slice(0, QUIZ_SIZE);
+                    quizHands = closest25.map(c => c.hand);
+                    quizResults = closest25.map(c => c.results);
+                } else {
+                    // Normal mode - generate and lookup 25 hands
+                    for (let i = 0; i < QUIZ_SIZE; i++) {
+                        const hand = dealHand();
+                        quizHands.push(hand);
+                        const results = await lookupHandInDB(hand);
+                        quizResults.push(results);
+                        document.getElementById('loading-progress').textContent =
+                            `Loading hand ${i + 1} of ${QUIZ_SIZE}`;
+                    }
                 }
+
+                startQuiz();
             } else {
-                // Normal mode - generate 25 hands
-                pendingCalculations = QUIZ_SIZE;
+                // CALCULATION MODE: Use web worker (slower)
+                document.getElementById('loading-text').textContent =
+                    closeDecisionsMode ? 'Finding Close Decisions...' : 'Preparing Quiz...';
 
-                for (let i = 0; i < QUIZ_SIZE; i++) {
-                    const hand = dealHand();
-                    quizHands.push(hand);
-                    quizResults.push(null);
+                if (closeDecisionsMode) {
+                    // Generate 200 candidate hands
+                    candidateHands = [];
+                    candidateResults = [];
+                    pendingCalculations = CANDIDATE_POOL_SIZE;
 
-                    evWorker.postMessage({
-                        type: 'analyze',
-                        hand: hand,
-                        paytableId: currentPaytableId,
-                        requestId: i
-                    });
+                    for (let i = 0; i < CANDIDATE_POOL_SIZE; i++) {
+                        const hand = dealHand();
+                        candidateHands.push(hand);
+                        candidateResults.push(null);
+
+                        evWorker.postMessage({
+                            type: 'analyze',
+                            hand: hand,
+                            paytableId: currentPaytableId,
+                            requestId: i
+                        });
+                    }
+                } else {
+                    // Normal mode - generate 25 hands
+                    pendingCalculations = QUIZ_SIZE;
+
+                    for (let i = 0; i < QUIZ_SIZE; i++) {
+                        const hand = dealHand();
+                        quizHands.push(hand);
+                        quizResults.push(null);
+
+                        evWorker.postMessage({
+                            type: 'analyze',
+                            hand: hand,
+                            paytableId: currentPaytableId,
+                            requestId: i
+                        });
+                    }
                 }
             }
         }
@@ -1677,12 +2231,22 @@ self.onmessage = function(e) {
         }
 
         // Initialize
-        function init() {
+        async function init() {
             // Load saved paytable preference
             const saved = localStorage.getItem('vpTrainerEvPaytable');
             if (saved) {
                 currentPaytableId = saved;
                 document.getElementById('game-select').value = currentPaytableId;
+            }
+
+            // Initialize IndexedDB
+            try {
+                await openDatabase();
+                // Check database status for current paytable
+                dbReady[currentPaytableId] = await checkDatabaseStatus(currentPaytableId);
+                updateDbStatusUI();
+            } catch (e) {
+                console.error('Failed to open IndexedDB:', e);
             }
 
             // Card click handlers
@@ -1718,10 +2282,15 @@ self.onmessage = function(e) {
                 document.getElementById('start-screen').style.display = 'block';
             });
 
-            // Game selector
-            document.getElementById('game-select').addEventListener('change', (e) => {
+            // Game selector - also update database status when game changes
+            document.getElementById('game-select').addEventListener('change', async (e) => {
                 currentPaytableId = e.target.value;
                 localStorage.setItem('vpTrainerEvPaytable', currentPaytableId);
+                // Check database status for new paytable
+                if (db && !dbReady.hasOwnProperty(currentPaytableId)) {
+                    dbReady[currentPaytableId] = await checkDatabaseStatus(currentPaytableId);
+                }
+                updateDbStatusUI();
             });
 
             // Close decisions checkbox - show/hide hint
@@ -1757,6 +2326,9 @@ self.onmessage = function(e) {
 
             // Start quiz button
             document.getElementById('start-quiz-btn').addEventListener('click', prepareQuiz);
+
+            // Database build button (initial)
+            document.getElementById('db-build-btn').addEventListener('click', startBuild);
         }
 
         window.addEventListener('load', init);

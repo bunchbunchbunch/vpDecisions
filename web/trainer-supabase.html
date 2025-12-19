@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Video Poker Trainer - Supabase</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 10px;
+        }
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 { font-size: 1.5rem; color: #764ba2; margin-bottom: 5px; }
+        .subtitle { font-size: 0.9rem; color: #666; }
+        .game-selector {
+            background: white;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .game-select {
+            width: 100%;
+            padding: 8px;
+            font-size: 0.9rem;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+        }
+        .progress-bar {
+            background: white;
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; }
+        .progress-label { color: #666; }
+        .progress-score { font-weight: bold; color: #764ba2; }
+        .progress-track { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.3s ease; }
+        .game-area {
+            background: #0a5f38;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .cards-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            gap: 5px;
+        }
+        .card-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .card {
+            width: 100%;
+            aspect-ratio: 2.5/3.5;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .card.selected {
+            transform: translateY(-10px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.6);
+            border: 3px solid #ffd700;
+        }
+        .card.red { color: #e74c3c; }
+        .card.black { color: #2c3e50; }
+        .held-label {
+            background: #ffd700;
+            color: #333;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+        .card-wrapper:not(.held) .held-label { visibility: hidden; }
+        .action-area { margin-top: auto; }
+        .submit-btn, .next-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .submit-btn { background: #ffd700; color: #333; }
+        .submit-btn:hover { background: #ffed4a; }
+        .next-btn { background: #3498db; color: white; display: none; }
+        .next-btn:hover { background: #2980b9; }
+        .feedback {
+            background: rgba(255,255,255,0.95);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .feedback.correct { border-left: 4px solid #2ecc71; }
+        .feedback.incorrect { border-left: 4px solid #e74c3c; }
+        .feedback-result { font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; }
+        .feedback.correct .feedback-result { color: #2ecc71; }
+        .feedback.incorrect .feedback-result { color: #e74c3c; }
+        .ev-info { font-size: 0.85rem; color: #666; }
+        .start-screen, .loading-screen, .quiz-complete {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .start-screen h2 { color: #764ba2; margin-bottom: 20px; }
+        .start-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .checkbox-row { display: flex; align-items: center; justify-content: center; margin: 15px 0; }
+        .checkbox-row input { margin-right: 8px; width: 18px; height: 18px; }
+        .hint { font-size: 0.8rem; color: #888; }
+        .loading-screen { display: none; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #ddd; border-top-color: #764ba2; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .quiz-complete { display: none; }
+        .final-score { font-size: 2.5rem; color: #764ba2; font-weight: bold; }
+        .review-section { margin-top: 20px; text-align: left; }
+        .review-item { padding: 10px; border-radius: 8px; margin-bottom: 8px; background: #f5f5f5; }
+        .review-item.correct { border-left: 3px solid #2ecc71; }
+        .review-item.incorrect { border-left: 3px solid #e74c3c; }
+        .mini-card { padding: 2px 4px; border-radius: 3px; background: #f0f0f0; margin: 0 2px; }
+        .mini-card.red { color: #e74c3c; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Video Poker Trainer</h1>
+            <div class="subtitle">EV-Based Strategy Training (Supabase)</div>
+        </div>
+
+        <div class="game-selector">
+            <select id="game-select" class="game-select">
+                <option value="jacks-or-better-9-6">Jacks or Better 9/6</option>
+                <option value="double-double-bonus-9-6">Double Double Bonus 9/6</option>
+            </select>
+        </div>
+
+        <div id="start-screen" class="start-screen">
+            <h2>25-Hand Quiz</h2>
+            <p>Test your video poker strategy knowledge!</p>
+            <div class="checkbox-row">
+                <input type="checkbox" id="close-decisions-checkbox">
+                <label for="close-decisions-checkbox">Close Decisions Only</label>
+            </div>
+            <div class="hint">Focuses on hands where top plays have similar EVs</div>
+            <button class="start-btn" onclick="prepareQuiz()">Start Quiz</button>
+        </div>
+
+        <div id="loading-screen" class="loading-screen">
+            <div class="spinner"></div>
+            <div id="loading-text">Loading...</div>
+            <div id="loading-progress"></div>
+        </div>
+
+        <div id="game-area" class="game-area hidden">
+            <div class="progress-bar">
+                <div class="progress-header">
+                    <span class="progress-label">Hand <span id="current-hand">1</span> of 25</span>
+                    <span class="progress-score">Score: <span id="correct-count">0</span></span>
+                </div>
+                <div class="progress-track">
+                    <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="cards-container">
+                <div class="card-wrapper" onclick="toggleCard(0)"><div id="card-0" class="card"></div><div class="held-label">HELD</div></div>
+                <div class="card-wrapper" onclick="toggleCard(1)"><div id="card-1" class="card"></div><div class="held-label">HELD</div></div>
+                <div class="card-wrapper" onclick="toggleCard(2)"><div id="card-2" class="card"></div><div class="held-label">HELD</div></div>
+                <div class="card-wrapper" onclick="toggleCard(3)"><div id="card-3" class="card"></div><div class="held-label">HELD</div></div>
+                <div class="card-wrapper" onclick="toggleCard(4)"><div id="card-4" class="card"></div><div class="held-label">HELD</div></div>
+            </div>
+
+            <div id="feedback" class="feedback">
+                <div class="feedback-result"></div>
+                <div class="ev-info"></div>
+            </div>
+
+            <div class="action-area">
+                <button id="submit-btn" class="submit-btn" onclick="submitAnswer()">Submit</button>
+                <button id="next-btn" class="next-btn" onclick="nextHand()">Next Hand</button>
+            </div>
+        </div>
+
+        <div id="quiz-complete" class="quiz-complete">
+            <h2>Quiz Complete!</h2>
+            <div class="final-score"><span id="final-correct">0</span> / 25</div>
+            <div id="percentage"></div>
+            <div id="review-section" class="review-section"></div>
+            <button class="start-btn" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://ctqefgdvqiaiumtmcjdz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0cWVmZ2R2cWlhaXVtdG1jamR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMTExMzksImV4cCI6MjA4MTU4NzEzOX0.SSrvFVyedTsjq2r9mWMj8SKV4bZfRtp0MESavfz3AiI';
+
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Card constants
+        const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+        const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        const rankValues = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
+        const rankDisplay = { '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': 'T', 'J': 'J', 'Q': 'Q', 'K': 'K', 'A': 'A' };
+        const suitSymbols = { hearts: '\u2665', diamonds: '\u2666', clubs: '\u2663', spades: '\u2660' };
+
+        // Quiz state
+        const QUIZ_SIZE = 25;
+        const CANDIDATE_POOL_SIZE = 200;
+        let currentPaytableId = 'jacks-or-better-9-6';
+        let quizHands = [];
+        let quizResults = [];
+        let quizAnswers = [];
+        let currentHandIndex = 0;
+        let correctCount = 0;
+        let selectedCards = new Set();
+        let isWaitingForAnswer = false;
+        let closeDecisionsMode = false;
+        let strategyCache = {};
+
+        // Canonical key generation
+        function handToCanonicalKey(cards) {
+            const sorted = [...cards].sort((a, b) => rankValues[a.rank] - rankValues[b.rank]);
+            const suitMap = {};
+            const suitLetters = ['a', 'b', 'c', 'd'];
+            let nextSuitIndex = 0;
+            for (const card of sorted) {
+                if (!(card.suit in suitMap)) {
+                    suitMap[card.suit] = suitLetters[nextSuitIndex++];
+                }
+            }
+            return sorted.map(card => rankDisplay[card.rank] + suitMap[card.suit]).join('');
+        }
+
+        // Deck functions
+        function createDeck() {
+            const deck = [];
+            for (const suit of suits) {
+                for (const rank of ranks) {
+                    deck.push({ rank, suit });
+                }
+            }
+            return deck;
+        }
+
+        function shuffle(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function dealHand() {
+            return shuffle(createDeck()).slice(0, 5);
+        }
+
+        // Supabase lookup
+        async function lookupHand(hand) {
+            const key = handToCanonicalKey(hand);
+
+            // Check cache
+            const cacheKey = `${currentPaytableId}:${key}`;
+            if (strategyCache[cacheKey]) {
+                return convertResult(strategyCache[cacheKey], hand);
+            }
+
+            // Fetch from Supabase
+            const { data, error } = await supabaseClient
+                .from('strategy')
+                .select('best_hold, best_ev, hold_evs')
+                .eq('paytable_id', currentPaytableId)
+                .eq('hand_key', key)
+                .single();
+
+            if (error || !data) {
+                console.log('Lookup error:', error, 'for key:', key);
+                return null;
+            }
+
+            // Cache result
+            strategyCache[cacheKey] = data;
+            return convertResult(data, hand);
+        }
+
+        // Convert database result to format for quiz
+        function convertResult(data, hand) {
+            const sorted = [...hand].sort((a, b) => rankValues[a.rank] - rankValues[b.rank]);
+
+            function bitmaskToOriginalIndices(bitmask) {
+                const sortedIndices = [];
+                for (let i = 0; i < 5; i++) {
+                    if (bitmask & (1 << i)) sortedIndices.push(i);
+                }
+                return sortedIndices.map(si => {
+                    const card = sorted[si];
+                    return hand.findIndex(c => c.rank === card.rank && c.suit === card.suit);
+                });
+            }
+
+            // Sort all holds by EV to get top 2
+            const holdEvs = data.hold_evs || {};
+            const sortedHolds = Object.entries(holdEvs)
+                .map(([hold, ev]) => ({ hold: parseInt(hold), ev }))
+                .sort((a, b) => b.ev - a.ev);
+
+            const results = [];
+            for (let i = 0; i < Math.min(2, sortedHolds.length); i++) {
+                const { hold, ev } = sortedHolds[i];
+                const indices = bitmaskToOriginalIndices(hold);
+                results.push({
+                    holdIndices: indices,
+                    heldCards: indices.map(idx => hand[idx]),
+                    ev: ev
+                });
+            }
+            return results;
+        }
+
+        // Quiz flow
+        async function prepareQuiz() {
+            console.log('prepareQuiz called');
+            closeDecisionsMode = document.getElementById('close-decisions-checkbox').checked;
+            currentPaytableId = document.getElementById('game-select').value;
+
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('loading-screen').style.display = 'block';
+            document.getElementById('game-select').disabled = true;
+
+            quizHands = [];
+            quizResults = [];
+            quizAnswers = [];
+            currentHandIndex = 0;
+            correctCount = 0;
+
+            try {
+                if (closeDecisionsMode) {
+                    document.getElementById('loading-text').textContent = 'Finding Close Decisions...';
+                    const candidates = [];
+                    let attempts = 0;
+                    const maxAttempts = 1000;
+
+                    while (candidates.length < CANDIDATE_POOL_SIZE && attempts < maxAttempts) {
+                        const hand = dealHand();
+                        const results = await lookupHand(hand);
+                        attempts++;
+                        if (results && results.length >= 2) {
+                            const evGap = results[0].ev - results[1].ev;
+                            candidates.push({ hand, results, evGap });
+                        }
+                        if (attempts % 20 === 0) {
+                            document.getElementById('loading-progress').textContent = `Found ${candidates.length} candidates (${attempts} tried)`;
+                        }
+                    }
+
+                    if (candidates.length < QUIZ_SIZE) {
+                        alert(`Only found ${candidates.length} close decision hands. Try again later.`);
+                        location.reload();
+                        return;
+                    }
+
+                    candidates.sort((a, b) => a.evGap - b.evGap);
+                    const closest = candidates.slice(0, QUIZ_SIZE);
+                    quizHands = closest.map(c => c.hand);
+                    quizResults = closest.map(c => c.results);
+                } else {
+                    document.getElementById('loading-text').textContent = 'Loading Hands...';
+                    let attempts = 0;
+                    const maxAttempts = 500;
+                    while (quizHands.length < QUIZ_SIZE && attempts < maxAttempts) {
+                        const hand = dealHand();
+                        const results = await lookupHand(hand);
+                        attempts++;
+                        if (results && results.length > 0) {
+                            quizHands.push(hand);
+                            quizResults.push(results);
+                            document.getElementById('loading-progress').textContent = `Found ${quizHands.length} of ${QUIZ_SIZE} hands (${attempts} tried)`;
+                        }
+                    }
+                    if (quizHands.length < QUIZ_SIZE) {
+                        alert(`Only found ${quizHands.length} hands in database. Try again later when more data is loaded.`);
+                        location.reload();
+                        return;
+                    }
+                }
+
+                startQuiz();
+            } catch (err) {
+                alert('Error loading quiz: ' + err.message);
+                location.reload();
+            }
+        }
+
+        function startQuiz() {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('game-area').classList.remove('hidden');
+            showHand(0);
+        }
+
+        function showHand(index) {
+            currentHandIndex = index;
+            selectedCards.clear();
+            isWaitingForAnswer = true;
+
+            const hand = quizHands[index];
+
+            document.getElementById('current-hand').textContent = index + 1;
+            document.getElementById('correct-count').textContent = correctCount;
+            document.getElementById('progress-fill').style.width = `${(index / QUIZ_SIZE) * 100}%`;
+
+            // Display cards
+            hand.forEach((card, i) => {
+                const cardEl = document.getElementById(`card-${i}`);
+                const isRed = card.suit === 'hearts' || card.suit === 'diamonds';
+                cardEl.className = `card ${isRed ? 'red' : 'black'}`;
+                cardEl.textContent = card.rank + suitSymbols[card.suit];
+                cardEl.classList.remove('selected');
+                cardEl.parentElement.classList.remove('held');
+            });
+
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'block';
+            document.getElementById('next-btn').style.display = 'none';
+        }
+
+        function toggleCard(index) {
+            if (!isWaitingForAnswer) return;
+
+            const card = document.getElementById(`card-${index}`);
+            const wrapper = card.parentElement;
+
+            if (selectedCards.has(index)) {
+                selectedCards.delete(index);
+                card.classList.remove('selected');
+                wrapper.classList.remove('held');
+            } else {
+                selectedCards.add(index);
+                card.classList.add('selected');
+                wrapper.classList.add('held');
+            }
+        }
+
+        function submitAnswer() {
+            if (!isWaitingForAnswer) return;
+            isWaitingForAnswer = false;
+
+            const userHold = Array.from(selectedCards).sort();
+            const results = quizResults[currentHandIndex];
+            const correctHold = results[0].holdIndices.slice().sort();
+
+            const isCorrect = userHold.length === correctHold.length &&
+                userHold.every((v, i) => v === correctHold[i]);
+
+            if (isCorrect) correctCount++;
+
+            quizAnswers.push({
+                hand: quizHands[currentHandIndex],
+                userHold: Array.from(selectedCards),
+                correctHold: results[0].holdIndices,
+                isCorrect,
+                ev: results[0].ev
+            });
+
+            // Show feedback
+            const feedback = document.getElementById('feedback');
+            feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+            feedback.style.display = 'block';
+
+            const resultText = isCorrect ? '✓ Correct!' : '✗ Incorrect';
+            const holdText = results[0].heldCards.length === 0 ? 'Discard all' :
+                results[0].heldCards.map(c => `${c.rank}${suitSymbols[c.suit]}`).join(' ');
+
+            feedback.innerHTML = `
+                <div class="feedback-result">${resultText}</div>
+                <div class="ev-info">
+                    Best play: ${holdText}<br>
+                    EV: ${results[0].ev.toFixed(4)}
+                    ${results.length > 1 ? `<br>2nd best EV: ${results[1].ev.toFixed(4)} (gap: ${(results[0].ev - results[1].ev).toFixed(4)})` : ''}
+                </div>
+            `;
+
+            document.getElementById('correct-count').textContent = correctCount;
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'block';
+            document.getElementById('next-btn').textContent = currentHandIndex + 1 >= QUIZ_SIZE ? 'See Results' : 'Next Hand';
+        }
+
+        function nextHand() {
+            if (currentHandIndex + 1 >= QUIZ_SIZE) {
+                showResults();
+            } else {
+                showHand(currentHandIndex + 1);
+            }
+        }
+
+        function showResults() {
+            document.getElementById('game-area').classList.add('hidden');
+            document.getElementById('quiz-complete').style.display = 'block';
+            document.getElementById('final-correct').textContent = correctCount;
+            document.getElementById('percentage').textContent = `${Math.round((correctCount / QUIZ_SIZE) * 100)}%`;
+
+            const reviewHtml = quizAnswers.map((answer, i) => {
+                const handStr = answer.hand.map(c => `${c.rank}${suitSymbols[c.suit]}`).join(' ');
+                const userHoldStr = answer.userHold.length === 0 ? 'Discard all' :
+                    answer.userHold.map(idx => `${answer.hand[idx].rank}${suitSymbols[answer.hand[idx].suit]}`).join(' ');
+                const correctHoldStr = answer.correctHold.length === 0 ? 'Discard all' :
+                    answer.correctHold.map(idx => `${answer.hand[idx].rank}${suitSymbols[answer.hand[idx].suit]}`).join(' ');
+
+                return `
+                    <div class="review-item ${answer.isCorrect ? 'correct' : 'incorrect'}">
+                        <strong>Hand ${i + 1}:</strong> ${handStr}<br>
+                        Your hold: ${userHoldStr}
+                        ${!answer.isCorrect ? `<br><span style="color:#e74c3c">Correct: ${correctHoldStr}</span>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('review-section').innerHTML = reviewHtml;
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '1' && e.key <= '5') {
+                toggleCard(parseInt(e.key) - 1);
+            } else if (e.key === 'Enter' || e.key === ' ') {
+                if (isWaitingForAnswer) {
+                    submitAnswer();
+                } else if (document.getElementById('next-btn').style.display === 'block') {
+                    nextHand();
+                }
+            }
+        });
+
+        // Init
+        document.getElementById('game-select').addEventListener('change', (e) => {
+            currentPaytableId = e.target.value;
+        });
+    </script>
+</body>
+</html>

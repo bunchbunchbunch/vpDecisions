@@ -1,0 +1,39 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.expo/
+
+# OS files
+.DS_Store
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# iOS
+ios/.xcode.env.local
+*.xcworkspace
+*.xcuserstate
+
+# React Native
+ios/Pods/
+android/.gradle/
+android/app/build/
+
+# Rust
+target/
+Cargo.lock
