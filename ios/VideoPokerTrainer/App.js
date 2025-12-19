@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
+  Image,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { createClient } from '@supabase/supabase-js';
@@ -24,6 +25,38 @@ const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 const rankValues = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
 const rankDisplay = { '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': 'T', 'J': 'J', 'Q': 'Q', 'K': 'K', 'A': 'A' };
 const suitSymbols = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' };
+const suitColors = { hearts: '#e74c3c', diamonds: '#e74c3c', clubs: '#2c3e50', spades: '#2c3e50' };
+
+// Helper component for colored card text
+function ColoredCard({ card }) {
+  return (
+    <Text style={{ color: suitColors[card.suit], fontWeight: 'bold' }}>
+      {card.rank}{suitSymbols[card.suit]}
+    </Text>
+  );
+}
+
+// Helper to render a list of cards with colors
+function ColoredCardList({ cards, style }) {
+  return (
+    <Text style={style}>
+      {cards.map((card, i) => (
+        <React.Fragment key={i}>
+          {i > 0 && ' '}
+          <ColoredCard card={card} />
+        </React.Fragment>
+      ))}
+    </Text>
+  );
+}
+
+function getCardImageUrl(card) {
+  const rankMap = { '10': '0', 'J': 'J', 'Q': 'Q', 'K': 'K', 'A': 'A' };
+  const suitMap = { 'hearts': 'H', 'diamonds': 'D', 'clubs': 'C', 'spades': 'S' };
+  const rankCode = rankMap[card.rank] || card.rank;
+  const suitCode = suitMap[card.suit];
+  return `https://deckofcardsapi.com/static/img/${rankCode}${suitCode}.png`;
+}
 
 const PAYTABLES = [
   { id: 'jacks-or-better-9-6', name: 'Jacks or Better 9/6' },
@@ -69,8 +102,6 @@ function handToCanonicalKey(cards) {
 
 // Card component
 function Card({ card, selected, onPress, disabled }) {
-  const isRed = card.suit === 'hearts' || card.suit === 'diamonds';
-
   return (
     <View style={styles.cardWrapper}>
       <TouchableOpacity
@@ -79,13 +110,26 @@ function Card({ card, selected, onPress, disabled }) {
         disabled={disabled}
         activeOpacity={0.7}
       >
-        <Text style={[styles.cardText, isRed ? styles.cardRed : styles.cardBlack]}>
-          {card.rank}{suitSymbols[card.suit]}
-        </Text>
+        <Image
+          source={{ uri: getCardImageUrl(card) }}
+          style={styles.cardImage}
+          resizeMode="contain"
+        />
       </TouchableOpacity>
       {selected && <Text style={styles.heldLabel}>HELD</Text>}
     </View>
   );
+}
+
+// Preload all card images
+function preloadAllCards() {
+  const allCards = [];
+  for (const suit of suits) {
+    for (const rank of ranks) {
+      allCards.push({ rank, suit });
+    }
+  }
+  return Promise.all(allCards.map(card => Image.prefetch(getCardImageUrl(card))));
 }
 
 // Main App
@@ -94,6 +138,12 @@ export default function App() {
   const [paytableId, setPaytableId] = useState('jacks-or-better-9-6');
   const [closeDecisions, setCloseDecisions] = useState(false);
   const [loadingText, setLoadingText] = useState('');
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
+  // Preload card images on mount
+  useEffect(() => {
+    preloadAllCards().then(() => setImagesLoaded(true)).catch(() => setImagesLoaded(true));
+  }, []);
 
   const [quizHands, setQuizHands] = useState([]);
   const [quizResults, setQuizResults] = useState([]);
@@ -103,6 +153,7 @@ export default function App() {
   const [correctCount, setCorrectCount] = useState(0);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [expandedHandIndex, setExpandedHandIndex] = useState(null);
 
   const toggleCard = useCallback((index) => {
     if (showFeedback) return;
@@ -133,7 +184,8 @@ export default function App() {
       userHold: Array.from(selectedCards),
       correctHold: quizResults[currentHandIndex][0].holdIndices,
       isCorrect: correct,
-      ev: quizResults[currentHandIndex][0].ev
+      ev: quizResults[currentHandIndex][0].ev,
+      allHolds: quizResults[currentHandIndex]
     }]);
 
     setIsCorrect(correct);
@@ -156,9 +208,9 @@ export default function App() {
 
     const handleKeyDown = (e) => {
       if (screen === 'quiz' && !showFeedback) {
-        if (e.key >= '1' && e.key <= '5') {
-          const index = parseInt(e.key) - 1;
-          toggleCard(index);
+        const keyMap = { '1': 0, '2': 1, '3': 2, '4': 3, '5': 4, 'd': 0, 'f': 1, 'j': 2, 'k': 3, 'l': 4 };
+        if (e.key in keyMap) {
+          toggleCard(keyMap[e.key]);
         } else if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           submitAnswer();
@@ -205,16 +257,14 @@ export default function App() {
       .map(([hold, ev]) => ({ hold: parseInt(hold), ev }))
       .sort((a, b) => b.ev - a.ev);
 
-    const results = [];
-    for (let i = 0; i < Math.min(2, sortedHolds.length); i++) {
-      const { hold, ev } = sortedHolds[i];
+    const results = sortedHolds.map(({ hold, ev }) => {
       const indices = bitmaskToOriginalIndices(hold);
-      results.push({
+      return {
         holdIndices: indices,
         heldCards: indices.map(idx => hand[idx]),
         ev: ev
-      });
-    }
+      };
+    });
     return results;
   };
 
@@ -302,6 +352,7 @@ export default function App() {
     setCorrectCount(0);
     setSelectedCards(new Set());
     setShowFeedback(false);
+    setExpandedHandIndex(null);
   };
 
   // Start screen
@@ -339,13 +390,19 @@ export default function App() {
           </TouchableOpacity>
           <Text style={styles.hint}>Focuses on hands where top plays have similar EVs</Text>
 
-          <TouchableOpacity style={styles.button} onPress={prepareQuiz}>
-            <Text style={styles.buttonText}>Start 25-Hand Quiz</Text>
+          <TouchableOpacity
+            style={[styles.button, !imagesLoaded && styles.buttonDisabled]}
+            onPress={prepareQuiz}
+            disabled={!imagesLoaded}
+          >
+            <Text style={styles.buttonText}>
+              {imagesLoaded ? 'Start 25-Hand Quiz' : 'Loading cards...'}
+            </Text>
           </TouchableOpacity>
 
           {Platform.OS === 'web' && (
             <Text style={styles.hint}>
-              Keyboard: 1-5 to toggle cards, Enter/Space to submit
+              Keyboard: 1-5 or D F J K L to toggle cards, Enter/Space to submit
             </Text>
           )}
         </View>
@@ -445,22 +502,68 @@ export default function App() {
 
         <View style={styles.reviewSection}>
           {quizAnswers.map((answer, index) => (
-            <View key={index} style={[styles.reviewItem, answer.isCorrect ? styles.reviewCorrect : styles.reviewIncorrect]}>
-              <Text style={styles.reviewTitle}>Hand {index + 1}</Text>
-              <Text style={styles.reviewCards}>
-                {answer.hand.map(c => `${c.rank}${suitSymbols[c.suit]}`).join(' ')}
-              </Text>
+            <TouchableOpacity
+              key={index}
+              style={[styles.reviewItem, answer.isCorrect ? styles.reviewCorrect : styles.reviewIncorrect]}
+              onPress={() => setExpandedHandIndex(expandedHandIndex === index ? null : index)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.reviewHeader}>
+                <Text style={styles.reviewTitle}>Hand {index + 1}</Text>
+                <Text style={styles.expandIcon}>{expandedHandIndex === index ? '▼' : '▶'}</Text>
+              </View>
+              <ColoredCardList cards={answer.hand} style={styles.reviewCards} />
               <Text style={styles.reviewText}>
-                Your hold: {answer.userHold.length === 0 ? 'Discard all' :
-                  answer.userHold.map(i => `${answer.hand[i].rank}${suitSymbols[answer.hand[i].suit]}`).join(' ')}
+                Your hold: {answer.userHold.length === 0 ? 'Discard all' : ''}
               </Text>
-              {!answer.isCorrect && (
-                <Text style={[styles.reviewText, styles.textRed]}>
-                  Correct: {answer.correctHold.length === 0 ? 'Discard all' :
-                    answer.correctHold.map(i => `${answer.hand[i].rank}${suitSymbols[answer.hand[i].suit]}`).join(' ')}
-                </Text>
+              {answer.userHold.length > 0 && (
+                <ColoredCardList
+                  cards={answer.userHold.map(i => answer.hand[i])}
+                  style={styles.reviewText}
+                />
               )}
-            </View>
+              {!answer.isCorrect && (
+                <View>
+                  <Text style={[styles.reviewText, styles.textRed]}>
+                    Correct: {answer.correctHold.length === 0 ? 'Discard all' : ''}
+                  </Text>
+                  {answer.correctHold.length > 0 && (
+                    <ColoredCardList
+                      cards={answer.correctHold.map(i => answer.hand[i])}
+                      style={[styles.reviewText, styles.textRed]}
+                    />
+                  )}
+                </View>
+              )}
+
+              {expandedHandIndex === index && answer.allHolds && (
+                <View style={styles.allHoldsSection}>
+                  <Text style={styles.allHoldsTitle}>All Options (sorted by EV):</Text>
+                  {answer.allHolds.slice(0, 10).map((hold, hi) => (
+                    <View key={hi} style={styles.holdRow}>
+                      <Text style={styles.holdEv}>{hold.ev.toFixed(4)}</Text>
+                      <Text style={styles.holdCards}>
+                        {hold.heldCards.length === 0 ? (
+                          <Text style={styles.discardText}>Discard all</Text>
+                        ) : (
+                          hold.heldCards.map((c, ci) => (
+                            <Text key={ci}>
+                              {ci > 0 && ' '}
+                              <Text style={{ color: suitColors[c.suit] }}>
+                                {c.rank}{suitSymbols[c.suit]}
+                              </Text>
+                            </Text>
+                          ))
+                        )}
+                      </Text>
+                    </View>
+                  ))}
+                  {answer.allHolds.length > 10 && (
+                    <Text style={styles.moreText}>...and {answer.allHolds.length - 10} more options</Text>
+                  )}
+                </View>
+              )}
+            </TouchableOpacity>
           ))}
         </View>
 
@@ -563,6 +666,9 @@ const styles = StyleSheet.create({
   buttonNext: {
     backgroundColor: '#3498db',
   },
+  buttonDisabled: {
+    backgroundColor: '#999',
+  },
   buttonText: {
     color: 'white',
     fontSize: 18,
@@ -624,7 +730,7 @@ const styles = StyleSheet.create({
   cardBox: {
     backgroundColor: 'white',
     borderRadius: 8,
-    aspectRatio: 0.7,
+    aspectRatio: 2.5 / 3.5,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
@@ -633,6 +739,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
+    overflow: 'hidden',
   },
   cardSelected: {
     transform: [{ translateY: -10 }],
@@ -641,15 +748,9 @@ const styles = StyleSheet.create({
     shadowColor: '#ffd700',
     shadowOpacity: 0.6,
   },
-  cardText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  cardRed: {
-    color: '#e74c3c',
-  },
-  cardBlack: {
-    color: '#2c3e50',
+  cardImage: {
+    width: '100%',
+    height: '100%',
   },
   heldLabel: {
     backgroundColor: '#ffd700',
@@ -720,6 +821,51 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
     backgroundColor: '#f5f5f5',
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  expandIcon: {
+    fontSize: 12,
+    color: '#666',
+  },
+  allHoldsSection: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+  },
+  allHoldsTitle: {
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#333',
+  },
+  holdRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  holdEv: {
+    width: 70,
+    fontSize: 13,
+    color: '#666',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  holdCards: {
+    flex: 1,
+    fontSize: 14,
+  },
+  discardText: {
+    fontStyle: 'italic',
+    color: '#888',
+  },
+  moreText: {
+    fontStyle: 'italic',
+    color: '#888',
+    marginTop: 4,
+    fontSize: 12,
   },
   reviewCorrect: {
     borderLeftWidth: 3,
