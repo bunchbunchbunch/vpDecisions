@@ -11,7 +11,6 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { createClient } from '@supabase/supabase-js';
 import { StatusBar } from 'expo-status-bar';
-
 // Supabase configuration
 const SUPABASE_URL = 'https://ctqefgdvqiaiumtmcjdz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0cWVmZ2R2cWlhaXVtdG1jamR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMTExMzksImV4cCI6MjA4MTU4NzEzOX0.SSrvFVyedTsjq2r9mWMj8SKV4bZfRtp0MESavfz3AiI';
@@ -26,6 +25,71 @@ const rankValues = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9'
 const rankDisplay = { '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': 'T', 'J': 'J', 'Q': 'Q', 'K': 'K', 'A': 'A' };
 const suitSymbols = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' };
 const suitColors = { hearts: '#e74c3c', diamonds: '#e74c3c', clubs: '#2c3e50', spades: '#2c3e50' };
+
+// Local card images - use require() for static asset loading
+const cardAssets = {
+  '2C': require('./assets/cards/2C.svg'),
+  '2D': require('./assets/cards/2D.svg'),
+  '2H': require('./assets/cards/2H.svg'),
+  '2S': require('./assets/cards/2S.svg'),
+  '3C': require('./assets/cards/3C.svg'),
+  '3D': require('./assets/cards/3D.svg'),
+  '3H': require('./assets/cards/3H.svg'),
+  '3S': require('./assets/cards/3S.svg'),
+  '4C': require('./assets/cards/4C.svg'),
+  '4D': require('./assets/cards/4D.svg'),
+  '4H': require('./assets/cards/4H.svg'),
+  '4S': require('./assets/cards/4S.svg'),
+  '5C': require('./assets/cards/5C.svg'),
+  '5D': require('./assets/cards/5D.svg'),
+  '5H': require('./assets/cards/5H.svg'),
+  '5S': require('./assets/cards/5S.svg'),
+  '6C': require('./assets/cards/6C.svg'),
+  '6D': require('./assets/cards/6D.svg'),
+  '6H': require('./assets/cards/6H.svg'),
+  '6S': require('./assets/cards/6S.svg'),
+  '7C': require('./assets/cards/7C.svg'),
+  '7D': require('./assets/cards/7D.svg'),
+  '7H': require('./assets/cards/7H.svg'),
+  '7S': require('./assets/cards/7S.svg'),
+  '8C': require('./assets/cards/8C.svg'),
+  '8D': require('./assets/cards/8D.svg'),
+  '8H': require('./assets/cards/8H.svg'),
+  '8S': require('./assets/cards/8S.svg'),
+  '9C': require('./assets/cards/9C.svg'),
+  '9D': require('./assets/cards/9D.svg'),
+  '9H': require('./assets/cards/9H.svg'),
+  '9S': require('./assets/cards/9S.svg'),
+  'TC': require('./assets/cards/TC.svg'),
+  'TD': require('./assets/cards/TD.svg'),
+  'TH': require('./assets/cards/TH.svg'),
+  'TS': require('./assets/cards/TS.svg'),
+  'JC': require('./assets/cards/JC.svg'),
+  'JD': require('./assets/cards/JD.svg'),
+  'JH': require('./assets/cards/JH.svg'),
+  'JS': require('./assets/cards/JS.svg'),
+  'QC': require('./assets/cards/QC.svg'),
+  'QD': require('./assets/cards/QD.svg'),
+  'QH': require('./assets/cards/QH.svg'),
+  'QS': require('./assets/cards/QS.svg'),
+  'KC': require('./assets/cards/KC.svg'),
+  'KD': require('./assets/cards/KD.svg'),
+  'KH': require('./assets/cards/KH.svg'),
+  'KS': require('./assets/cards/KS.svg'),
+  'AC': require('./assets/cards/AC.svg'),
+  'AD': require('./assets/cards/AD.svg'),
+  'AH': require('./assets/cards/AH.svg'),
+  'AS': require('./assets/cards/AS.svg'),
+};
+
+function getCardImageSource(card) {
+  const rankMap = { '10': 'T', 'J': 'J', 'Q': 'Q', 'K': 'K', 'A': 'A' };
+  const suitMap = { 'hearts': 'H', 'diamonds': 'D', 'clubs': 'C', 'spades': 'S' };
+  const rankCode = rankMap[card.rank] || card.rank;
+  const suitCode = suitMap[card.suit];
+  const key = `${rankCode}${suitCode}`;
+  return cardAssets[key];
+}
 
 // Helper component for colored card text
 function ColoredCard({ card }) {
@@ -48,14 +112,6 @@ function ColoredCardList({ cards, style }) {
       ))}
     </Text>
   );
-}
-
-function getCardImageUrl(card) {
-  const rankMap = { '10': '0', 'J': 'J', 'Q': 'Q', 'K': 'K', 'A': 'A' };
-  const suitMap = { 'hearts': 'H', 'diamonds': 'D', 'clubs': 'C', 'spades': 'S' };
-  const rankCode = rankMap[card.rank] || card.rank;
-  const suitCode = suitMap[card.suit];
-  return `https://deckofcardsapi.com/static/img/${rankCode}${suitCode}.png`;
 }
 
 const PAYTABLES = [
@@ -102,6 +158,8 @@ function handToCanonicalKey(cards) {
 
 // Card component
 function Card({ card, selected, onPress, disabled }) {
+  const imageSource = getCardImageSource(card);
+
   return (
     <View style={styles.cardWrapper}>
       <TouchableOpacity
@@ -111,7 +169,7 @@ function Card({ card, selected, onPress, disabled }) {
         activeOpacity={0.7}
       >
         <Image
-          source={{ uri: getCardImageUrl(card) }}
+          source={imageSource}
           style={styles.cardImage}
           resizeMode="contain"
         />
@@ -121,29 +179,12 @@ function Card({ card, selected, onPress, disabled }) {
   );
 }
 
-// Preload all card images
-function preloadAllCards() {
-  const allCards = [];
-  for (const suit of suits) {
-    for (const rank of ranks) {
-      allCards.push({ rank, suit });
-    }
-  }
-  return Promise.all(allCards.map(card => Image.prefetch(getCardImageUrl(card))));
-}
-
 // Main App
 export default function App() {
   const [screen, setScreen] = useState('start');
   const [paytableId, setPaytableId] = useState('jacks-or-better-9-6');
   const [closeDecisions, setCloseDecisions] = useState(false);
   const [loadingText, setLoadingText] = useState('');
-  const [imagesLoaded, setImagesLoaded] = useState(false);
-
-  // Preload card images on mount
-  useEffect(() => {
-    preloadAllCards().then(() => setImagesLoaded(true)).catch(() => setImagesLoaded(true));
-  }, []);
 
   const [quizHands, setQuizHands] = useState([]);
   const [quizResults, setQuizResults] = useState([]);
@@ -391,13 +432,10 @@ export default function App() {
           <Text style={styles.hint}>Focuses on hands where top plays have similar EVs</Text>
 
           <TouchableOpacity
-            style={[styles.button, !imagesLoaded && styles.buttonDisabled]}
+            style={styles.button}
             onPress={prepareQuiz}
-            disabled={!imagesLoaded}
           >
-            <Text style={styles.buttonText}>
-              {imagesLoaded ? 'Start 25-Hand Quiz' : 'Loading cards...'}
-            </Text>
+            <Text style={styles.buttonText}>Start 25-Hand Quiz</Text>
           </TouchableOpacity>
 
           {Platform.OS === 'web' && (
