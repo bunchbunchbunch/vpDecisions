@@ -3,6 +3,7 @@
     "name": "VP Trainer",
     "slug": "VideoPokerTrainer",
     "version": "1.0.0",
+    "scheme": "vptrainer",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -27,6 +28,9 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
-    }
+    },
+    "plugins": [
+      "expo-web-browser"
+    ]
   }
 }

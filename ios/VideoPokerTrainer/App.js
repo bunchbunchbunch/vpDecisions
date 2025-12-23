@@ -7,14 +7,33 @@ import {
   ScrollView,
   Platform,
   Image,
+  useWindowDimensions,
+  SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { createClient } from '@supabase/supabase-js';
 import { StatusBar } from 'expo-status-bar';
-// Supabase configuration
+import * as ScreenOrientation from 'expo-screen-orientation';
+import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Required for web browser auth flow
+WebBrowser.maybeCompleteAuthSession();
+
+// Supabase configuration with AsyncStorage for session persistence
 const SUPABASE_URL = 'https://ctqefgdvqiaiumtmcjdz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0cWVmZ2R2cWlhaXVtdG1jamR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMTExMzksImV4cCI6MjA4MTU4NzEzOX0.SSrvFVyedTsjq2r9mWMj8SKV4bZfRtp0MESavfz3AiI';
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    storage: AsyncStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+  },
+});
 
 // Constants
 const QUIZ_SIZE = 25;
@@ -156,14 +175,22 @@ function handToCanonicalKey(cards) {
   return sorted.map(card => rankDisplay[card.rank] + suitMap[card.suit]).join('');
 }
 
-// Card component
-function Card({ card, selected, onPress, disabled }) {
+// Card component with landscape optimization
+function Card({ card, selected, onPress, disabled, isLandscape, cardHeight, cardWidth }) {
   const imageSource = getCardImageSource(card);
 
   return (
-    <View style={styles.cardWrapper}>
+    <View style={[styles.cardWrapper, isLandscape && styles.cardWrapperLandscape]}>
       <TouchableOpacity
-        style={[styles.cardBox, selected && styles.cardSelected]}
+        style={[
+          styles.cardBox,
+          selected && styles.cardSelected,
+          isLandscape && cardWidth && cardHeight && {
+            width: cardWidth,
+            height: cardHeight,
+            aspectRatio: undefined,
+          }
+        ]}
         onPress={onPress}
         disabled={disabled}
         activeOpacity={0.7}
@@ -174,15 +201,141 @@ function Card({ card, selected, onPress, disabled }) {
           resizeMode="contain"
         />
       </TouchableOpacity>
-      {selected && <Text style={styles.heldLabel}>HELD</Text>}
+      {selected && <Text style={[styles.heldLabel, isLandscape && styles.heldLabelLandscape]}>HELD</Text>}
     </View>
   );
 }
 
 // Main App
 export default function App() {
-  const [screen, setScreen] = useState('start');
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
+  const isMobile = Platform.OS !== 'web';
+
+  // Auth state
+  const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
+
+  // Get redirect URL for OAuth
+  const redirectUrl = AuthSession.makeRedirectUri({
+    scheme: 'vptrainer',
+    path: 'auth/callback',
+  });
+
+  // Check for existing session on mount
+  useEffect(() => {
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        // Create/update profile on sign in
+        if (event === 'SIGNED_IN' && session?.user) {
+          await upsertProfile(session.user);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Create or update user profile
+  const upsertProfile = async (user) => {
+    const { error } = await supabaseClient
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+        avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'id' });
+
+    if (error) {
+      console.error('Error upserting profile:', error);
+    }
+  };
+
+  // Sign in with Google
+  const signInWithGoogle = async () => {
+    setAuthError(null);
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        const result = await WebBrowser.openAuthSessionAsync(
+          data.url,
+          redirectUrl
+        );
+
+        if (result.type === 'success') {
+          const url = result.url;
+          // Extract tokens from URL
+          const params = new URL(url).hash.substring(1);
+          const urlParams = new URLSearchParams(params);
+          const accessToken = urlParams.get('access_token');
+          const refreshToken = urlParams.get('refresh_token');
+
+          if (accessToken) {
+            const { error: sessionError } = await supabaseClient.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+            if (sessionError) throw sessionError;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error signing in:', error);
+      setAuthError(error.message);
+    }
+  };
+
+  // Sign out
+  const signOut = async () => {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // Lock to landscape on mobile
+  useEffect(() => {
+    if (isMobile) {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    }
+    return () => {
+      if (isMobile) {
+        ScreenOrientation.unlockAsync();
+      }
+    };
+  }, [isMobile]);
+
+  const [screen, setScreen] = useState('home');
   const [paytableId, setPaytableId] = useState('jacks-or-better-9-6');
+
+  // Hand Analyzer state
+  const [analyzerHand, setAnalyzerHand] = useState([]);
+  const [analyzerResults, setAnalyzerResults] = useState(null);
+  const [analyzerLoading, setAnalyzerLoading] = useState(false);
+  const [analyzerPaytable, setAnalyzerPaytable] = useState('jacks-or-better-9-6');
   const [closeDecisions, setCloseDecisions] = useState(false);
   const [loadingText, setLoadingText] = useState('');
 
@@ -385,7 +538,7 @@ export default function App() {
   };
 
   const resetQuiz = () => {
-    setScreen('start');
+    setScreen('home');
     setQuizHands([]);
     setQuizResults([]);
     setQuizAnswers([]);
@@ -396,23 +549,542 @@ export default function App() {
     setExpandedHandIndex(null);
   };
 
-  // Start screen
-  if (screen === 'start') {
+  // Hand Analyzer functions
+  const toggleAnalyzerCard = (card) => {
+    const cardIndex = analyzerHand.findIndex(c => c.rank === card.rank && c.suit === card.suit);
+    if (cardIndex >= 0) {
+      // Remove card
+      setAnalyzerHand(prev => prev.filter((_, i) => i !== cardIndex));
+      setAnalyzerResults(null);
+    } else if (analyzerHand.length < 5) {
+      // Add card
+      setAnalyzerHand(prev => [...prev, card]);
+      setAnalyzerResults(null);
+    }
+  };
+
+  const isCardSelected = (card) => {
+    return analyzerHand.some(c => c.rank === card.rank && c.suit === card.suit);
+  };
+
+  const analyzeHand = async () => {
+    if (analyzerHand.length !== 5) return;
+    setAnalyzerLoading(true);
+    setAnalyzerResults(null);
+
+    // Use analyzerPaytable for lookup
+    const key = handToCanonicalKey(analyzerHand);
+    const { data, error } = await supabaseClient
+      .from('strategy')
+      .select('best_hold, best_ev, hold_evs')
+      .eq('paytable_id', analyzerPaytable)
+      .eq('hand_key', key)
+      .single();
+
+    if (error || !data) {
+      setAnalyzerResults([]);
+      setAnalyzerLoading(false);
+      return;
+    }
+
+    const sorted = [...analyzerHand].sort((a, b) => rankValues[a.rank] - rankValues[b.rank]);
+
+    function bitmaskToOriginalIndices(bitmask) {
+      const sortedIndices = [];
+      for (let i = 0; i < 5; i++) {
+        if (bitmask & (1 << i)) sortedIndices.push(i);
+      }
+      return sortedIndices.map(si => {
+        const card = sorted[si];
+        return analyzerHand.findIndex(c => c.rank === card.rank && c.suit === card.suit);
+      });
+    }
+
+    const holdEvs = data.hold_evs || {};
+    const sortedHolds = Object.entries(holdEvs)
+      .map(([hold, ev]) => ({ hold: parseInt(hold), ev }))
+      .sort((a, b) => b.ev - a.ev);
+
+    const results = sortedHolds.map(({ hold, ev }) => {
+      const indices = bitmaskToOriginalIndices(hold);
+      return {
+        holdIndices: indices,
+        heldCards: indices.map(idx => analyzerHand[idx]),
+        ev: ev
+      };
+    });
+
+    setAnalyzerResults(results);
+    setAnalyzerLoading(false);
+  };
+
+  const clearAnalyzer = () => {
+    setAnalyzerHand([]);
+    setAnalyzerResults(null);
+  };
+
+  const goToAnalyzer = () => {
+    setScreen('analyzer');
+    setAnalyzerHand([]);
+    setAnalyzerResults(null);
+  };
+
+  const goHome = () => {
+    setScreen('home');
+    setAnalyzerHand([]);
+    setAnalyzerResults(null);
+  };
+
+  // Calculate optimal card size for landscape
+  const getCardDimensions = () => {
+    if (isLandscape && isMobile) {
+      // Calculate max height based on vertical space
+      // Account for: progress bar (~36), button (~50), padding (~32), held label (~20), feedback area (~60)
+      const maxHeightBasedOnVertical = height - 198;
+
+      // Calculate max height based on horizontal space (5 cards + gaps)
+      // Available width minus padding (32) and gaps between cards (4 gaps * 12px = 48)
+      const availableWidth = width - 80;
+      const cardWidthIfFitHorizontally = availableWidth / 5;
+      const maxHeightBasedOnHorizontal = cardWidthIfFitHorizontally * (3.5 / 2.5); // Convert width to height using aspect ratio
+
+      // Use the smaller of the two to ensure cards fit both ways
+      const cardHeight = Math.min(maxHeightBasedOnVertical, maxHeightBasedOnHorizontal);
+      const cardWidth = cardHeight * (2.5 / 3.5);
+
+      return { cardHeight, cardWidth };
+    }
+    return { cardHeight: undefined, cardWidth: undefined };
+  };
+
+  const { cardHeight, cardWidth } = getCardDimensions();
+
+  // Auth loading screen
+  if (authLoading) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={[styles.container, styles.authContainer]}>
         <StatusBar style="light" />
-        <View style={styles.header}>
-          <Text style={styles.title}>Video Poker Trainer</Text>
-          <Text style={styles.subtitle}>EV-Based Strategy Training</Text>
+        <ActivityIndicator size="large" color="white" />
+        <Text style={styles.authLoadingText}>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Auth screen (shown when not logged in)
+  if (!session) {
+    return (
+      <SafeAreaView style={[styles.container, styles.authContainer]}>
+        <StatusBar style="light" />
+        <View style={styles.authContent}>
+          <View style={styles.authHeader}>
+            <Text style={styles.authTitle}>Video Poker Trainer</Text>
+            <Text style={styles.authSubtitle}>Master perfect strategy</Text>
+          </View>
+
+          <View style={styles.authCard}>
+            <Text style={styles.authCardTitle}>Sign in to continue</Text>
+            <Text style={styles.authCardDesc}>
+              Track your progress and sync across devices
+            </Text>
+
+            <TouchableOpacity
+              style={styles.googleButton}
+              onPress={signInWithGoogle}
+            >
+              <Text style={styles.googleButtonText}>Continue with Google</Text>
+            </TouchableOpacity>
+
+            {authError && (
+              <Text style={styles.authErrorText}>{authError}</Text>
+            )}
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Home screen
+  if (screen === 'home') {
+    return (
+      <SafeAreaView style={[styles.container, isLandscape && isMobile && styles.containerLandscape]}>
+        <StatusBar style="light" hidden={isLandscape && isMobile} />
+
+        {/* User info bar */}
+        <View style={styles.userBar}>
+          <View style={styles.userInfo}>
+            {user?.user_metadata?.avatar_url && (
+              <Image
+                source={{ uri: user.user_metadata.avatar_url }}
+                style={styles.userAvatar}
+              />
+            )}
+            <Text style={styles.userName} numberOfLines={1}>
+              {user?.user_metadata?.full_name || user?.email || 'User'}
+            </Text>
+          </View>
+          <TouchableOpacity onPress={signOut} style={styles.signOutButton}>
+            <Text style={styles.signOutText}>Sign Out</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.whiteCard}>
-          <Text style={styles.label}>Select Game:</Text>
-          <View style={styles.pickerContainer}>
+        <View style={[styles.startContent, isLandscape && isMobile && styles.homeContentLandscape]}>
+          <View style={[styles.header, isLandscape && isMobile && styles.headerLandscape]}>
+            <Text style={[styles.title, isLandscape && isMobile && styles.titleLandscape]}>Video Poker Trainer</Text>
+            <Text style={styles.subtitle}>EV-Based Strategy Training</Text>
+          </View>
+
+          <View style={[styles.homeButtons, isLandscape && isMobile && styles.homeButtonsLandscape]}>
+            <TouchableOpacity
+              style={[styles.homeButton, styles.homeButtonQuiz]}
+              onPress={() => setScreen('start')}
+            >
+              <Text style={styles.homeButtonIcon}>🎯</Text>
+              <Text style={styles.homeButtonTitle}>Quiz Mode</Text>
+              <Text style={styles.homeButtonDesc}>Test your strategy knowledge</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.homeButton, styles.homeButtonAnalyzer]}
+              onPress={goToAnalyzer}
+            >
+              <Text style={styles.homeButtonIcon}>🔍</Text>
+              <Text style={styles.homeButtonTitle}>Hand Analyzer</Text>
+              <Text style={styles.homeButtonDesc}>See optimal plays for any hand</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Start screen (Quiz setup)
+  if (screen === 'start') {
+    return (
+      <SafeAreaView style={[styles.container, isLandscape && isMobile && styles.containerLandscape]}>
+        <StatusBar style="light" hidden={isLandscape && isMobile} />
+        <View style={[styles.startContent, isLandscape && isMobile && styles.startContentLandscape]}>
+          <View style={[styles.header, isLandscape && isMobile && styles.headerLandscape]}>
+            <Text style={[styles.title, isLandscape && isMobile && styles.titleLandscape]}>Video Poker Trainer</Text>
+            <Text style={styles.subtitle}>EV-Based Strategy Training</Text>
+          </View>
+
+          <View style={[styles.whiteCard, isLandscape && isMobile && styles.whiteCardLandscape]}>
+            <Text style={styles.label}>Select Game:</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={paytableId}
+                onValueChange={setPaytableId}
+                style={styles.picker}
+              >
+                {PAYTABLES.map(p => (
+                  <Picker.Item key={p.id} label={p.name} value={p.id} />
+                ))}
+              </Picker>
+            </View>
+
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setCloseDecisions(!closeDecisions)}
+            >
+              <View style={[styles.checkbox, closeDecisions && styles.checkboxChecked]}>
+                {closeDecisions && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+              <Text style={styles.checkboxLabel}>Close Decisions Only</Text>
+            </TouchableOpacity>
+            {!isLandscape && <Text style={styles.hint}>Focuses on hands where top plays have similar EVs</Text>}
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={prepareQuiz}
+            >
+              <Text style={styles.buttonText}>Start 25-Hand Quiz</Text>
+            </TouchableOpacity>
+
+            {Platform.OS === 'web' && (
+              <Text style={styles.hint}>
+                Keyboard: 1-5 or D F J K L to toggle cards, Enter/Space to submit
+              </Text>
+            )}
+
+            <TouchableOpacity style={styles.backLink} onPress={goHome}>
+              <Text style={styles.backLinkText}>← Back to Menu</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Loading screen
+  if (screen === 'loading') {
+    return (
+      <SafeAreaView style={[styles.container, isLandscape && isMobile && styles.containerLandscape]}>
+        <StatusBar style="light" hidden={isLandscape && isMobile} />
+        <View style={styles.loadingContent}>
+          <View style={styles.whiteCard}>
+            <View style={styles.spinner} />
+            <Text style={styles.loadingText}>{loadingText}</Text>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Quiz screen - optimized for landscape
+  if (screen === 'quiz') {
+    const hand = quizHands[currentHandIndex];
+    const results = quizResults[currentHandIndex];
+
+    return (
+      <SafeAreaView style={[styles.container, isLandscape && isMobile && styles.containerLandscape]}>
+        <StatusBar style="light" hidden={isLandscape && isMobile} />
+
+        {/* Compact progress bar */}
+        <View style={[styles.progressBar, isLandscape && isMobile && styles.progressBarLandscape]}>
+          <View style={styles.progressRow}>
+            <Text style={styles.progressText}>
+              {currentHandIndex + 1}/{QUIZ_SIZE}
+            </Text>
+            <View style={[styles.progressTrack, isLandscape && isMobile && styles.progressTrackLandscape]}>
+              <View style={[styles.progressFill, { width: `${(currentHandIndex / QUIZ_SIZE) * 100}%` }]} />
+            </View>
+            <Text style={styles.progressText}>
+              Score: {correctCount}
+            </Text>
+          </View>
+        </View>
+
+        {/* Game area */}
+        <View style={[styles.gameArea, isLandscape && isMobile && styles.gameAreaLandscape]}>
+          {/* Cards */}
+          <View style={[styles.cardsContainer, isLandscape && isMobile && styles.cardsContainerLandscape]}>
+            {hand.map((card, index) => (
+              <Card
+                key={index}
+                card={card}
+                selected={selectedCards.has(index)}
+                onPress={() => toggleCard(index)}
+                disabled={showFeedback}
+                isLandscape={isLandscape && isMobile}
+                cardHeight={cardHeight}
+                cardWidth={cardWidth}
+              />
+            ))}
+          </View>
+
+          {/* Feedback overlay - compact for landscape */}
+          {showFeedback && (
+            <View style={[
+              styles.feedback,
+              isCorrect ? styles.feedbackCorrect : styles.feedbackIncorrect,
+              isLandscape && isMobile && styles.feedbackLandscape
+            ]}>
+              <Text style={[styles.feedbackTitle, isCorrect ? styles.textGreen : styles.textRed]}>
+                {isCorrect ? '✓ Correct!' : '✗ Incorrect'}
+              </Text>
+              <Text style={styles.feedbackText}>
+                Best: {results[0].heldCards.length === 0 ? 'Discard all' :
+                  results[0].heldCards.map(c => `${c.rank}${suitSymbols[c.suit]}`).join(' ')}
+                {' '}(EV: {results[0].ev.toFixed(4)})
+              </Text>
+              {results.length > 1 && !isLandscape && (
+                <Text style={styles.feedbackText}>
+                  2nd best EV: {results[1].ev.toFixed(4)} (gap: {(results[0].ev - results[1].ev).toFixed(4)})
+                </Text>
+              )}
+            </View>
+          )}
+
+          {/* Action button */}
+          {!showFeedback ? (
+            <TouchableOpacity
+              style={[styles.button, isLandscape && isMobile && styles.buttonLandscape]}
+              onPress={submitAnswer}
+            >
+              <Text style={styles.buttonText}>Submit</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.button, styles.buttonNext, isLandscape && isMobile && styles.buttonLandscape]}
+              onPress={nextHand}
+            >
+              <Text style={styles.buttonText}>
+                {currentHandIndex + 1 >= QUIZ_SIZE ? 'See Results' : 'Next'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Results screen
+  if (screen === 'results') {
+    return (
+      <SafeAreaView style={[styles.container, isLandscape && isMobile && styles.containerLandscape]}>
+        <StatusBar style="light" hidden={isLandscape && isMobile} />
+        <ScrollView
+          style={styles.resultsScroll}
+          contentContainerStyle={[styles.resultsContent, isLandscape && isMobile && styles.resultsContentLandscape]}
+        >
+          <View style={[styles.resultsHeader, isLandscape && isMobile && styles.resultsHeaderLandscape]}>
+            <Text style={[styles.title, isLandscape && isMobile && styles.titleLandscape]}>Quiz Complete!</Text>
+            <Text style={[styles.finalScore, isLandscape && isMobile && styles.finalScoreLandscape]}>{correctCount} / {QUIZ_SIZE}</Text>
+            <Text style={styles.percentage}>{Math.round((correctCount / QUIZ_SIZE) * 100)}%</Text>
+          </View>
+
+          <View style={[styles.reviewSection, isLandscape && isMobile && styles.reviewSectionLandscape]}>
+            {quizAnswers.map((answer, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.reviewItem, answer.isCorrect ? styles.reviewCorrect : styles.reviewIncorrect]}
+                onPress={() => setExpandedHandIndex(expandedHandIndex === index ? null : index)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.reviewHeader}>
+                  <Text style={styles.reviewTitle}>Hand {index + 1}</Text>
+                  <Text style={styles.expandIcon}>{expandedHandIndex === index ? '▼' : '▶'}</Text>
+                </View>
+                <ColoredCardList cards={answer.hand} style={styles.reviewCards} />
+                <Text style={styles.reviewText}>
+                  Your hold: {answer.userHold.length === 0 ? 'Discard all' : ''}
+                </Text>
+                {answer.userHold.length > 0 && (
+                  <ColoredCardList
+                    cards={answer.userHold.map(i => answer.hand[i])}
+                    style={styles.reviewText}
+                  />
+                )}
+                {!answer.isCorrect && (
+                  <View>
+                    <Text style={[styles.reviewText, styles.textRed]}>
+                      Correct: {answer.correctHold.length === 0 ? 'Discard all' : ''}
+                    </Text>
+                    {answer.correctHold.length > 0 && (
+                      <ColoredCardList
+                        cards={answer.correctHold.map(i => answer.hand[i])}
+                        style={[styles.reviewText, styles.textRed]}
+                      />
+                    )}
+                  </View>
+                )}
+
+                {expandedHandIndex === index && answer.allHolds && (
+                  <View style={styles.allHoldsSection}>
+                    <Text style={styles.allHoldsTitle}>All Options (sorted by EV):</Text>
+                    {answer.allHolds.slice(0, 10).map((hold, hi) => (
+                      <View key={hi} style={styles.holdRow}>
+                        <Text style={styles.holdEv}>{hold.ev.toFixed(4)}</Text>
+                        <Text style={styles.holdCards}>
+                          {hold.heldCards.length === 0 ? (
+                            <Text style={styles.discardText}>Discard all</Text>
+                          ) : (
+                            hold.heldCards.map((c, ci) => (
+                              <Text key={ci}>
+                                {ci > 0 && ' '}
+                                <Text style={{ color: suitColors[c.suit] }}>
+                                  {c.rank}{suitSymbols[c.suit]}
+                                </Text>
+                              </Text>
+                            ))
+                          )}
+                        </Text>
+                      </View>
+                    ))}
+                    {answer.allHolds.length > 10 && (
+                      <Text style={styles.moreText}>...and {answer.allHolds.length - 10} more options</Text>
+                    )}
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TouchableOpacity style={[styles.button, isLandscape && isMobile && styles.buttonLandscape]} onPress={resetQuiz}>
+            <Text style={styles.buttonText}>Play Again</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // Hand Analyzer screen
+  if (screen === 'analyzer') {
+    return (
+      <SafeAreaView style={[styles.container, isLandscape && isMobile && styles.containerLandscape]}>
+        <StatusBar style="light" hidden={isLandscape && isMobile} />
+
+        {/* Header row */}
+        <View style={styles.analyzerHeaderRow}>
+          <TouchableOpacity onPress={goHome} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Menu</Text>
+          </TouchableOpacity>
+
+          {/* Selected cards display */}
+          <View style={styles.selectedHandRow}>
+            {analyzerHand.map((card, i) => (
+              <View key={i} style={styles.selectedCardMini}>
+                <Text style={[styles.selectedCardText, { color: suitColors[card.suit] }]}>
+                  {card.rank === '10' ? 'T' : card.rank}{suitSymbols[card.suit]}
+                </Text>
+              </View>
+            ))}
+            {Array(5 - analyzerHand.length).fill(null).map((_, i) => (
+              <View key={`empty-${i}`} style={styles.selectedCardEmpty}>
+                <Text style={styles.selectedCardEmptyText}>?</Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.analyzerHeaderRight}>
+            {analyzerHand.length > 0 && (
+              <TouchableOpacity onPress={clearAnalyzer}>
+                <Text style={styles.clearText}>Clear</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Full-screen Card grid - 4 rows (suits) x 13 columns (ranks) */}
+        <View style={styles.cardGridFull}>
+          {suits.map(suit => (
+            <View key={suit} style={styles.cardGridRowFull}>
+              {ranks.map(rank => {
+                const card = { rank, suit };
+                const selected = isCardSelected(card);
+                const disabled = !selected && analyzerHand.length >= 5;
+                return (
+                  <TouchableOpacity
+                    key={`${rank}-${suit}`}
+                    style={[
+                      styles.gridCardFull,
+                      selected && styles.gridCardSelected,
+                      disabled && styles.gridCardDisabled,
+                    ]}
+                    onPress={() => toggleAnalyzerCard(card)}
+                    disabled={disabled}
+                  >
+                    <Text style={[
+                      styles.gridCardTextFull,
+                      { color: suitColors[suit] },
+                      selected && styles.gridCardTextSelected,
+                    ]}>
+                      {rank === '10' ? 'T' : rank}{suitSymbols[suit]}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ))}
+        </View>
+
+        {/* Bottom bar: Paytable + Analyze button */}
+        <View style={styles.analyzerBottomBar}>
+          <View style={styles.analyzerPaytableCompact}>
             <Picker
-              selectedValue={paytableId}
-              onValueChange={setPaytableId}
-              style={styles.picker}
+              selectedValue={analyzerPaytable}
+              onValueChange={setAnalyzerPaytable}
+              style={styles.pickerCompact}
             >
               {PAYTABLES.map(p => (
                 <Picker.Item key={p.id} label={p.name} value={p.id} />
@@ -421,194 +1093,48 @@ export default function App() {
           </View>
 
           <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={() => setCloseDecisions(!closeDecisions)}
+            style={[
+              styles.analyzeButtonCompact,
+              analyzerHand.length !== 5 && styles.analyzeButtonDisabled
+            ]}
+            onPress={analyzeHand}
+            disabled={analyzerHand.length !== 5}
           >
-            <View style={[styles.checkbox, closeDecisions && styles.checkboxChecked]}>
-              {closeDecisions && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={styles.checkboxLabel}>Close Decisions Only</Text>
-          </TouchableOpacity>
-          <Text style={styles.hint}>Focuses on hands where top plays have similar EVs</Text>
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={prepareQuiz}
-          >
-            <Text style={styles.buttonText}>Start 25-Hand Quiz</Text>
-          </TouchableOpacity>
-
-          {Platform.OS === 'web' && (
-            <Text style={styles.hint}>
-              Keyboard: 1-5 or D F J K L to toggle cards, Enter/Space to submit
+            <Text style={styles.analyzeButtonText}>
+              {analyzerLoading ? 'Analyzing...' : 'Analyze'}
             </Text>
-          )}
-        </View>
-      </View>
-    );
-  }
-
-  // Loading screen
-  if (screen === 'loading') {
-    return (
-      <View style={styles.container}>
-        <StatusBar style="light" />
-        <View style={styles.whiteCard}>
-          <View style={styles.spinner} />
-          <Text style={styles.loadingText}>{loadingText}</Text>
-        </View>
-      </View>
-    );
-  }
-
-  // Quiz screen
-  if (screen === 'quiz') {
-    const hand = quizHands[currentHandIndex];
-    const results = quizResults[currentHandIndex];
-
-    return (
-      <View style={styles.container}>
-        <StatusBar style="light" />
-
-        <View style={styles.progressBar}>
-          <Text style={styles.progressText}>
-            Hand {currentHandIndex + 1} of {QUIZ_SIZE} | Score: {correctCount}
-          </Text>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${(currentHandIndex / QUIZ_SIZE) * 100}%` }]} />
-          </View>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.gameArea}>
-          <View style={styles.cardsContainer}>
-            {hand.map((card, index) => (
-              <Card
-                key={index}
-                card={card}
-                selected={selectedCards.has(index)}
-                onPress={() => toggleCard(index)}
-                disabled={showFeedback}
-              />
-            ))}
-          </View>
-
-          {showFeedback && (
-            <View style={[styles.feedback, isCorrect ? styles.feedbackCorrect : styles.feedbackIncorrect]}>
-              <Text style={[styles.feedbackTitle, isCorrect ? styles.textGreen : styles.textRed]}>
-                {isCorrect ? '✓ Correct!' : '✗ Incorrect'}
-              </Text>
-              <Text style={styles.feedbackText}>
-                Best play: {results[0].heldCards.length === 0 ? 'Discard all' :
-                  results[0].heldCards.map(c => `${c.rank}${suitSymbols[c.suit]}`).join(' ')}
-              </Text>
-              <Text style={styles.feedbackText}>EV: {results[0].ev.toFixed(4)}</Text>
-              {results.length > 1 && (
-                <Text style={styles.feedbackText}>
-                  2nd best EV: {results[1].ev.toFixed(4)} (gap: {(results[0].ev - results[1].ev).toFixed(4)})
+        {/* Results overlay */}
+        {analyzerResults && analyzerResults.length > 0 && (
+          <View style={styles.resultsOverlay}>
+            <View style={styles.resultsOverlayContent}>
+              <View style={styles.resultsOverlayHeader}>
+                <Text style={styles.resultsOverlayTitle}>
+                  Hold: {analyzerResults[0].heldCards.length === 0 ? 'Discard all' :
+                    analyzerResults[0].heldCards.map(c => `${c.rank}${suitSymbols[c.suit]}`).join(' ')}
                 </Text>
-              )}
-            </View>
-          )}
-
-          {!showFeedback ? (
-            <TouchableOpacity style={styles.button} onPress={submitAnswer}>
-              <Text style={styles.buttonText}>Submit</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={[styles.button, styles.buttonNext]} onPress={nextHand}>
-              <Text style={styles.buttonText}>
-                {currentHandIndex + 1 >= QUIZ_SIZE ? 'See Results' : 'Next Hand'}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-    );
-  }
-
-  // Results screen
-  if (screen === 'results') {
-    return (
-      <ScrollView style={styles.container} contentContainerStyle={styles.resultsContent}>
-        <StatusBar style="light" />
-
-        <View style={styles.resultsHeader}>
-          <Text style={styles.title}>Quiz Complete!</Text>
-          <Text style={styles.finalScore}>{correctCount} / {QUIZ_SIZE}</Text>
-          <Text style={styles.percentage}>{Math.round((correctCount / QUIZ_SIZE) * 100)}%</Text>
-        </View>
-
-        <View style={styles.reviewSection}>
-          {quizAnswers.map((answer, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[styles.reviewItem, answer.isCorrect ? styles.reviewCorrect : styles.reviewIncorrect]}
-              onPress={() => setExpandedHandIndex(expandedHandIndex === index ? null : index)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.reviewHeader}>
-                <Text style={styles.reviewTitle}>Hand {index + 1}</Text>
-                <Text style={styles.expandIcon}>{expandedHandIndex === index ? '▼' : '▶'}</Text>
+                <Text style={styles.resultsOverlayEv}>EV: {analyzerResults[0].ev.toFixed(4)}</Text>
+                <TouchableOpacity onPress={() => setAnalyzerResults(null)} style={styles.closeButton}>
+                  <Text style={styles.closeButtonText}>✕</Text>
+                </TouchableOpacity>
               </View>
-              <ColoredCardList cards={answer.hand} style={styles.reviewCards} />
-              <Text style={styles.reviewText}>
-                Your hold: {answer.userHold.length === 0 ? 'Discard all' : ''}
-              </Text>
-              {answer.userHold.length > 0 && (
-                <ColoredCardList
-                  cards={answer.userHold.map(i => answer.hand[i])}
-                  style={styles.reviewText}
-                />
-              )}
-              {!answer.isCorrect && (
-                <View>
-                  <Text style={[styles.reviewText, styles.textRed]}>
-                    Correct: {answer.correctHold.length === 0 ? 'Discard all' : ''}
-                  </Text>
-                  {answer.correctHold.length > 0 && (
-                    <ColoredCardList
-                      cards={answer.correctHold.map(i => answer.hand[i])}
-                      style={[styles.reviewText, styles.textRed]}
-                    />
-                  )}
-                </View>
-              )}
-
-              {expandedHandIndex === index && answer.allHolds && (
-                <View style={styles.allHoldsSection}>
-                  <Text style={styles.allHoldsTitle}>All Options (sorted by EV):</Text>
-                  {answer.allHolds.slice(0, 10).map((hold, hi) => (
-                    <View key={hi} style={styles.holdRow}>
-                      <Text style={styles.holdEv}>{hold.ev.toFixed(4)}</Text>
-                      <Text style={styles.holdCards}>
-                        {hold.heldCards.length === 0 ? (
-                          <Text style={styles.discardText}>Discard all</Text>
-                        ) : (
-                          hold.heldCards.map((c, ci) => (
-                            <Text key={ci}>
-                              {ci > 0 && ' '}
-                              <Text style={{ color: suitColors[c.suit] }}>
-                                {c.rank}{suitSymbols[c.suit]}
-                              </Text>
-                            </Text>
-                          ))
-                        )}
-                      </Text>
-                    </View>
-                  ))}
-                  {answer.allHolds.length > 10 && (
-                    <Text style={styles.moreText}>...and {answer.allHolds.length - 10} more options</Text>
-                  )}
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <TouchableOpacity style={styles.button} onPress={resetQuiz}>
-          <Text style={styles.buttonText}>Play Again</Text>
-        </TouchableOpacity>
-      </ScrollView>
+              <ScrollView style={styles.resultsOverlayScroll} horizontal>
+                {analyzerResults.slice(0, 10).map((hold, i) => (
+                  <View key={i} style={[styles.resultCard, i === 0 && styles.resultCardBest]}>
+                    <Text style={styles.resultCardEv}>{hold.ev.toFixed(4)}</Text>
+                    <Text style={styles.resultCardHold}>
+                      {hold.heldCards.length === 0 ? 'Discard' :
+                        hold.heldCards.map(c => `${c.rank}${suitSymbols[c.suit]}`).join(' ')}
+                    </Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        )}
+      </SafeAreaView>
     );
   }
 
@@ -620,17 +1146,95 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#667eea',
     padding: 16,
-    paddingTop: 50,
+    paddingTop: Platform.OS === 'ios' ? 50 : 16,
+  },
+  containerLandscape: {
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingHorizontal: 16,
+  },
+  startContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  startContentLandscape: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 24,
+  },
+  homeContentLandscape: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 40,
+  },
+  homeButtons: {
+    gap: 16,
+  },
+  homeButtonsLandscape: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  homeButton: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    minWidth: 200,
+  },
+  homeButtonQuiz: {
+    borderBottomWidth: 4,
+    borderBottomColor: '#667eea',
+  },
+  homeButtonAnalyzer: {
+    borderBottomWidth: 4,
+    borderBottomColor: '#27ae60',
+  },
+  homeButtonIcon: {
+    fontSize: 40,
+    marginBottom: 12,
+  },
+  homeButtonTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  homeButtonDesc: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  backLink: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  backLinkText: {
+    color: '#667eea',
+    fontSize: 16,
   },
   header: {
     alignItems: 'center',
     marginBottom: 20,
+  },
+  headerLandscape: {
+    marginBottom: 0,
+    flex: 1,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: 'white',
     marginBottom: 8,
+  },
+  titleLandscape: {
+    fontSize: 24,
   },
   subtitle: {
     fontSize: 16,
@@ -646,6 +1250,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  whiteCardLandscape: {
+    flex: 1.5,
+    padding: 16,
+  },
   label: {
     fontSize: 16,
     fontWeight: '600',
@@ -660,7 +1268,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   picker: {
-    height: 50,
+    height: Platform.OS === 'ios' ? 120 : 50,
   },
   checkboxRow: {
     flexDirection: 'row',
@@ -701,16 +1309,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
   },
+  buttonLandscape: {
+    marginTop: 8,
+    paddingVertical: 12,
+  },
   buttonNext: {
     backgroundColor: '#3498db',
-  },
-  buttonDisabled: {
-    backgroundColor: '#999',
   },
   buttonText: {
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  loadingContent: {
+    flex: 1,
+    justifyContent: 'center',
   },
   spinner: {
     width: 40,
@@ -731,18 +1344,33 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 12,
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  progressBarLandscape: {
+    padding: 6,
+    marginBottom: 6,
+    borderRadius: 8,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   progressText: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 8,
+    fontWeight: '600',
   },
   progressTrack: {
+    flex: 1,
     height: 8,
     backgroundColor: '#e0e0e0',
     borderRadius: 4,
+    marginHorizontal: 12,
     overflow: 'hidden',
+  },
+  progressTrackLandscape: {
+    height: 6,
   },
   progressFill: {
     height: '100%',
@@ -755,15 +1383,28 @@ const styles = StyleSheet.create({
     padding: 16,
     flex: 1,
   },
+  gameAreaLandscape: {
+    padding: 8,
+    borderRadius: 12,
+  },
   cardsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 16,
   },
+  cardsContainerLandscape: {
+    justifyContent: 'center',
+    marginBottom: 8,
+    flex: 1,
+  },
   cardWrapper: {
     flex: 1,
     marginHorizontal: 2,
     alignItems: 'center',
+  },
+  cardWrapperLandscape: {
+    flex: 0,
+    marginHorizontal: 6,
   },
   cardBox: {
     backgroundColor: 'white',
@@ -801,11 +1442,22 @@ const styles = StyleSheet.create({
     marginTop: 4,
     overflow: 'hidden',
   },
+  heldLabelLandscape: {
+    fontSize: 9,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    marginTop: 2,
+  },
   feedback: {
     backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
+  },
+  feedbackLandscape: {
+    padding: 8,
+    marginBottom: 8,
+    borderRadius: 8,
   },
   feedbackCorrect: {
     borderLeftWidth: 4,
@@ -818,12 +1470,11 @@ const styles = StyleSheet.create({
   feedbackTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   feedbackText: {
     fontSize: 14,
     color: '#666',
-    marginTop: 4,
   },
   textGreen: {
     color: '#2ecc71',
@@ -831,18 +1482,35 @@ const styles = StyleSheet.create({
   textRed: {
     color: '#e74c3c',
   },
+  resultsScroll: {
+    flex: 1,
+  },
   resultsContent: {
     paddingBottom: 40,
+  },
+  resultsContentLandscape: {
+    paddingBottom: 20,
   },
   resultsHeader: {
     alignItems: 'center',
     marginBottom: 24,
+  },
+  resultsHeaderLandscape: {
+    marginBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'baseline',
+    gap: 16,
   },
   finalScore: {
     fontSize: 48,
     fontWeight: 'bold',
     color: 'white',
     marginTop: 16,
+  },
+  finalScoreLandscape: {
+    fontSize: 32,
+    marginTop: 0,
   },
   percentage: {
     fontSize: 24,
@@ -853,6 +1521,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
+  },
+  reviewSectionLandscape: {
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: 12,
   },
   reviewItem: {
     padding: 12,
@@ -924,5 +1597,297 @@ const styles = StyleSheet.create({
   reviewText: {
     fontSize: 14,
     color: '#666',
+  },
+  // Analyzer styles
+  analyzerHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  analyzerHeaderRight: {
+    minWidth: 60,
+    alignItems: 'flex-end',
+  },
+  clearText: {
+    color: '#ff6b6b',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  selectedHandRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  selectedCardMini: {
+    backgroundColor: 'white',
+    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    minWidth: 36,
+    alignItems: 'center',
+  },
+  selectedCardEmpty: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    minWidth: 36,
+    alignItems: 'center',
+  },
+  selectedCardText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  selectedCardEmptyText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: 'rgba(255,255,255,0.5)',
+  },
+  cardGridFull: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 8,
+    justifyContent: 'space-around',
+  },
+  cardGridRowFull: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 4,
+    marginVertical: 2,
+  },
+  gridCardFull: {
+    flex: 1,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#ddd',
+  },
+  gridCardSelected: {
+    backgroundColor: '#ffd700',
+    borderColor: '#d4a800',
+    borderWidth: 3,
+  },
+  gridCardDisabled: {
+    opacity: 0.35,
+  },
+  gridCardTextFull: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  gridCardTextSelected: {
+    color: '#333',
+  },
+  analyzerBottomBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    gap: 12,
+  },
+  analyzerPaytableCompact: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  pickerCompact: {
+    height: Platform.OS === 'ios' ? 120 : 40,
+  },
+  analyzeButtonCompact: {
+    backgroundColor: '#27ae60',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+  },
+  analyzeButtonDisabled: {
+    backgroundColor: '#95a5a6',
+  },
+  analyzeButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  resultsOverlay: {
+    position: 'absolute',
+    bottom: 80,
+    left: 16,
+    right: 16,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    borderRadius: 12,
+    padding: 12,
+  },
+  resultsOverlayContent: {
+  },
+  resultsOverlayHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  resultsOverlayTitle: {
+    color: '#2ecc71',
+    fontSize: 18,
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  resultsOverlayEv: {
+    color: 'white',
+    fontSize: 16,
+    marginRight: 12,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 20,
+  },
+  resultsOverlayScroll: {
+  },
+  resultCard: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    padding: 8,
+    marginRight: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  resultCardBest: {
+    backgroundColor: 'rgba(46,204,113,0.3)',
+    borderWidth: 1,
+    borderColor: '#2ecc71',
+  },
+  resultCardEv: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  resultCardHold: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  backButton: {
+    minWidth: 70,
+  },
+  backButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  holdEvBest: {
+    color: '#27ae60',
+    fontWeight: 'bold',
+  },
+  // Auth styles
+  authContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  authLoadingText: {
+    color: 'white',
+    fontSize: 16,
+    marginTop: 16,
+  },
+  authContent: {
+    width: '100%',
+    maxWidth: 400,
+    padding: 20,
+  },
+  authHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  authTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  authSubtitle: {
+    fontSize: 18,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+  },
+  authCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  authCardTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  authCardDesc: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  googleButton: {
+    backgroundColor: '#4285F4',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  authErrorText: {
+    color: '#e74c3c',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 16,
+  },
+  // User bar styles
+  userBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    marginBottom: 8,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  userAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 10,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  userName: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+  },
+  signOutButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  signOutText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 14,
   },
 });
