@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Switch,
+  TextInput,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { createClient } from '@supabase/supabase-js';
@@ -245,6 +246,9 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
 
   // Sound & Haptic settings state
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -391,6 +395,49 @@ export default function App() {
       }
     } catch (error) {
       console.error('Error signing in:', error);
+      setAuthError(error.message);
+    }
+  };
+
+  // Sign in with email/password
+  const signInWithEmail = async () => {
+    setAuthError(null);
+    if (!email || !password) {
+      setAuthError('Please enter email and password');
+      return;
+    }
+    try {
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error signing in with email:', error);
+      setAuthError(error.message);
+    }
+  };
+
+  // Sign up with email/password
+  const signUpWithEmail = async () => {
+    setAuthError(null);
+    if (!email || !password) {
+      setAuthError('Please enter email and password');
+      return;
+    }
+    if (password.length < 6) {
+      setAuthError('Password must be at least 6 characters');
+      return;
+    }
+    try {
+      const { error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+      });
+      if (error) throw error;
+      setAuthError('Check your email for verification link (or sign in if email confirmation is disabled)');
+    } catch (error) {
+      console.error('Error signing up:', error);
       setAuthError(error.message);
     }
   };
@@ -980,16 +1027,74 @@ export default function App() {
           </View>
 
           <View style={styles.authCard}>
-            <Text style={styles.authCardTitle}>Sign in to continue</Text>
+            <Text style={styles.authCardTitle}>{isSignUp ? 'Create Account' : 'Sign In'}</Text>
             <Text style={styles.authCardDesc}>
               Track your progress and sync across devices
             </Text>
+
+            <TextInput
+              style={styles.authInput}
+              placeholder="Email"
+              placeholderTextColor="#999"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+            <TextInput
+              style={styles.authInput}
+              placeholder="Password"
+              placeholderTextColor="#999"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+
+            <TouchableOpacity
+              style={styles.emailButton}
+              onPress={isSignUp ? signUpWithEmail : signInWithEmail}
+            >
+              <Text style={styles.emailButtonText}>
+                {isSignUp ? 'Sign Up' : 'Sign In'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setIsSignUp(!isSignUp)}>
+              <Text style={styles.switchAuthText}>
+                {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+              </Text>
+            </TouchableOpacity>
+
+            <View style={styles.authDivider}>
+              <View style={styles.authDividerLine} />
+              <Text style={styles.authDividerText}>or</Text>
+              <View style={styles.authDividerLine} />
+            </View>
 
             <TouchableOpacity
               style={styles.googleButton}
               onPress={signInWithGoogle}
             >
               <Text style={styles.googleButtonText}>Continue with Google</Text>
+            </TouchableOpacity>
+
+            {/* DEV ONLY - Remove in production */}
+            <TouchableOpacity
+              style={styles.devLoginButton}
+              onPress={async () => {
+                setAuthError(null);
+                try {
+                  const { error } = await supabaseClient.auth.signInWithPassword({
+                    email: 'bhsapcsturnin@gmail.com',
+                    password: 'test1234',
+                  });
+                  if (error) throw error;
+                } catch (error) {
+                  setAuthError(error.message);
+                }
+              }}
+            >
+              <Text style={styles.devLoginButtonText}>Quick Login (Dev)</Text>
             </TouchableOpacity>
 
             {authError && (
@@ -2432,6 +2537,65 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginTop: 16,
+  },
+  authInput: {
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    marginBottom: 12,
+    color: '#333',
+  },
+  emailButton: {
+    backgroundColor: '#667eea',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  emailButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  switchAuthText: {
+    color: '#667eea',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  authDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  authDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#ddd',
+  },
+  authDividerText: {
+    color: '#999',
+    paddingHorizontal: 12,
+    fontSize: 14,
+  },
+  devLoginButton: {
+    backgroundColor: '#95a5a6',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  devLoginButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
   },
   // User bar styles
   userBar: {
