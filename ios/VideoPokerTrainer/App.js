@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
   SafeAreaView,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { createClient } from '@supabase/supabase-js';
@@ -19,16 +20,42 @@ import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Import spaced repetition system
+import {
+  HAND_CATEGORIES,
+  CATEGORY_NAMES,
+  CATEGORY_COLORS,
+  categorizeOptimalHold,
+  calculateSM2Update,
+  getCategoriesByPriority,
+  calculateOverallMastery,
+  getMasteryLevel,
+  saveHandAttempt,
+  updateMasteryScore,
+  getMasteryScores,
+} from './spacedRepetition';
+
+// Import feedback service for sound and haptics
+import {
+  SOUNDS,
+  HAPTIC_TYPES,
+  initializeAudio,
+  playSound,
+  triggerHaptic,
+  updateFeedbackSettings,
+  cleanupAudio,
+} from './feedbackService';
+
 // Required for web browser auth flow
 WebBrowser.maybeCompleteAuthSession();
 
-// Supabase configuration with AsyncStorage for session persistence
+// Supabase configuration - use localStorage on web, AsyncStorage on mobile
 const SUPABASE_URL = 'https://ctqefgdvqiaiumtmcjdz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0cWVmZ2R2cWlhaXVtdG1jamR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMTExMzksImV4cCI6MjA4MTU4NzEzOX0.SSrvFVyedTsjq2r9mWMj8SKV4bZfRtp0MESavfz3AiI';
 
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    storage: AsyncStorage,
+    storage: Platform.OS === 'web' ? undefined : AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
@@ -36,6 +63,7 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 });
 
 // Constants
+const DEBUG = true; // Set to false to disable debug logging
 const QUIZ_SIZE = 25;
 const CANDIDATE_POOL_SIZE = 200;
 const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
@@ -218,6 +246,11 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
+  // Sound & Haptic settings state
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundVolume, setSoundVolume] = useState(0.7);
+  const [hapticsEnabled, setHapticsEnabled] = useState(true);
+
   // Get redirect URL for OAuth
   const redirectUrl = AuthSession.makeRedirectUri({
     scheme: 'vptrainer',
@@ -226,11 +259,16 @@ export default function App() {
 
   // Check for existing session on mount
   useEffect(() => {
-    supabaseClient.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setAuthLoading(false);
-    });
+    supabaseClient.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setAuthLoading(false);
+      })
+      .catch((error) => {
+        console.error('Error getting session:', error);
+        setAuthLoading(false);
+      });
 
     // Listen for auth state changes
     const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
@@ -246,6 +284,55 @@ export default function App() {
     );
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Load settings from AsyncStorage on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const stored = await AsyncStorage.getItem('@vp_trainer_settings');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.soundEnabled !== undefined) setSoundEnabled(parsed.soundEnabled);
+          if (parsed.soundVolume !== undefined) setSoundVolume(parsed.soundVolume);
+          if (parsed.hapticsEnabled !== undefined) setHapticsEnabled(parsed.hapticsEnabled);
+        }
+      } catch (error) {
+        console.warn('Failed to load settings:', error);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  // Sync settings to feedback service when they change
+  useEffect(() => {
+    updateFeedbackSettings({
+      soundEnabled,
+      soundVolume,
+      hapticsEnabled,
+    });
+  }, [soundEnabled, soundVolume, hapticsEnabled]);
+
+  // Save settings to AsyncStorage when they change
+  useEffect(() => {
+    const saveSettings = async () => {
+      try {
+        await AsyncStorage.setItem('@vp_trainer_settings', JSON.stringify({
+          soundEnabled,
+          soundVolume,
+          hapticsEnabled,
+        }));
+      } catch (error) {
+        console.warn('Failed to save settings:', error);
+      }
+    };
+    saveSettings();
+  }, [soundEnabled, soundVolume, hapticsEnabled]);
+
+  // Initialize audio system on mount
+  useEffect(() => {
+    initializeAudio();
+    return () => cleanupAudio();
   }, []);
 
   // Create or update user profile
@@ -349,8 +436,43 @@ export default function App() {
   const [isCorrect, setIsCorrect] = useState(false);
   const [expandedHandIndex, setExpandedHandIndex] = useState(null);
 
+  // Spaced repetition state
+  const [masteryScores, setMasteryScores] = useState([]);
+  const [masteryLoading, setMasteryLoading] = useState(false);
+  const [handStartTime, setHandStartTime] = useState(null);
+  const [weakSpotsMode, setWeakSpotsMode] = useState(false);
+
+  // Fetch mastery scores when user logs in or paytable changes
+  useEffect(() => {
+    if (user && paytableId) {
+      fetchMasteryScores();
+    }
+  }, [user, paytableId]);
+
+  const fetchMasteryScores = async () => {
+    if (!user) return;
+    setMasteryLoading(true);
+    try {
+      const scores = await getMasteryScores(supabaseClient, user.id, paytableId);
+      setMasteryScores(scores);
+    } catch (error) {
+      console.error('Error fetching mastery scores:', error);
+    }
+    setMasteryLoading(false);
+  };
+
+  // Track when each hand starts (for response time)
+  useEffect(() => {
+    if (screen === 'quiz' && !showFeedback && quizHands.length > 0) {
+      setHandStartTime(Date.now());
+    }
+  }, [currentHandIndex, screen, showFeedback, quizHands.length]);
+
   const toggleCard = useCallback((index) => {
     if (showFeedback) return;
+    // Provide feedback on card selection
+    playSound(SOUNDS.CARD_SELECT);
+    triggerHaptic(HAPTIC_TYPES.LIGHT);
     setSelectedCards(prev => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
@@ -362,8 +484,12 @@ export default function App() {
     });
   }, [showFeedback]);
 
-  const submitAnswer = useCallback(() => {
+  const submitAnswer = useCallback(async () => {
     if (showFeedback || quizResults.length === 0) return;
+
+    // Provide feedback on submission
+    playSound(SOUNDS.SUBMIT);
+    triggerHaptic(HAPTIC_TYPES.MEDIUM);
 
     const userHold = Array.from(selectedCards).sort();
     const correctHold = quizResults[currentHandIndex][0].holdIndices.slice().sort();
@@ -371,25 +497,87 @@ export default function App() {
     const correct = userHold.length === correctHold.length &&
       userHold.every((v, i) => v === correctHold[i]);
 
-    if (correct) setCorrectCount(prev => prev + 1);
+    // Provide feedback based on correctness
+    if (correct) {
+      setCorrectCount(prev => prev + 1);
+      // Delay success feedback slightly for better UX flow
+      setTimeout(() => {
+        playSound(SOUNDS.CORRECT);
+        triggerHaptic(HAPTIC_TYPES.SUCCESS);
+      }, 150);
+    } else {
+      // Delay error feedback slightly for better UX flow
+      setTimeout(() => {
+        playSound(SOUNDS.INCORRECT);
+        triggerHaptic(HAPTIC_TYPES.ERROR);
+      }, 150);
+    }
+
+    const hand = quizHands[currentHandIndex];
+    const optimalHoldIndices = quizResults[currentHandIndex][0].holdIndices;
+
+    // Categorize the hand based on optimal hold
+    const category = categorizeOptimalHold(hand, optimalHoldIndices);
+
+    // Calculate response time
+    const responseTime = handStartTime ? Date.now() - handStartTime : null;
+
+    // Calculate EV difference if wrong
+    let evDifference = 0;
+    if (!correct) {
+      const userHoldEv = quizResults[currentHandIndex].find(h =>
+        h.holdIndices.length === userHold.length &&
+        h.holdIndices.slice().sort().every((v, i) => v === userHold[i])
+      )?.ev || 0;
+      evDifference = quizResults[currentHandIndex][0].ev - userHoldEv;
+    }
 
     setQuizAnswers(prev => [...prev, {
-      hand: quizHands[currentHandIndex],
+      hand: hand,
       userHold: Array.from(selectedCards),
-      correctHold: quizResults[currentHandIndex][0].holdIndices,
+      correctHold: optimalHoldIndices,
       isCorrect: correct,
       ev: quizResults[currentHandIndex][0].ev,
-      allHolds: quizResults[currentHandIndex]
+      allHolds: quizResults[currentHandIndex],
+      category: category,
     }]);
 
     setIsCorrect(correct);
     setShowFeedback(true);
-  }, [showFeedback, quizResults, quizHands, currentHandIndex, selectedCards]);
+
+    // Save attempt and update mastery (async, don't wait)
+    if (user) {
+      const handKey = handToCanonicalKey(hand);
+
+      // Save hand attempt
+      saveHandAttempt(supabaseClient, user.id, {
+        handKey,
+        category,
+        paytableId,
+        userHold: Array.from(selectedCards),
+        optimalHold: optimalHoldIndices,
+        isCorrect: correct,
+        evDifference,
+        responseTime,
+      }).catch(err => console.error('Error saving attempt:', err));
+
+      // Update mastery score
+      updateMasteryScore(supabaseClient, user.id, paytableId, category, correct)
+        .then(() => fetchMasteryScores())
+        .catch(err => console.error('Error updating mastery:', err));
+    }
+  }, [showFeedback, quizResults, quizHands, currentHandIndex, selectedCards, user, paytableId, handStartTime]);
 
   const nextHand = useCallback(() => {
     if (currentHandIndex + 1 >= QUIZ_SIZE) {
+      // Quiz complete - celebration feedback
+      playSound(SOUNDS.QUIZ_COMPLETE);
+      triggerHaptic(HAPTIC_TYPES.SUCCESS);
       setScreen('results');
     } else {
+      // Next hand transition feedback
+      playSound(SOUNDS.NEXT_HAND);
+      triggerHaptic(HAPTIC_TYPES.LIGHT);
       setCurrentHandIndex(prev => prev + 1);
       setSelectedCards(new Set());
       setShowFeedback(false);
@@ -423,15 +611,38 @@ export default function App() {
 
   const lookupHand = async (hand) => {
     const key = handToCanonicalKey(hand);
+    if (DEBUG) console.log('lookupHand called with key:', key, 'paytable:', paytableId);
 
-    const { data, error } = await supabaseClient
-      .from('strategy')
-      .select('best_hold, best_ev, hold_evs')
-      .eq('paytable_id', paytableId)
-      .eq('hand_key', key)
-      .single();
+    let data, error;
+    try {
+      // Use direct fetch to bypass supabase client (more reliable)
+      const url = `${SUPABASE_URL}/rest/v1/strategy?paytable_id=eq.${paytableId}&hand_key=eq.${key}&select=best_hold,best_ev,hold_evs`;
+      if (DEBUG) console.log('Fetching:', url);
+      const response = await fetch(url, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        }
+      });
+      if (DEBUG) console.log('Fetch response status:', response.status);
+      const jsonData = await response.json();
+      if (DEBUG) console.log('Fetch got data:', jsonData.length > 0 ? 'yes' : 'no');
 
-    if (error || !data) return null;
+      data = jsonData[0] || null;
+      error = jsonData.length === 0 ? { code: 'PGRST116' } : null;
+    } catch (e) {
+      console.error('lookupHand exception:', e);
+      return null;
+    }
+
+    if (error) {
+      // Only log non-PGRST116 errors (PGRST116 = row not found, expected for random hands)
+      if (error.code !== 'PGRST116') {
+        console.error('lookupHand error:', error.code, error.message, 'paytable:', paytableId, 'key:', key);
+      }
+      return null;
+    }
+    if (!data) return null;
 
     const sorted = [...hand].sort((a, b) => rankValues[a.rank] - rankValues[b.rank]);
 
@@ -463,6 +674,7 @@ export default function App() {
   };
 
   const prepareQuiz = async () => {
+    if (DEBUG) console.log('prepareQuiz called, weakSpotsMode:', weakSpotsMode);
     setScreen('loading');
     setQuizHands([]);
     setQuizResults([]);
@@ -476,13 +688,97 @@ export default function App() {
     const results = [];
 
     try {
-      if (closeDecisions) {
+      if (weakSpotsMode) {
+        // Weak spots mode: focus on categories with low mastery
+        if (DEBUG) console.log('Entering weak spots mode');
+        setLoadingText('Finding weak spots...');
+
+        // Get weak categories (lowest mastery or never practiced)
+        const weakCategories = new Set();
+        const sortedScores = getCategoriesByPriority(masteryScores);
+
+        // Take categories with mastery < 80% or due for review
+        sortedScores.forEach(score => {
+          if ((score.mastery_score || 0) < 80) {
+            weakCategories.add(score.category);
+          }
+        });
+
+        // Also add categories never practiced
+        Object.values(HAND_CATEGORIES).forEach(cat => {
+          if (!masteryScores.find(s => s.category === cat)) {
+            weakCategories.add(cat);
+          }
+        });
+
+        // If no weak categories, use all categories
+        if (weakCategories.size === 0) {
+          Object.values(HAND_CATEGORIES).forEach(cat => weakCategories.add(cat));
+        }
+
+        const candidates = [];
+        let attempts = 0;
+        // For weak spots, we only need ~50 candidates (2x quiz size) for variety
+        const weakSpotPoolSize = QUIZ_SIZE * 2;
+        const maxAttempts = 500;
+        if (DEBUG) console.log('Starting weak spots loop, poolSize:', weakSpotPoolSize, 'maxAttempts:', maxAttempts);
+
+        while (candidates.length < weakSpotPoolSize && attempts < maxAttempts) {
+          const hand = dealHand();
+          if (DEBUG && attempts === 0) console.log('First hand dealt, calling lookupHand...');
+          const result = await lookupHand(hand);
+          if (DEBUG && attempts === 0) console.log('First lookupHand returned:', result ? 'found' : 'null');
+          attempts++;
+
+          if (result && result.length > 0) {
+            const category = categorizeOptimalHold(hand, result[0].holdIndices);
+            const isWeakCategory = weakCategories.has(category);
+            const masteryScore = masteryScores.find(s => s.category === category)?.mastery_score || 0;
+
+            // Prioritize weak categories, but include some variety
+            if (isWeakCategory || candidates.length < QUIZ_SIZE / 2) {
+              candidates.push({
+                hand,
+                result,
+                category,
+                masteryScore,
+                priority: isWeakCategory ? masteryScore : 100 + masteryScore, // Weak categories first
+              });
+            }
+          }
+
+          if (attempts % 20 === 0) {
+            setLoadingText(`Found ${candidates.length} weak spot hands (${attempts} tried)`);
+          }
+        }
+
+        if (candidates.length < QUIZ_SIZE) {
+          alert(`Only found ${candidates.length} hands. Try again later.`);
+          setScreen('start');
+          return;
+        }
+
+        // Sort by priority (weakest first)
+        candidates.sort((a, b) => a.priority - b.priority);
+        const selected = candidates.slice(0, QUIZ_SIZE);
+
+        // Shuffle to mix up the categories
+        for (let i = selected.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [selected[i], selected[j]] = [selected[j], selected[i]];
+        }
+
+        hands.push(...selected.map(c => c.hand));
+        results.push(...selected.map(c => c.result));
+      } else if (closeDecisions) {
         setLoadingText('Finding close decisions...');
         const candidates = [];
         let attempts = 0;
-        const maxAttempts = 1000;
+        // For close decisions, we need a larger pool to find truly close ones
+        const closeDecisionPoolSize = QUIZ_SIZE * 3;
+        const maxAttempts = 500;
 
-        while (candidates.length < CANDIDATE_POOL_SIZE && attempts < maxAttempts) {
+        while (candidates.length < closeDecisionPoolSize && attempts < maxAttempts) {
           const hand = dealHand();
           const result = await lookupHand(hand);
           attempts++;
@@ -547,6 +843,7 @@ export default function App() {
     setSelectedCards(new Set());
     setShowFeedback(false);
     setExpandedHandIndex(null);
+    setWeakSpotsMode(false);
   };
 
   // Hand Analyzer functions
@@ -633,6 +930,7 @@ export default function App() {
     setScreen('home');
     setAnalyzerHand([]);
     setAnalyzerResults(null);
+    setWeakSpotsMode(false);
   };
 
   // Calculate optimal card size for landscape
@@ -733,10 +1031,30 @@ export default function App() {
             <Text style={styles.subtitle}>EV-Based Strategy Training</Text>
           </View>
 
+          {/* Mastery summary */}
+          {masteryScores.length > 0 && (
+            <TouchableOpacity
+              style={styles.masterySummary}
+              onPress={() => setScreen('mastery')}
+            >
+              <Text style={styles.masterySummaryLabel}>Overall Mastery</Text>
+              <View style={styles.masteryBarContainer}>
+                <View style={[styles.masteryBarFill, { width: `${calculateOverallMastery(masteryScores)}%` }]} />
+              </View>
+              <Text style={styles.masterySummaryPercent}>
+                {calculateOverallMastery(masteryScores).toFixed(0)}%
+              </Text>
+            </TouchableOpacity>
+          )}
+
           <View style={[styles.homeButtons, isLandscape && isMobile && styles.homeButtonsLandscape]}>
             <TouchableOpacity
               style={[styles.homeButton, styles.homeButtonQuiz]}
-              onPress={() => setScreen('start')}
+              onPress={() => {
+                playSound(SOUNDS.BUTTON_TAP);
+                triggerHaptic(HAPTIC_TYPES.LIGHT);
+                setScreen('start');
+              }}
             >
               <Text style={styles.homeButtonIcon}>🎯</Text>
               <Text style={styles.homeButtonTitle}>Quiz Mode</Text>
@@ -744,12 +1062,56 @@ export default function App() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              style={[styles.homeButton, styles.homeButtonWeakSpots]}
+              onPress={() => {
+                playSound(SOUNDS.BUTTON_TAP);
+                triggerHaptic(HAPTIC_TYPES.LIGHT);
+                setWeakSpotsMode(true);
+                setScreen('start');
+              }}
+            >
+              <Text style={styles.homeButtonIcon}>🔥</Text>
+              <Text style={styles.homeButtonTitle}>Weak Spots</Text>
+              <Text style={styles.homeButtonDesc}>Focus on problem areas</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.homeButton, styles.homeButtonMastery]}
+              onPress={() => {
+                playSound(SOUNDS.BUTTON_TAP);
+                triggerHaptic(HAPTIC_TYPES.LIGHT);
+                setScreen('mastery');
+              }}
+            >
+              <Text style={styles.homeButtonIcon}>📊</Text>
+              <Text style={styles.homeButtonTitle}>Progress</Text>
+              <Text style={styles.homeButtonDesc}>View your mastery levels</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={[styles.homeButton, styles.homeButtonAnalyzer]}
-              onPress={goToAnalyzer}
+              onPress={() => {
+                playSound(SOUNDS.BUTTON_TAP);
+                triggerHaptic(HAPTIC_TYPES.LIGHT);
+                goToAnalyzer();
+              }}
             >
               <Text style={styles.homeButtonIcon}>🔍</Text>
               <Text style={styles.homeButtonTitle}>Hand Analyzer</Text>
               <Text style={styles.homeButtonDesc}>See optimal plays for any hand</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.homeButton, styles.homeButtonSettings]}
+              onPress={() => {
+                playSound(SOUNDS.BUTTON_TAP);
+                triggerHaptic(HAPTIC_TYPES.LIGHT);
+                setScreen('settings');
+              }}
+            >
+              <Text style={styles.homeButtonIcon}>⚙️</Text>
+              <Text style={styles.homeButtonTitle}>Settings</Text>
+              <Text style={styles.homeButtonDesc}>Sound & haptic preferences</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1008,6 +1370,113 @@ export default function App() {
     );
   }
 
+  // Mastery Dashboard screen
+  if (screen === 'mastery') {
+    const sortedCategories = getCategoriesByPriority(masteryScores);
+    const overallMastery = calculateOverallMastery(masteryScores);
+    const masteryLevel = getMasteryLevel(overallMastery);
+
+    // Get all possible categories and merge with existing scores
+    const allCategories = Object.keys(HAND_CATEGORIES).map(key => {
+      const categoryId = HAND_CATEGORIES[key];
+      const existing = masteryScores.find(s => s.category === categoryId);
+      return {
+        category: categoryId,
+        name: CATEGORY_NAMES[categoryId],
+        color: CATEGORY_COLORS[categoryId],
+        mastery_score: existing?.mastery_score || 0,
+        total_attempts: existing?.total_attempts || 0,
+        correct_attempts: existing?.correct_attempts || 0,
+        next_review_at: existing?.next_review_at,
+      };
+    });
+
+    return (
+      <SafeAreaView style={[styles.container, isLandscape && isMobile && styles.containerLandscape]}>
+        <StatusBar style="light" hidden={isLandscape && isMobile} />
+        <ScrollView style={styles.masteryScroll} contentContainerStyle={styles.masteryContent}>
+          {/* Header */}
+          <View style={styles.masteryHeader}>
+            <TouchableOpacity onPress={goHome} style={styles.backButton}>
+              <Text style={styles.backButtonText}>← Menu</Text>
+            </TouchableOpacity>
+            <Text style={styles.masteryTitle}>Progress Dashboard</Text>
+            <View style={{ width: 70 }} />
+          </View>
+
+          {/* Overall mastery card */}
+          <View style={styles.overallMasteryCard}>
+            <Text style={styles.overallMasteryLabel}>Overall Mastery</Text>
+            <Text style={[styles.overallMasteryPercent, { color: masteryLevel.color }]}>
+              {overallMastery.toFixed(0)}%
+            </Text>
+            <Text style={[styles.overallMasteryLevel, { color: masteryLevel.color }]}>
+              {masteryLevel.label}
+            </Text>
+            <View style={styles.overallMasteryBar}>
+              <View style={[styles.overallMasteryBarFill, { width: `${overallMastery}%`, backgroundColor: masteryLevel.color }]} />
+            </View>
+            <Text style={styles.overallMasteryStats}>
+              {masteryScores.reduce((sum, s) => sum + (s.total_attempts || 0), 0)} hands practiced
+            </Text>
+          </View>
+
+          {/* Category breakdown */}
+          <Text style={styles.categorySectionTitle}>Category Breakdown</Text>
+          <View style={styles.categoryList}>
+            {allCategories.map((cat, index) => {
+              const level = getMasteryLevel(cat.mastery_score);
+              const isDue = !cat.next_review_at || new Date(cat.next_review_at) <= new Date();
+
+              return (
+                <View key={cat.category} style={styles.categoryItem}>
+                  <View style={styles.categoryHeader}>
+                    <View style={[styles.categoryIndicator, { backgroundColor: cat.color }]} />
+                    <Text style={styles.categoryName} numberOfLines={1}>{cat.name}</Text>
+                    {isDue && cat.total_attempts > 0 && (
+                      <View style={styles.dueTag}>
+                        <Text style={styles.dueTagText}>Due</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.categoryStats}>
+                    <View style={styles.categoryBarContainer}>
+                      <View style={[styles.categoryBarFill, { width: `${cat.mastery_score}%`, backgroundColor: level.color }]} />
+                    </View>
+                    <Text style={styles.categoryPercent}>{cat.mastery_score.toFixed(0)}%</Text>
+                  </View>
+                  <Text style={styles.categoryAttempts}>
+                    {cat.total_attempts > 0
+                      ? `${cat.correct_attempts}/${cat.total_attempts} correct`
+                      : 'Not practiced yet'}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Action buttons */}
+          <TouchableOpacity
+            style={[styles.button, styles.weakSpotsButton]}
+            onPress={() => {
+              setWeakSpotsMode(true);
+              setScreen('start');
+            }}
+          >
+            <Text style={styles.buttonText}>Practice Weak Spots</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, { marginTop: 12 }]}
+            onPress={() => setScreen('start')}
+          >
+            <Text style={styles.buttonText}>Start Regular Quiz</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   // Hand Analyzer screen
   if (screen === 'analyzer') {
     return (
@@ -1138,6 +1607,128 @@ export default function App() {
     );
   }
 
+  // Settings screen
+  if (screen === 'settings') {
+    return (
+      <SafeAreaView style={[styles.container, isLandscape && isMobile && styles.containerLandscape]}>
+        <StatusBar style="light" hidden={isLandscape && isMobile} />
+        <ScrollView style={styles.settingsScroll} contentContainerStyle={styles.settingsContent}>
+          <View style={styles.settingsHeader}>
+            <TouchableOpacity
+              onPress={() => {
+                playSound(SOUNDS.BUTTON_TAP);
+                triggerHaptic(HAPTIC_TYPES.LIGHT);
+                goHome();
+              }}
+              style={styles.backButton}
+            >
+              <Text style={styles.backButtonText}>← Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.settingsTitle}>Settings</Text>
+            <View style={styles.backButton} />
+          </View>
+
+          <View style={styles.settingsCard}>
+            <Text style={styles.settingsCardTitle}>Sound & Haptics</Text>
+
+            <View style={styles.settingRow}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingLabel}>Sound Effects</Text>
+                <Text style={styles.settingDesc}>Play sounds for actions</Text>
+              </View>
+              <Switch
+                value={soundEnabled}
+                onValueChange={(value) => {
+                  setSoundEnabled(value);
+                  if (value) {
+                    playSound(SOUNDS.BUTTON_TAP);
+                  }
+                  triggerHaptic(HAPTIC_TYPES.LIGHT);
+                }}
+                trackColor={{ false: '#ccc', true: '#667eea' }}
+                thumbColor={soundEnabled ? '#fff' : '#f4f3f4'}
+              />
+            </View>
+
+            {soundEnabled && (
+              <View style={styles.settingRow}>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingLabel}>Volume</Text>
+                  <Text style={styles.settingDesc}>{Math.round(soundVolume * 100)}%</Text>
+                </View>
+                <View style={styles.volumeSlider}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      const newVol = Math.max(0, soundVolume - 0.1);
+                      setSoundVolume(newVol);
+                      triggerHaptic(HAPTIC_TYPES.LIGHT);
+                    }}
+                    style={styles.volumeButton}
+                  >
+                    <Text style={styles.volumeButtonText}>-</Text>
+                  </TouchableOpacity>
+                  <View style={styles.volumeBar}>
+                    <View style={[styles.volumeFill, { width: `${soundVolume * 100}%` }]} />
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => {
+                      const newVol = Math.min(1, soundVolume + 0.1);
+                      setSoundVolume(newVol);
+                      playSound(SOUNDS.BUTTON_TAP);
+                      triggerHaptic(HAPTIC_TYPES.LIGHT);
+                    }}
+                    style={styles.volumeButton}
+                  >
+                    <Text style={styles.volumeButtonText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {Platform.OS !== 'web' && (
+              <View style={styles.settingRow}>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingLabel}>Haptic Feedback</Text>
+                  <Text style={styles.settingDesc}>Vibration on interactions</Text>
+                </View>
+                <Switch
+                  value={hapticsEnabled}
+                  onValueChange={(value) => {
+                    setHapticsEnabled(value);
+                    if (value) {
+                      triggerHaptic(HAPTIC_TYPES.SUCCESS);
+                    }
+                  }}
+                  trackColor={{ false: '#ccc', true: '#667eea' }}
+                  thumbColor={hapticsEnabled ? '#fff' : '#f4f3f4'}
+                />
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={styles.resetButton}
+              onPress={() => {
+                playSound(SOUNDS.BUTTON_TAP);
+                triggerHaptic(HAPTIC_TYPES.MEDIUM);
+                setSoundEnabled(true);
+                setSoundVolume(0.7);
+                setHapticsEnabled(true);
+              }}
+            >
+              <Text style={styles.resetButtonText}>Reset to Defaults</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.settingsCard}>
+            <Text style={styles.settingsCardTitle}>About</Text>
+            <Text style={styles.aboutText}>Video Poker Trainer v1.0</Text>
+            <Text style={styles.aboutText}>EV-Based Strategy Training</Text>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return null;
 }
 
@@ -1181,10 +1772,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
     elevation: 4,
     minWidth: 200,
   },
@@ -1244,10 +1832,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
     elevation: 4,
   },
   whiteCardLandscape: {
@@ -1413,10 +1998,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)',
     elevation: 4,
     overflow: 'hidden',
   },
@@ -1424,8 +2006,7 @@ const styles = StyleSheet.create({
     transform: [{ translateY: -10 }],
     borderWidth: 3,
     borderColor: '#ffd700',
-    shadowColor: '#ffd700',
-    shadowOpacity: 0.6,
+    boxShadow: '0px 0px 8px rgba(255, 215, 0, 0.6)',
   },
   cardImage: {
     width: '100%',
@@ -1816,10 +2397,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
     elevation: 6,
   },
   authCardTitle: {
@@ -1889,5 +2467,286 @@ const styles = StyleSheet.create({
   signOutText: {
     color: 'rgba(255,255,255,0.8)',
     fontSize: 14,
+  },
+  // Mastery styles
+  masterySummary: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  masterySummaryLabel: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 12,
+  },
+  masteryBarContainer: {
+    flex: 1,
+    height: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  masteryBarFill: {
+    height: '100%',
+    backgroundColor: '#2ecc71',
+    borderRadius: 4,
+  },
+  masterySummaryPercent: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginLeft: 12,
+    minWidth: 40,
+    textAlign: 'right',
+  },
+  homeButtonWeakSpots: {
+    borderBottomWidth: 4,
+    borderBottomColor: '#e74c3c',
+  },
+  homeButtonMastery: {
+    borderBottomWidth: 4,
+    borderBottomColor: '#9b59b6',
+  },
+  // Mastery Dashboard styles
+  masteryScroll: {
+    flex: 1,
+  },
+  masteryContent: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+  masteryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  masteryTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  overallMasteryCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  overallMasteryLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  overallMasteryPercent: {
+    fontSize: 48,
+    fontWeight: 'bold',
+  },
+  overallMasteryLevel: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  overallMasteryBar: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  overallMasteryBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  overallMasteryStats: {
+    fontSize: 14,
+    color: '#888',
+  },
+  categorySectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 12,
+  },
+  categoryList: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 20,
+  },
+  categoryItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  categoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  categoryIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 10,
+  },
+  categoryName: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  dueTag: {
+    backgroundColor: '#e74c3c',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  dueTagText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  categoryStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  categoryBarContainer: {
+    flex: 1,
+    height: 6,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginRight: 10,
+  },
+  categoryBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  categoryPercent: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    minWidth: 40,
+    textAlign: 'right',
+  },
+  categoryAttempts: {
+    fontSize: 12,
+    color: '#888',
+  },
+  weakSpotsButton: {
+    backgroundColor: '#e74c3c',
+  },
+  // Settings button style
+  homeButtonSettings: {
+    borderBottomWidth: 4,
+    borderBottomColor: '#95a5a6',
+  },
+  // Settings screen styles
+  settingsScroll: {
+    flex: 1,
+  },
+  settingsContent: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+  settingsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  settingsTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  settingsCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+  },
+  settingsCardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 16,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  settingInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
+  settingLabel: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  settingDesc: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 2,
+  },
+  volumeSlider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  volumeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#667eea',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  volumeButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  volumeBar: {
+    width: 80,
+    height: 6,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  volumeFill: {
+    height: '100%',
+    backgroundColor: '#667eea',
+    borderRadius: 3,
+  },
+  resetButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  resetButtonText: {
+    color: '#666',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  aboutText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
   },
 });
