@@ -38,6 +38,10 @@ type Hand = [Card; 5];
 enum GameType {
     JacksOrBetter,
     DoubleDoubleBonus,
+    DeucesWildNSUD,      // Not So Ugly Deuces (25-15-9-4-4-3-2-1)
+    DeucesWildFullPay,   // Full Pay Deuces (25-15-9-5-3-2-2-1)
+    BonusPoker85,        // Bonus Poker 8/5
+    DoubleBonus107,      // Double Bonus 10/7
 }
 
 fn is_flush(hand: &[Card]) -> bool {
@@ -68,8 +72,200 @@ fn get_rank_counts(hand: &[Card]) -> [u8; 13] {
     counts
 }
 
+// Count deuces (rank 0 = '2') in hand
+fn count_deuces(hand: &[Card]) -> u8 {
+    hand.iter().filter(|c| c.rank() == 0).count() as u8
+}
+
+// Get non-deuce cards
+fn get_non_deuces(hand: &[Card]) -> Vec<Card> {
+    hand.iter().filter(|c| c.rank() != 0).cloned().collect()
+}
+
+// Check for flush with wild cards
+fn is_flush_wild(non_deuces: &[Card]) -> bool {
+    if non_deuces.is_empty() { return true; }
+    let suit = non_deuces[0].suit();
+    non_deuces.iter().all(|c| c.suit() == suit)
+}
+
+// Check for straight with wild cards
+fn is_straight_wild(non_deuces: &[Card], num_wilds: u8) -> bool {
+    if non_deuces.is_empty() { return true; }
+
+    let mut ranks: Vec<u8> = non_deuces.iter().map(|c| c.rank()).collect();
+    ranks.sort();
+    ranks.dedup(); // Remove duplicates (can't make straight with duplicate non-wilds)
+
+    if ranks.len() + (num_wilds as usize) < 5 { return false; }
+
+    // Check if cards can form a straight with wilds filling gaps
+    // Need to check all possible 5-card windows
+    for start in 0..=8u8 { // 0-8 for straights starting at 2-T
+        let mut needed = 0u8;
+        for r in start..start+5 {
+            if !ranks.contains(&r) {
+                needed += 1;
+            }
+        }
+        if needed <= num_wilds { return true; }
+    }
+
+    // Check wheel (A-2-3-4-5) - but 2s are wild, so check A-3-4-5 can be made
+    // Ace = rank 12, 3=1, 4=2, 5=3
+    let wheel_ranks = [1u8, 2, 3, 12]; // 3, 4, 5, A (2 is wild)
+    let mut needed = 0u8;
+    for &r in &wheel_ranks {
+        if !ranks.contains(&r) {
+            needed += 1;
+        }
+    }
+    if needed <= num_wilds { return true; }
+
+    // Check royal (T-J-Q-K-A)
+    let royal_ranks = [8u8, 9, 10, 11, 12]; // T, J, Q, K, A
+    let mut needed = 0u8;
+    for &r in &royal_ranks {
+        if !ranks.contains(&r) {
+            needed += 1;
+        }
+    }
+    if needed <= num_wilds { return true; }
+
+    false
+}
+
+// Check for royal flush with wilds (T-J-Q-K-A of same suit)
+fn is_royal_wild(non_deuces: &[Card], num_wilds: u8) -> bool {
+    if !is_flush_wild(non_deuces) { return false; }
+
+    let ranks: Vec<u8> = non_deuces.iter().map(|c| c.rank()).collect();
+    let royal_ranks = [8u8, 9, 10, 11, 12]; // T, J, Q, K, A
+
+    let mut needed = 0u8;
+    for &r in &royal_ranks {
+        if !ranks.contains(&r) {
+            needed += 1;
+        }
+    }
+    needed <= num_wilds
+}
+
+// Evaluate deuces wild hand
+fn get_deuces_wild_payout(hand: &[Card], game_type: GameType) -> f64 {
+    let num_deuces = count_deuces(hand);
+    let non_deuces = get_non_deuces(hand);
+
+    // Get rank counts for non-deuces only
+    let mut counts = [0u8; 13];
+    for card in &non_deuces {
+        counts[card.rank() as usize] += 1;
+    }
+
+    let max_count = *counts.iter().max().unwrap_or(&0);
+    let num_pairs = counts.iter().filter(|&&c| c == 2).count() as u8;
+
+    let is_flush = is_flush_wild(&non_deuces);
+    let is_straight = is_straight_wild(&non_deuces, num_deuces);
+
+    // Natural Royal (no wilds)
+    if num_deuces == 0 && is_flush && is_straight {
+        let mut ranks: Vec<u8> = non_deuces.iter().map(|c| c.rank()).collect();
+        ranks.sort();
+        if ranks == vec![8, 9, 10, 11, 12] {
+            return 800.0; // Natural Royal Flush
+        }
+    }
+
+    // Four Deuces
+    if num_deuces == 4 {
+        return 200.0;
+    }
+
+    // Wild Royal Flush
+    if is_royal_wild(&non_deuces, num_deuces) && num_deuces > 0 {
+        return 25.0;
+    }
+
+    // Five of a Kind (4 of same rank + 1 wild, or 3 + 2 wilds, etc.)
+    if max_count + num_deuces >= 5 {
+        return 15.0;
+    }
+
+    // Straight Flush (not royal)
+    if is_flush && is_straight && !is_royal_wild(&non_deuces, num_deuces) {
+        return 9.0;
+    }
+
+    // Four of a Kind
+    if max_count + num_deuces >= 4 {
+        match game_type {
+            GameType::DeucesWildNSUD => return 4.0,
+            GameType::DeucesWildFullPay => return 5.0,
+            _ => return 4.0,
+        }
+    }
+
+    // Full House
+    if (max_count + num_deuces >= 3) && (num_pairs >= 1 || max_count >= 2) {
+        // Need 3 of one rank and 2 of another
+        let mut sorted_counts: Vec<u8> = counts.iter().cloned().filter(|&c| c > 0).collect();
+        sorted_counts.sort();
+        sorted_counts.reverse();
+
+        // Check if we can make full house
+        let can_make_full_house = if sorted_counts.len() >= 2 {
+            let need_for_trips = 3_u8.saturating_sub(sorted_counts[0]);
+            let need_for_pair = 2_u8.saturating_sub(sorted_counts[1]);
+            need_for_trips + need_for_pair <= num_deuces
+        } else if sorted_counts.len() == 1 {
+            // Only one rank, need wilds to make the pair
+            sorted_counts[0] + num_deuces >= 5 && sorted_counts[0] >= 2
+        } else {
+            num_deuces >= 5
+        };
+
+        if can_make_full_house && max_count + num_deuces < 4 {
+            match game_type {
+                GameType::DeucesWildNSUD => return 4.0,
+                GameType::DeucesWildFullPay => return 3.0,
+                _ => return 3.0,
+            }
+        }
+    }
+
+    // Flush
+    if is_flush && !is_straight {
+        match game_type {
+            GameType::DeucesWildNSUD => return 3.0,
+            GameType::DeucesWildFullPay => return 2.0,
+            _ => return 2.0,
+        }
+    }
+
+    // Straight
+    if is_straight && !is_flush {
+        return 2.0;
+    }
+
+    // Three of a Kind
+    if max_count + num_deuces >= 3 {
+        return 1.0;
+    }
+
+    0.0
+}
+
 fn get_payout(hand: &[Card], game_type: GameType) -> f64 {
     if hand.len() != 5 { return 0.0; }
+
+    // Route Deuces Wild games to special handler
+    match game_type {
+        GameType::DeucesWildNSUD | GameType::DeucesWildFullPay => {
+            return get_deuces_wild_payout(hand, game_type);
+        }
+        _ => {}
+    }
 
     let flush = is_flush(hand);
     let straight = is_straight(hand);
@@ -89,11 +285,11 @@ fn get_payout(hand: &[Card], game_type: GameType) -> f64 {
     let mut pairs = 0;
     let mut trips = 0;
     let mut quad_rank: Option<u8> = None;
-    let mut pair_rank = 0;
+    let mut pair_ranks: Vec<usize> = Vec::new();
 
     for (rank, &count) in counts.iter().enumerate() {
         match count {
-            2 => { pairs += 1; pair_rank = rank; }
+            2 => { pairs += 1; pair_ranks.push(rank); }
             3 => trips += 1,
             4 => quad_rank = Some(rank as u8),
             _ => {}
@@ -104,6 +300,18 @@ fn get_payout(hand: &[Card], game_type: GameType) -> f64 {
     if let Some(qr) = quad_rank {
         match game_type {
             GameType::JacksOrBetter => return 25.0,
+            GameType::BonusPoker85 => {
+                // Bonus Poker: 80 for aces, 40 for 2-4, 25 for 5-K
+                if qr == 12 { return 80.0; }      // Four Aces
+                if qr <= 2 { return 40.0; }       // Four 2s, 3s, or 4s
+                return 25.0;                       // Four 5s-Kings
+            }
+            GameType::DoubleBonus107 => {
+                // Double Bonus: 160 for aces, 80 for 2-4, 50 for 5-K
+                if qr == 12 { return 160.0; }     // Four Aces
+                if qr <= 2 { return 80.0; }       // Four 2s, 3s, or 4s
+                return 50.0;                       // Four 5s-Kings
+            }
             GameType::DoubleDoubleBonus => {
                 // Find the kicker rank
                 let kicker_rank = counts.iter().enumerate()
@@ -112,7 +320,6 @@ fn get_payout(hand: &[Card], game_type: GameType) -> f64 {
                     .unwrap_or(0);
 
                 // Ranks: 0=2, 1=3, 2=4, 12=A
-                let is_ace_kicker = kicker_rank == 12;
                 let is_low_kicker = kicker_rank <= 2 || kicker_rank == 12; // 2,3,4 or A
 
                 if qr == 12 { // Four Aces
@@ -125,46 +332,69 @@ fn get_payout(hand: &[Card], game_type: GameType) -> f64 {
                     return 50.0;
                 }
             }
+            _ => return 25.0,
         }
     }
 
+    // Full House
     if trips > 0 && pairs > 0 {
         return match game_type {
             GameType::JacksOrBetter => 9.0,
+            GameType::BonusPoker85 => 8.0,
+            GameType::DoubleBonus107 => 10.0,
             GameType::DoubleDoubleBonus => 9.0,
+            _ => 9.0,
         };
     }
 
+    // Flush
     if flush {
         return match game_type {
             GameType::JacksOrBetter => 6.0,
+            GameType::BonusPoker85 => 5.0,
+            GameType::DoubleBonus107 => 7.0,
             GameType::DoubleDoubleBonus => 6.0,
+            _ => 6.0,
         };
     }
 
+    // Straight
     if straight {
         return match game_type {
             GameType::JacksOrBetter => 4.0,
+            GameType::BonusPoker85 => 4.0,
+            GameType::DoubleBonus107 => 5.0,
             GameType::DoubleDoubleBonus => 4.0,
+            _ => 4.0,
         };
     }
 
+    // Three of a Kind
     if trips > 0 {
         return match game_type {
             GameType::JacksOrBetter => 3.0,
+            GameType::BonusPoker85 => 3.0,
+            GameType::DoubleBonus107 => 3.0,
             GameType::DoubleDoubleBonus => 3.0,
+            _ => 3.0,
         };
     }
 
+    // Two Pair
     if pairs == 2 {
         return match game_type {
             GameType::JacksOrBetter => 2.0,
+            GameType::BonusPoker85 => 2.0,
+            GameType::DoubleBonus107 => 1.0,    // Double Bonus pays 1 for two pair
             GameType::DoubleDoubleBonus => 1.0, // DDB pays 1 for two pair
+            _ => 2.0,
         };
     }
 
+    // Jacks or Better pair
     if pairs == 1 {
-        // Jacks or better: J=9, Q=10, K=11, A=12
+        let pair_rank = pair_ranks[0];
+        // J=9, Q=10, K=11, A=12
         if pair_rank >= 9 {
             return 1.0;
         }
@@ -325,8 +555,19 @@ fn main() {
     let game_type = match paytable_id.as_str() {
         "jacks-or-better-9-6" => GameType::JacksOrBetter,
         "double-double-bonus-9-6" => GameType::DoubleDoubleBonus,
+        "deuces-wild-nsud" => GameType::DeucesWildNSUD,
+        "deuces-wild-full-pay" => GameType::DeucesWildFullPay,
+        "bonus-poker-8-5" => GameType::BonusPoker85,
+        "double-bonus-10-7" => GameType::DoubleBonus107,
         _ => {
-            eprintln!("Unknown paytable: {}. Use 'jacks-or-better-9-6' or 'double-double-bonus-9-6'", paytable_id);
+            eprintln!("Unknown paytable: {}", paytable_id);
+            eprintln!("Available paytables:");
+            eprintln!("  jacks-or-better-9-6");
+            eprintln!("  double-double-bonus-9-6");
+            eprintln!("  deuces-wild-nsud");
+            eprintln!("  deuces-wild-full-pay");
+            eprintln!("  bonus-poker-8-5");
+            eprintln!("  double-bonus-10-7");
             std::process::exit(1);
         }
     };
