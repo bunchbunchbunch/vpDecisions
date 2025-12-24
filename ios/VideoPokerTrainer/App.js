@@ -1020,20 +1020,27 @@ export default function App() {
     return (
       <SafeAreaView style={[styles.container, styles.authContainer]}>
         <StatusBar style="light" />
-        <View style={styles.authContent}>
-          <View style={styles.authHeader}>
-            <Text style={styles.authTitle}>Video Poker Trainer</Text>
-            <Text style={styles.authSubtitle}>Master perfect strategy</Text>
+        <ScrollView
+          contentContainerStyle={styles.authScrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={[styles.authHeader, isMobile && styles.authHeaderMobile]}>
+            <Text style={[styles.authTitle, isMobile && styles.authTitleMobile]}>Video Poker Trainer</Text>
+            <Text style={[styles.authSubtitle, isMobile && styles.authSubtitleMobile]}>Master perfect strategy</Text>
           </View>
 
-          <View style={styles.authCard}>
-            <Text style={styles.authCardTitle}>{isSignUp ? 'Create Account' : 'Sign In'}</Text>
-            <Text style={styles.authCardDesc}>
-              Track your progress and sync across devices
+          <View style={[styles.authCard, isMobile && styles.authCardMobile]}>
+            <Text style={[styles.authCardTitle, isMobile && styles.authCardTitleMobile]}>
+              {isSignUp ? 'Create Account' : 'Sign In'}
             </Text>
+            {!isMobile && (
+              <Text style={styles.authCardDesc}>
+                Track your progress and sync across devices
+              </Text>
+            )}
 
             <TextInput
-              style={styles.authInput}
+              style={[styles.authInput, isMobile && styles.authInputMobile]}
               placeholder="Email"
               placeholderTextColor="#999"
               value={email}
@@ -1042,7 +1049,7 @@ export default function App() {
               keyboardType="email-address"
             />
             <TextInput
-              style={styles.authInput}
+              style={[styles.authInput, isMobile && styles.authInputMobile]}
               placeholder="Password"
               placeholderTextColor="#999"
               value={password}
@@ -1051,36 +1058,38 @@ export default function App() {
             />
 
             <TouchableOpacity
-              style={styles.emailButton}
+              style={[styles.emailButton, isMobile && styles.emailButtonMobile]}
               onPress={isSignUp ? signUpWithEmail : signInWithEmail}
             >
-              <Text style={styles.emailButtonText}>
+              <Text style={[styles.emailButtonText, isMobile && styles.emailButtonTextMobile]}>
                 {isSignUp ? 'Sign Up' : 'Sign In'}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => setIsSignUp(!isSignUp)}>
-              <Text style={styles.switchAuthText}>
+              <Text style={[styles.switchAuthText, isMobile && styles.switchAuthTextMobile]}>
                 {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
               </Text>
             </TouchableOpacity>
 
-            <View style={styles.authDivider}>
+            <View style={[styles.authDivider, isMobile && styles.authDividerMobile]}>
               <View style={styles.authDividerLine} />
               <Text style={styles.authDividerText}>or</Text>
               <View style={styles.authDividerLine} />
             </View>
 
             <TouchableOpacity
-              style={styles.googleButton}
+              style={[styles.googleButton, isMobile && styles.googleButtonMobile]}
               onPress={signInWithGoogle}
             >
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
+              <Text style={[styles.googleButtonText, isMobile && styles.googleButtonTextMobile]}>
+                Continue with Google
+              </Text>
             </TouchableOpacity>
 
             {/* DEV ONLY - Remove in production */}
             <TouchableOpacity
-              style={styles.devLoginButton}
+              style={[styles.devLoginButton, isMobile && styles.devLoginButtonMobile]}
               onPress={async () => {
                 setAuthError(null);
                 try {
@@ -1094,14 +1103,16 @@ export default function App() {
                 }
               }}
             >
-              <Text style={styles.devLoginButtonText}>Quick Login (Dev)</Text>
+              <Text style={[styles.devLoginButtonText, isMobile && styles.devLoginButtonTextMobile]}>
+                Quick Login (Dev)
+              </Text>
             </TouchableOpacity>
 
             {authError && (
               <Text style={styles.authErrorText}>{authError}</Text>
             )}
           </View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -2472,6 +2483,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  authScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    width: '100%',
+  },
   authLoadingText: {
     color: 'white',
     fontSize: 16,
@@ -2486,6 +2504,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
+  authHeaderMobile: {
+    marginBottom: 12,
+  },
   authTitle: {
     fontSize: 32,
     fontWeight: 'bold',
@@ -2493,10 +2514,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: 'center',
   },
+  authTitleMobile: {
+    fontSize: 22,
+    marginBottom: 4,
+  },
   authSubtitle: {
     fontSize: 18,
     color: 'rgba(255,255,255,0.8)',
     textAlign: 'center',
+  },
+  authSubtitleMobile: {
+    fontSize: 14,
   },
   authCard: {
     backgroundColor: 'white',
@@ -2504,6 +2532,12 @@ const styles = StyleSheet.create({
     padding: 24,
     boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
     elevation: 6,
+    width: '100%',
+    maxWidth: 400,
+  },
+  authCardMobile: {
+    padding: 16,
+    borderRadius: 12,
   },
   authCardTitle: {
     fontSize: 20,
@@ -2511,6 +2545,10 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
     textAlign: 'center',
+  },
+  authCardTitleMobile: {
+    fontSize: 16,
+    marginBottom: 12,
   },
   authCardDesc: {
     fontSize: 14,
@@ -2527,10 +2565,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  googleButtonMobile: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
   googleButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  googleButtonTextMobile: {
+    fontSize: 14,
   },
   authErrorText: {
     color: '#e74c3c',
@@ -2549,6 +2594,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     color: '#333',
   },
+  authInputMobile: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    marginBottom: 8,
+  },
   emailButton: {
     backgroundColor: '#667eea',
     paddingVertical: 14,
@@ -2558,10 +2609,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
+  emailButtonMobile: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
   emailButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  emailButtonTextMobile: {
+    fontSize: 14,
   },
   switchAuthText: {
     color: '#667eea',
@@ -2569,10 +2628,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
   },
+  switchAuthTextMobile: {
+    fontSize: 12,
+    marginBottom: 8,
+  },
   authDivider: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 16,
+  },
+  authDividerMobile: {
+    marginVertical: 8,
   },
   authDividerLine: {
     flex: 1,
@@ -2592,10 +2658,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 12,
   },
+  devLoginButtonMobile: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginTop: 8,
+  },
   devLoginButtonText: {
     color: 'white',
     fontSize: 14,
     fontWeight: '500',
+  },
+  devLoginButtonTextMobile: {
+    fontSize: 12,
   },
   // User bar styles
   userBar: {
