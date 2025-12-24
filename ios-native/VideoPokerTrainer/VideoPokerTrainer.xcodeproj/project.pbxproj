@@ -1,0 +1,567 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		07D564051B4CBB23DFDF41B2 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC11F57C339351683A7A945E /* AuthViewModel.swift */; };
+		0F16C32059109F21E351814D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */; };
+		0FDBAFBF64162DEDFD208EAD /* submit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BA6C1E385E108694180D1EBE /* submit.mp3 */; };
+		0FE869B3D3FA170517561BD1 /* PayTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */; };
+		2723E123A48A2FFB91BA72C0 /* HapticService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */; };
+		2D12B9D50B6BE8EFFB32868D /* button-tap.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = DCE574B6713DC27CBB847898 /* button-tap.mp3 */; };
+		536F632E405D093299FE5B59 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E42FBAD025A5534A6E4850 /* AuthView.swift */; };
+		5438E7F43028F95D65AACEED /* HandCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */; };
+		5D20F966F1DDA1E06819F3A2 /* QuizPlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6A631F3E90A1B2FCFA8934 /* QuizPlayView.swift */; };
+		611CF46743CA88B71B485BCD /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A372C2B67ECD0E057210D57 /* Card.swift */; };
+		71A602043D2B35B4789E7D57 /* incorrect.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A938B302053EBA1843CDBDD8 /* incorrect.mp3 */; };
+		7DD564D08C78F917E261534E /* MasteryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */; };
+		7F19D2CB801A784CD2487F3A /* VideoPokerTrainerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */; };
+		7F91767A20F844B17A466A75 /* Hand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03FD663D9F07AEE4E1829685 /* Hand.swift */; };
+		973BBB083DDAACDE2DD8DBBB /* card-select.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 52626371C1AE90FB294E4C82 /* card-select.mp3 */; };
+		99CB3FBBAF8F43A1B2761404 /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEFE93106067A8CC6C7D44E0 /* AudioService.swift */; };
+		9AD6A559445353450025DD68 /* StrategyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B14813ABEB1C877847870FF /* StrategyService.swift */; };
+		9B4B7A366425E722369EE9D1 /* next-hand.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D90A1B2C22F69A4059A0AF90 /* next-hand.mp3 */; };
+		A6AFCD3472AC36B416F46E5E /* QuizViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6EA254B114941319176353 /* QuizViewModel.swift */; };
+		B51629FBBA7A29969D895CBB /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F1393C11511534CE0AA9C5 /* HomeView.swift */; };
+		BA434B4D8AC3FBDEB0229B26 /* MasteryScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C10505BC1A5BB00B74307D /* MasteryScore.swift */; };
+		BBA7D3A4A818EF4046841A1E /* quiz-complete.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */; };
+		BE125462B9396E73249C962A /* HandAnalyzerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EBF4D48AC1D577D0A2CC087 /* HandAnalyzerView.swift */; };
+		D353D33B14246C03446A1BFF /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C4FD2CF0865B3C43DC64102E /* Supabase */; };
+		D377E7F8A6EA6B272F609CC3 /* SpacedRepetitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */; };
+		D7B782D6C22D584CF543D895 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8717FB49A524CDA76F3D730A /* SupabaseService.swift */; };
+		D7F21D806CD72B4FBBE789EE /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FCBC58743A80FDACE84FB39 /* CardView.swift */; };
+		EB31AC2671CF70D41545F0FC /* QuizResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6B33083F0FB3889082928E6 /* QuizResultsView.swift */; };
+		EE6CCDF2456A20BA420ACF8D /* AnalyzerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C33530EF32164D02A03169 /* AnalyzerViewModel.swift */; };
+		F302A693B13FFCB4A467F149 /* MasteryDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BB591ADA1CB751A89760BF /* MasteryDashboardView.swift */; };
+		FCD4460BC57F88E834DA6FAB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BA55DBC9DB3C3D1B66159FE2 /* Assets.xcassets */; };
+		FEB433C9189612043BBCEAF8 /* correct.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7C7B891E2E0E0C3A4CE8293E /* correct.mp3 */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		03FD663D9F07AEE4E1829685 /* Hand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hand.swift; sourceTree = "<group>"; };
+		0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticService.swift; sourceTree = "<group>"; };
+		07C10505BC1A5BB00B74307D /* MasteryScore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryScore.swift; sourceTree = "<group>"; };
+		0D6A631F3E90A1B2FCFA8934 /* QuizPlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizPlayView.swift; sourceTree = "<group>"; };
+		12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryViewModel.swift; sourceTree = "<group>"; };
+		166952A2BDC1FD0345A5C569 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		1EBF4D48AC1D577D0A2CC087 /* HandAnalyzerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandAnalyzerView.swift; sourceTree = "<group>"; };
+		21C33530EF32164D02A03169 /* AnalyzerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyzerViewModel.swift; sourceTree = "<group>"; };
+		2B14813ABEB1C877847870FF /* StrategyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrategyService.swift; sourceTree = "<group>"; };
+		36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "quiz-complete.mp3"; sourceTree = "<group>"; };
+		38E42FBAD025A5534A6E4850 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		3A372C2B67ECD0E057210D57 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
+		52626371C1AE90FB294E4C82 /* card-select.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "card-select.mp3"; sourceTree = "<group>"; };
+		5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandCategory.swift; sourceTree = "<group>"; };
+		6FCBC58743A80FDACE84FB39 /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
+		7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayTable.swift; sourceTree = "<group>"; };
+		7C7B891E2E0E0C3A4CE8293E /* correct.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = correct.mp3; sourceTree = "<group>"; };
+		8717FB49A524CDA76F3D730A /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		8E6EA254B114941319176353 /* QuizViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizViewModel.swift; sourceTree = "<group>"; };
+		A6B33083F0FB3889082928E6 /* QuizResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultsView.swift; sourceTree = "<group>"; };
+		A938B302053EBA1843CDBDD8 /* incorrect.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = incorrect.mp3; sourceTree = "<group>"; };
+		AC11F57C339351683A7A945E /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		BA55DBC9DB3C3D1B66159FE2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BA6C1E385E108694180D1EBE /* submit.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = submit.mp3; sourceTree = "<group>"; };
+		C0F1393C11511534CE0AA9C5 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		D90A1B2C22F69A4059A0AF90 /* next-hand.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "next-hand.mp3"; sourceTree = "<group>"; };
+		DCE574B6713DC27CBB847898 /* button-tap.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "button-tap.mp3"; sourceTree = "<group>"; };
+		DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = VideoPokerTrainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPokerTrainerApp.swift; sourceTree = "<group>"; };
+		EEFE93106067A8CC6C7D44E0 /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
+		EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpacedRepetitionService.swift; sourceTree = "<group>"; };
+		F8BB591ADA1CB751A89760BF /* MasteryDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryDashboardView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7E1BC3FF5A68B059D8AC9FB7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D353D33B14246C03446A1BFF /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0C30F74B7D0F644A2250C0A5 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				6FCBC58743A80FDACE84FB39 /* CardView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		116670F971746B5D817F716C /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				38E42FBAD025A5534A6E4850 /* AuthView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		1823DBFE242CBA4C772FA17A /* Quiz */ = {
+			isa = PBXGroup;
+			children = (
+				0D6A631F3E90A1B2FCFA8934 /* QuizPlayView.swift */,
+				A6B33083F0FB3889082928E6 /* QuizResultsView.swift */,
+			);
+			path = Quiz;
+			sourceTree = "<group>";
+		};
+		1F927749606AFC7EF7480BE6 /* Mastery */ = {
+			isa = PBXGroup;
+			children = (
+				F8BB591ADA1CB751A89760BF /* MasteryDashboardView.swift */,
+			);
+			path = Mastery;
+			sourceTree = "<group>";
+		};
+		41E300093ACAD53CB659EB1F /* Analyzer */ = {
+			isa = PBXGroup;
+			children = (
+				1EBF4D48AC1D577D0A2CC087 /* HandAnalyzerView.swift */,
+			);
+			path = Analyzer;
+			sourceTree = "<group>";
+		};
+		4DAE062D564A2D89693762BC = {
+			isa = PBXGroup;
+			children = (
+				51FB401C88F5899E0F1712B8 /* VideoPokerTrainer */,
+				F015F62A8DF1901ECD1C7996 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		51FB401C88F5899E0F1712B8 /* VideoPokerTrainer */ = {
+			isa = PBXGroup;
+			children = (
+				BA55DBC9DB3C3D1B66159FE2 /* Assets.xcassets */,
+				166952A2BDC1FD0345A5C569 /* Info.plist */,
+				C251C0B772EF56E0FD46E043 /* App */,
+				B098BF53AA85868FDD597FA1 /* Models */,
+				CDF8FB137B13BFE605890F2A /* Services */,
+				6D4E6C8A92962B0696AE19C9 /* Sounds */,
+				8BAC83D5CBC631F213D57F2F /* ViewModels */,
+				AB3F2AB556B8E531545D9237 /* Views */,
+			);
+			path = VideoPokerTrainer;
+			sourceTree = "<group>";
+		};
+		6D4E6C8A92962B0696AE19C9 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				DCE574B6713DC27CBB847898 /* button-tap.mp3 */,
+				52626371C1AE90FB294E4C82 /* card-select.mp3 */,
+				7C7B891E2E0E0C3A4CE8293E /* correct.mp3 */,
+				A938B302053EBA1843CDBDD8 /* incorrect.mp3 */,
+				D90A1B2C22F69A4059A0AF90 /* next-hand.mp3 */,
+				36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */,
+				BA6C1E385E108694180D1EBE /* submit.mp3 */,
+			);
+			path = Sounds;
+			sourceTree = "<group>";
+		};
+		6FC640280B3760399F4A8BCC /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		8BAC83D5CBC631F213D57F2F /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				21C33530EF32164D02A03169 /* AnalyzerViewModel.swift */,
+				AC11F57C339351683A7A945E /* AuthViewModel.swift */,
+				12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */,
+				8E6EA254B114941319176353 /* QuizViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		AB3F2AB556B8E531545D9237 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				41E300093ACAD53CB659EB1F /* Analyzer */,
+				116670F971746B5D817F716C /* Auth */,
+				0C30F74B7D0F644A2250C0A5 /* Components */,
+				E81B72C9861D38C16DB52371 /* Home */,
+				1F927749606AFC7EF7480BE6 /* Mastery */,
+				1823DBFE242CBA4C772FA17A /* Quiz */,
+				6FC640280B3760399F4A8BCC /* Settings */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B098BF53AA85868FDD597FA1 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				3A372C2B67ECD0E057210D57 /* Card.swift */,
+				03FD663D9F07AEE4E1829685 /* Hand.swift */,
+				6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */,
+				07C10505BC1A5BB00B74307D /* MasteryScore.swift */,
+				7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		C251C0B772EF56E0FD46E043 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		CDF8FB137B13BFE605890F2A /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				EEFE93106067A8CC6C7D44E0 /* AudioService.swift */,
+				0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */,
+				EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */,
+				2B14813ABEB1C877847870FF /* StrategyService.swift */,
+				8717FB49A524CDA76F3D730A /* SupabaseService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		E81B72C9861D38C16DB52371 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				C0F1393C11511534CE0AA9C5 /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		F015F62A8DF1901ECD1C7996 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		08F61A8A66CC9CDB546E1B8F /* VideoPokerTrainer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1426BEF529E000C242F1C0CA /* Build configuration list for PBXNativeTarget "VideoPokerTrainer" */;
+			buildPhases = (
+				AEC04B05A5241BBCF5E40DE6 /* Sources */,
+				80165F7CC50D78A677175FC8 /* Resources */,
+				7E1BC3FF5A68B059D8AC9FB7 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VideoPokerTrainer;
+			packageProductDependencies = (
+				C4FD2CF0865B3C43DC64102E /* Supabase */,
+			);
+			productName = VideoPokerTrainer;
+			productReference = DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		2A63E80ACBE66BB113F6C823 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					08F61A8A66CC9CDB546E1B8F = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 1D279663EB91293E96964E21 /* Build configuration list for PBXProject "VideoPokerTrainer" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 4DAE062D564A2D89693762BC;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				204AC625DCF6E53F6C3058EB /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				08F61A8A66CC9CDB546E1B8F /* VideoPokerTrainer */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		80165F7CC50D78A677175FC8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FCD4460BC57F88E834DA6FAB /* Assets.xcassets in Resources */,
+				2D12B9D50B6BE8EFFB32868D /* button-tap.mp3 in Resources */,
+				973BBB083DDAACDE2DD8DBBB /* card-select.mp3 in Resources */,
+				FEB433C9189612043BBCEAF8 /* correct.mp3 in Resources */,
+				71A602043D2B35B4789E7D57 /* incorrect.mp3 in Resources */,
+				9B4B7A366425E722369EE9D1 /* next-hand.mp3 in Resources */,
+				BBA7D3A4A818EF4046841A1E /* quiz-complete.mp3 in Resources */,
+				0FDBAFBF64162DEDFD208EAD /* submit.mp3 in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AEC04B05A5241BBCF5E40DE6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE6CCDF2456A20BA420ACF8D /* AnalyzerViewModel.swift in Sources */,
+				99CB3FBBAF8F43A1B2761404 /* AudioService.swift in Sources */,
+				536F632E405D093299FE5B59 /* AuthView.swift in Sources */,
+				07D564051B4CBB23DFDF41B2 /* AuthViewModel.swift in Sources */,
+				611CF46743CA88B71B485BCD /* Card.swift in Sources */,
+				D7F21D806CD72B4FBBE789EE /* CardView.swift in Sources */,
+				7F91767A20F844B17A466A75 /* Hand.swift in Sources */,
+				BE125462B9396E73249C962A /* HandAnalyzerView.swift in Sources */,
+				5438E7F43028F95D65AACEED /* HandCategory.swift in Sources */,
+				2723E123A48A2FFB91BA72C0 /* HapticService.swift in Sources */,
+				B51629FBBA7A29969D895CBB /* HomeView.swift in Sources */,
+				F302A693B13FFCB4A467F149 /* MasteryDashboardView.swift in Sources */,
+				BA434B4D8AC3FBDEB0229B26 /* MasteryScore.swift in Sources */,
+				7DD564D08C78F917E261534E /* MasteryViewModel.swift in Sources */,
+				0FE869B3D3FA170517561BD1 /* PayTable.swift in Sources */,
+				5D20F966F1DDA1E06819F3A2 /* QuizPlayView.swift in Sources */,
+				EB31AC2671CF70D41545F0FC /* QuizResultsView.swift in Sources */,
+				A6AFCD3472AC36B416F46E5E /* QuizViewModel.swift in Sources */,
+				0F16C32059109F21E351814D /* SettingsView.swift in Sources */,
+				D377E7F8A6EA6B272F609CC3 /* SpacedRepetitionService.swift in Sources */,
+				9AD6A559445353450025DD68 /* StrategyService.swift in Sources */,
+				D7B782D6C22D584CF543D895 /* SupabaseService.swift in Sources */,
+				7F19D2CB801A784CD2487F3A /* VideoPokerTrainerApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		31739EFC2EF22A4114A9F789 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		37B7DCCF9064EDD4038F1B21 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = VideoPokerTrainer/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vptrainer.native;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		57B05648FEC24684039CBE4D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		C7A1512A048B1D3277DC9E8C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = VideoPokerTrainer/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vptrainer.native;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1426BEF529E000C242F1C0CA /* Build configuration list for PBXNativeTarget "VideoPokerTrainer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C7A1512A048B1D3277DC9E8C /* Debug */,
+				37B7DCCF9064EDD4038F1B21 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		1D279663EB91293E96964E21 /* Build configuration list for PBXProject "VideoPokerTrainer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				31739EFC2EF22A4114A9F789 /* Debug */,
+				57B05648FEC24684039CBE4D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		204AC625DCF6E53F6C3058EB /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C4FD2CF0865B3C43DC64102E /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 204AC625DCF6E53F6C3058EB /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 2A63E80ACBE66BB113F6C823 /* Project object */;
+}

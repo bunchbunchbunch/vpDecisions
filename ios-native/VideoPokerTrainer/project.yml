@@ -1,0 +1,45 @@
+name: VideoPokerTrainer
+options:
+  bundleIdPrefix: com.vptrainer
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.0"
+
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: "2.0.0"
+
+targets:
+  VideoPokerTrainer:
+    type: application
+    platform: iOS
+    sources:
+      - VideoPokerTrainer
+    settings:
+      base:
+        INFOPLIST_FILE: VideoPokerTrainer/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.vptrainer.native
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.0"
+    dependencies:
+      - package: Supabase
+        product: Supabase
+    info:
+      path: VideoPokerTrainer/Info.plist
+      properties:
+        CFBundleDisplayName: VP Trainer
+        CFBundleName: VideoPokerTrainer
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - vptrainer
+            CFBundleURLName: com.vptrainer.native
