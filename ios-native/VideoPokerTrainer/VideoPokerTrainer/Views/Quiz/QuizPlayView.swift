@@ -126,20 +126,30 @@ struct QuizPlayView: View {
     // MARK: - Feedback Overlay
 
     private func feedbackOverlay(for quizHand: QuizHand) -> some View {
-        VStack(spacing: 8) {
+        // Convert canonical (sorted) indices to original deal order
+        let canonicalIndices = quizHand.strategyResult.bestHoldIndices
+        let originalIndices = quizHand.hand.canonicalIndicesToOriginal(canonicalIndices)
+        let bestCards = originalIndices.map { quizHand.hand.cards[$0] }
+
+        return VStack(spacing: 8) {
             Text(viewModel.isCorrect ? "Correct!" : "Incorrect")
                 .font(.headline)
                 .foregroundColor(.white)
 
             // Best hold
-            let bestCards = quizHand.strategyResult.bestHoldIndices.map { quizHand.hand.cards[$0] }
             HStack(spacing: 4) {
                 Text("Best:")
                     .foregroundColor(.white.opacity(0.8))
-                ForEach(bestCards, id: \.id) { card in
-                    Text(card.displayText)
-                        .foregroundColor(card.suit.color == Color(hex: "e74c3c") ? .red : .white)
-                        .fontWeight(.bold)
+                if bestCards.isEmpty {
+                    Text("Draw all")
+                        .foregroundColor(.white.opacity(0.8))
+                        .italic()
+                } else {
+                    ForEach(bestCards, id: \.id) { card in
+                        Text(card.displayText)
+                            .foregroundColor(card.suit.color == Color(hex: "e74c3c") ? .red : .white)
+                            .fontWeight(.bold)
+                    }
                 }
                 Text("EV: \(String(format: "%.3f", quizHand.strategyResult.bestEv))")
                     .foregroundColor(.white.opacity(0.8))

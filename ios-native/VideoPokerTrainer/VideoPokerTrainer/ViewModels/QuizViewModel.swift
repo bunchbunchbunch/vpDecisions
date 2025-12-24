@@ -112,8 +112,13 @@ class QuizViewModel: ObservableObject {
         audioService.play(.submit)
         hapticService.trigger(.medium)
 
+        // User selection is in original deal order
         let userHold = Array(selectedIndices).sorted()
-        let correctHold = currentHand.strategyResult.bestHoldIndices.sorted()
+
+        // Database stores best hold in canonical (sorted) order
+        // Convert to original order for comparison
+        let canonicalBestHold = currentHand.strategyResult.bestHoldIndices
+        let correctHold = currentHand.hand.canonicalIndicesToOriginal(canonicalBestHold).sorted()
 
         let correct = userHold == correctHold
 
@@ -176,14 +181,20 @@ class QuizViewModel: ObservableObject {
             responseTime = nil
         }
 
+        // User hold is in original order
         let userHold = Array(selectedIndices).sorted()
-        let correctHold = currentHand.strategyResult.bestHoldIndices
+
+        // Convert canonical best hold to original order for storage
+        let canonicalBestHold = currentHand.strategyResult.bestHoldIndices
+        let correctHold = currentHand.hand.canonicalIndicesToOriginal(canonicalBestHold)
 
         // Calculate EV difference if wrong
         var evDifference: Double = 0
         if !currentHand.isCorrect {
-            let userBitmask = Hand.bitmaskFromHoldIndices(userHold)
-            if let userEv = currentHand.strategyResult.holdEvs[String(userBitmask)] {
+            // Convert user's hold from original to canonical order for EV lookup
+            let userCanonicalHold = currentHand.hand.originalIndicesToCanonical(userHold)
+            let userCanonicalBitmask = Hand.bitmaskFromHoldIndices(userCanonicalHold)
+            if let userEv = currentHand.strategyResult.holdEvs[String(userCanonicalBitmask)] {
                 evDifference = currentHand.strategyResult.bestEv - userEv
             }
         }

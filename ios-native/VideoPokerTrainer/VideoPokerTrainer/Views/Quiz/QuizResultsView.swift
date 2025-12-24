@@ -124,10 +124,14 @@ struct QuizResultsView: View {
     }
 
     private func expandedDetails(quizHand: QuizHand) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        // Convert canonical indices to original for the best hold
+        let canonicalBestIndices = quizHand.strategyResult.bestHoldIndices
+        let correctHoldOriginal = quizHand.hand.canonicalIndicesToOriginal(canonicalBestIndices)
+
+        return VStack(alignment: .leading, spacing: 12) {
             Divider()
 
-            // User's hold
+            // User's hold (already in original order)
             HStack {
                 Text("Your hold:")
                     .foregroundColor(.secondary)
@@ -151,11 +155,17 @@ struct QuizResultsView: View {
                 HStack {
                     Text("Correct:")
                         .foregroundColor(.secondary)
-                    ForEach(quizHand.strategyResult.bestHoldIndices, id: \.self) { index in
-                        let card = quizHand.hand.cards[index]
-                        Text(card.displayText)
-                            .foregroundColor(card.suit.color)
-                            .fontWeight(.bold)
+                    if correctHoldOriginal.isEmpty {
+                        Text("Draw all")
+                            .italic()
+                            .foregroundColor(.secondary)
+                    } else {
+                        ForEach(correctHoldOriginal, id: \.self) { index in
+                            let card = quizHand.hand.cards[index]
+                            Text(card.displayText)
+                                .foregroundColor(card.suit.color)
+                                .fontWeight(.bold)
+                        }
                     }
                 }
                 .font(.subheadline)
@@ -168,16 +178,19 @@ struct QuizResultsView: View {
                     .font(.caption)
 
                 ForEach(Array(quizHand.strategyResult.sortedHoldOptions.prefix(5).enumerated()), id: \.offset) { i, option in
+                    // Convert canonical indices to original for each option
+                    let originalIndices = quizHand.hand.canonicalIndicesToOriginal(option.indices)
+
                     HStack {
                         Text("\(i + 1).")
                             .foregroundColor(.secondary)
                             .frame(width: 20)
 
-                        if option.indices.isEmpty {
+                        if originalIndices.isEmpty {
                             Text("Draw all")
                                 .italic()
                         } else {
-                            ForEach(option.indices, id: \.self) { index in
+                            ForEach(originalIndices, id: \.self) { index in
                                 let card = quizHand.hand.cards[index]
                                 Text(card.displayText)
                                     .foregroundColor(card.suit.color)

@@ -66,4 +66,36 @@ struct Hand: Identifiable {
             return cards[index]
         }
     }
+
+    /// Convert indices from canonical (sorted) order to original deal order
+    /// The database stores hold bitmasks in sorted order, but we display cards in deal order
+    func canonicalIndicesToOriginal(_ canonicalIndices: [Int]) -> [Int] {
+        // Get the sorted version of the hand (same sorting used for canonical key)
+        let sorted = cards.sorted { $0.rank.rawValue < $1.rank.rawValue }
+
+        // For each canonical index, find the card in sorted order,
+        // then find that card's position in the original deal order
+        return canonicalIndices.compactMap { canonicalIndex -> Int? in
+            guard canonicalIndex >= 0 && canonicalIndex < sorted.count else { return nil }
+            let cardAtCanonicalIndex = sorted[canonicalIndex]
+            // Find this card in the original hand
+            return cards.firstIndex { $0.rank == cardAtCanonicalIndex.rank && $0.suit == cardAtCanonicalIndex.suit }
+        }
+    }
+
+    /// Convert indices from original deal order to canonical (sorted) order
+    /// Needed when comparing user selection against database best hold
+    func originalIndicesToCanonical(_ originalIndices: [Int]) -> [Int] {
+        // Get the sorted version of the hand
+        let sorted = cards.sorted { $0.rank.rawValue < $1.rank.rawValue }
+
+        // For each original index, find the card in the original hand,
+        // then find that card's position in the sorted order
+        return originalIndices.compactMap { originalIndex -> Int? in
+            guard originalIndex >= 0 && originalIndex < cards.count else { return nil }
+            let cardAtOriginalIndex = cards[originalIndex]
+            // Find this card in the sorted hand
+            return sorted.firstIndex { $0.rank == cardAtOriginalIndex.rank && $0.suit == cardAtOriginalIndex.suit }
+        }
+    }
 }

@@ -152,17 +152,20 @@ struct HandAnalyzerView: View {
         NavigationStack {
             VStack(spacing: 16) {
                 if let hand = viewModel.hand, let result = viewModel.strategyResult {
+                    // Convert canonical indices to original for best hold
+                    let bestHoldOriginal = hand.canonicalIndicesToOriginal(result.bestHoldIndices)
+
                     // Best hold
                     VStack(spacing: 8) {
                         Text("Best Hold")
                             .font(.headline)
 
                         HStack(spacing: 8) {
-                            if result.bestHoldIndices.isEmpty {
+                            if bestHoldOriginal.isEmpty {
                                 Text("Draw all 5 cards")
                                     .foregroundColor(.secondary)
                             } else {
-                                ForEach(result.bestHoldIndices, id: \.self) { index in
+                                ForEach(bestHoldOriginal, id: \.self) { index in
                                     CardView(card: hand.cards[index], isSelected: false)
                                         .frame(width: 50, height: 70)
                                 }
@@ -211,17 +214,20 @@ struct HandAnalyzerView: View {
     }
 
     private func holdOptionRow(hand: Hand, option: (bitmask: Int, ev: Double, indices: [Int]), rank: Int) -> some View {
-        HStack {
+        // Convert canonical indices to original
+        let originalIndices = hand.canonicalIndicesToOriginal(option.indices)
+
+        return HStack {
             Text("\(rank).")
                 .foregroundColor(.secondary)
                 .frame(width: 24)
 
-            if option.indices.isEmpty {
+            if originalIndices.isEmpty {
                 Text("Draw all")
                     .italic()
                     .foregroundColor(.secondary)
             } else {
-                ForEach(option.indices, id: \.self) { index in
+                ForEach(originalIndices, id: \.self) { index in
                     Text(hand.cards[index].displayText)
                         .font(.system(.body, design: .monospaced))
                         .foregroundColor(hand.cards[index].suit.color)
