@@ -60,6 +60,12 @@ struct QuizPlayView: View {
                     .shadow(radius: 5)
 
                 VStack(spacing: 16) {
+                    // Dealt winner banner
+                    if viewModel.showDealtWinner, let handName = viewModel.dealtWinnerName {
+                        DealtWinnerBanner(handName: handName)
+                            .transition(AnyTransition.scale.combined(with: AnyTransition.opacity))
+                    }
+
                     // Cards
                     if let currentHand = viewModel.currentHand {
                         HStack(spacing: 8) {

@@ -13,6 +13,7 @@
 		0FE869B3D3FA170517561BD1 /* PayTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */; };
 		2723E123A48A2FFB91BA72C0 /* HapticService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */; };
 		2D12B9D50B6BE8EFFB32868D /* button-tap.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = DCE574B6713DC27CBB847898 /* button-tap.mp3 */; };
+		4B04B4CD4470F1A26E6022E8 /* DealtWinnerBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */; };
 		536F632E405D093299FE5B59 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E42FBAD025A5534A6E4850 /* AuthView.swift */; };
 		5438E7F43028F95D65AACEED /* HandCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */; };
 		5D20F966F1DDA1E06819F3A2 /* QuizPlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6A631F3E90A1B2FCFA8934 /* QuizPlayView.swift */; };
@@ -21,6 +22,8 @@
 		7DD564D08C78F917E261534E /* MasteryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */; };
 		7F19D2CB801A784CD2487F3A /* VideoPokerTrainerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */; };
 		7F91767A20F844B17A466A75 /* Hand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03FD663D9F07AEE4E1829685 /* Hand.swift */; };
+		8A9A3CE99246EFF4C4EF47AF /* CardGlowEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */; };
+		8E430B3CF10EA07783EAC4E5 /* dealt-winner.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 192AEE07411E5DBD2F6F8F0D /* dealt-winner.mp3 */; };
 		973BBB083DDAACDE2DD8DBBB /* card-select.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 52626371C1AE90FB294E4C82 /* card-select.mp3 */; };
 		99CB3FBBAF8F43A1B2761404 /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEFE93106067A8CC6C7D44E0 /* AudioService.swift */; };
 		9AD6A559445353450025DD68 /* StrategyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B14813ABEB1C877847870FF /* StrategyService.swift */; };
@@ -30,6 +33,7 @@
 		BA434B4D8AC3FBDEB0229B26 /* MasteryScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C10505BC1A5BB00B74307D /* MasteryScore.swift */; };
 		BBA7D3A4A818EF4046841A1E /* quiz-complete.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */; };
 		BE125462B9396E73249C962A /* HandAnalyzerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EBF4D48AC1D577D0A2CC087 /* HandAnalyzerView.swift */; };
+		D0C135BCFDBFCCEA4C74A6DA /* HandEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D25485E3CB6182634F963032 /* HandEvaluator.swift */; };
 		D353D33B14246C03446A1BFF /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C4FD2CF0865B3C43DC64102E /* Supabase */; };
 		D377E7F8A6EA6B272F609CC3 /* SpacedRepetitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */; };
 		D7B782D6C22D584CF543D895 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8717FB49A524CDA76F3D730A /* SupabaseService.swift */; };
@@ -48,6 +52,7 @@
 		0D6A631F3E90A1B2FCFA8934 /* QuizPlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizPlayView.swift; sourceTree = "<group>"; };
 		12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryViewModel.swift; sourceTree = "<group>"; };
 		166952A2BDC1FD0345A5C569 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		192AEE07411E5DBD2F6F8F0D /* dealt-winner.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "dealt-winner.mp3"; sourceTree = "<group>"; };
 		1EBF4D48AC1D577D0A2CC087 /* HandAnalyzerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandAnalyzerView.swift; sourceTree = "<group>"; };
 		21C33530EF32164D02A03169 /* AnalyzerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyzerViewModel.swift; sourceTree = "<group>"; };
 		2B14813ABEB1C877847870FF /* StrategyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrategyService.swift; sourceTree = "<group>"; };
@@ -62,16 +67,19 @@
 		7C7B891E2E0E0C3A4CE8293E /* correct.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = correct.mp3; sourceTree = "<group>"; };
 		8717FB49A524CDA76F3D730A /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 		8E6EA254B114941319176353 /* QuizViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizViewModel.swift; sourceTree = "<group>"; };
+		99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DealtWinnerBanner.swift; sourceTree = "<group>"; };
 		A6B33083F0FB3889082928E6 /* QuizResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultsView.swift; sourceTree = "<group>"; };
 		A938B302053EBA1843CDBDD8 /* incorrect.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = incorrect.mp3; sourceTree = "<group>"; };
 		AC11F57C339351683A7A945E /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		BA55DBC9DB3C3D1B66159FE2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BA6C1E385E108694180D1EBE /* submit.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = submit.mp3; sourceTree = "<group>"; };
 		C0F1393C11511534CE0AA9C5 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		D25485E3CB6182634F963032 /* HandEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandEvaluator.swift; sourceTree = "<group>"; };
 		D90A1B2C22F69A4059A0AF90 /* next-hand.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "next-hand.mp3"; sourceTree = "<group>"; };
 		DCE574B6713DC27CBB847898 /* button-tap.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "button-tap.mp3"; sourceTree = "<group>"; };
 		DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = VideoPokerTrainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPokerTrainerApp.swift; sourceTree = "<group>"; };
+		E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardGlowEffect.swift; sourceTree = "<group>"; };
 		EEFE93106067A8CC6C7D44E0 /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
 		EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpacedRepetitionService.swift; sourceTree = "<group>"; };
 		F8BB591ADA1CB751A89760BF /* MasteryDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryDashboardView.swift; sourceTree = "<group>"; };
@@ -92,7 +100,9 @@
 		0C30F74B7D0F644A2250C0A5 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */,
 				6FCBC58743A80FDACE84FB39 /* CardView.swift */,
+				99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -159,6 +169,7 @@
 				DCE574B6713DC27CBB847898 /* button-tap.mp3 */,
 				52626371C1AE90FB294E4C82 /* card-select.mp3 */,
 				7C7B891E2E0E0C3A4CE8293E /* correct.mp3 */,
+				192AEE07411E5DBD2F6F8F0D /* dealt-winner.mp3 */,
 				A938B302053EBA1843CDBDD8 /* incorrect.mp3 */,
 				D90A1B2C22F69A4059A0AF90 /* next-hand.mp3 */,
 				36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */,
@@ -224,6 +235,7 @@
 			isa = PBXGroup;
 			children = (
 				EEFE93106067A8CC6C7D44E0 /* AudioService.swift */,
+				D25485E3CB6182634F963032 /* HandEvaluator.swift */,
 				0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */,
 				EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */,
 				2B14813ABEB1C877847870FF /* StrategyService.swift */,
@@ -317,6 +329,7 @@
 				2D12B9D50B6BE8EFFB32868D /* button-tap.mp3 in Resources */,
 				973BBB083DDAACDE2DD8DBBB /* card-select.mp3 in Resources */,
 				FEB433C9189612043BBCEAF8 /* correct.mp3 in Resources */,
+				8E430B3CF10EA07783EAC4E5 /* dealt-winner.mp3 in Resources */,
 				71A602043D2B35B4789E7D57 /* incorrect.mp3 in Resources */,
 				9B4B7A366425E722369EE9D1 /* next-hand.mp3 in Resources */,
 				BBA7D3A4A818EF4046841A1E /* quiz-complete.mp3 in Resources */,
@@ -336,10 +349,13 @@
 				536F632E405D093299FE5B59 /* AuthView.swift in Sources */,
 				07D564051B4CBB23DFDF41B2 /* AuthViewModel.swift in Sources */,
 				611CF46743CA88B71B485BCD /* Card.swift in Sources */,
+				8A9A3CE99246EFF4C4EF47AF /* CardGlowEffect.swift in Sources */,
 				D7F21D806CD72B4FBBE789EE /* CardView.swift in Sources */,
+				4B04B4CD4470F1A26E6022E8 /* DealtWinnerBanner.swift in Sources */,
 				7F91767A20F844B17A466A75 /* Hand.swift in Sources */,
 				BE125462B9396E73249C962A /* HandAnalyzerView.swift in Sources */,
 				5438E7F43028F95D65AACEED /* HandCategory.swift in Sources */,
+				D0C135BCFDBFCCEA4C74A6DA /* HandEvaluator.swift in Sources */,
 				2723E123A48A2FFB91BA72C0 /* HapticService.swift in Sources */,
 				B51629FBBA7A29969D895CBB /* HomeView.swift in Sources */,
 				F302A693B13FFCB4A467F149 /* MasteryDashboardView.swift in Sources */,

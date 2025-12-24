@@ -9,6 +9,7 @@ enum SoundEffect: String, CaseIterable {
     case nextHand = "next-hand"
     case quizComplete = "quiz-complete"
     case buttonTap = "button-tap"
+    case dealtWinner = "dealt-winner"
 
     var filename: String {
         rawValue

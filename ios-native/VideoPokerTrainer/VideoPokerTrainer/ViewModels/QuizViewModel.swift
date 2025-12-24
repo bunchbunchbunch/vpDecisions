@@ -22,6 +22,10 @@ class QuizViewModel: ObservableObject {
     @Published var isQuizComplete = false
     @Published var correctCount = 0
 
+    // Dealt winner celebration
+    @Published var showDealtWinner = false
+    @Published var dealtWinnerName: String? = nil
+
     let quizSize = 25
     let paytableId: String
     let weakSpotsMode: Bool
@@ -95,10 +99,13 @@ class QuizViewModel: ObservableObject {
         hands = foundHands
         isLoading = false
         handStartTime = Date()
+
+        // Check if first hand is a dealt winner
+        await checkDealtWinner()
     }
 
     func toggleCard(_ index: Int) {
-        guard !showFeedback else { return }
+        guard !showFeedback, !showDealtWinner else { return }
 
         audioService.play(.cardSelect)
         hapticService.trigger(.light)
@@ -169,6 +176,53 @@ class QuizViewModel: ObservableObject {
             selectedIndices = []
             showFeedback = false
             handStartTime = Date()
+
+            // Check if new hand is a dealt winner
+            Task {
+                await checkDealtWinner()
+            }
+        }
+    }
+
+    // MARK: - Dealt Winner Detection
+
+    func checkDealtWinner() async {
+        guard let currentHand = currentHand else { return }
+
+        let result = await HandEvaluator.shared.evaluateDealtHand(
+            hand: currentHand.hand,
+            paytableId: paytableId
+        )
+
+        if result.isWinner, let handName = result.handName {
+            // Wait a moment for cards to be visible
+            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+
+            // Show celebration
+            await MainActor.run {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showDealtWinner = true
+                    dealtWinnerName = handName
+                }
+
+                // Play sound and haptic
+                audioService.play(.dealtWinner)
+                hapticService.trigger(.success)
+            }
+
+            // Hide after 2 seconds
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2.0 seconds
+            await MainActor.run {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    showDealtWinner = false
+                }
+            }
+        } else {
+            // Not a winner, clear state
+            await MainActor.run {
+                showDealtWinner = false
+                dealtWinnerName = nil
+            }
         }
     }
 
