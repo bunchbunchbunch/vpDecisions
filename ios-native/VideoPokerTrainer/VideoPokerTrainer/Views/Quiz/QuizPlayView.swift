@@ -159,7 +159,7 @@ struct QuizPlayView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(viewModel.isCorrect ? Color.green.opacity(0.9) : Color.red.opacity(0.9))
+                .fill(viewModel.isCorrect ? Color.green.opacity(0.9) : Color(hex: "d35400").opacity(0.9))
         )
     }
 

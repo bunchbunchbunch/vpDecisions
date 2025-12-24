@@ -35,6 +35,7 @@ class QuizViewModel: ObservableObject {
         self.paytableId = paytableId
         self.weakSpotsMode = weakSpotsMode
         self.closeDecisionsOnly = closeDecisionsOnly
+        NSLog("📊 QuizViewModel initialized with paytableId: %@", paytableId)
     }
 
     var currentHand: QuizHand? {
@@ -67,6 +68,9 @@ class QuizViewModel: ObservableObject {
 
             do {
                 if let result = try await StrategyService.shared.lookup(hand: hand, paytableId: paytableId) {
+                    if foundHands.count == 0 {
+                        NSLog("🔍 First hand lookup using paytableId: %@, hand: %@", paytableId, hand.canonicalKey)
+                    }
                     // Check if this hand meets our criteria
                     if closeDecisionsOnly {
                         let options = result.sortedHoldOptions

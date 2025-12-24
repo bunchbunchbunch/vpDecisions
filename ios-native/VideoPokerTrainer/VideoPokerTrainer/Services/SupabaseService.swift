@@ -67,6 +67,7 @@ class SupabaseService: ObservableObject {
     // MARK: - Strategy Lookups
 
     func lookupStrategy(paytableId: String, handKey: String) async throws -> StrategyResult? {
+        NSLog("🔎 Supabase query: paytable_id=%@, hand_key=%@", paytableId, handKey)
         let response: [StrategyResult] = try await client
             .from("strategy")
             .select("best_hold, best_ev, hold_evs")
@@ -76,6 +77,11 @@ class SupabaseService: ObservableObject {
             .execute()
             .value
 
+        if let result = response.first {
+            NSLog("✅ Found strategy: best_ev=%.4f", result.bestEv)
+        } else {
+            NSLog("❌ No strategy found for %@ / %@", paytableId, handKey)
+        }
         return response.first
     }
 

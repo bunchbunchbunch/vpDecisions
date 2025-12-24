@@ -2,6 +2,7 @@ use itertools::Itertools;
 use rayon::prelude::*;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::io::{self, Write};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Instant;
@@ -42,6 +43,10 @@ enum GameType {
     DeucesWildFullPay,   // Full Pay Deuces (25-15-9-5-3-2-2-1)
     BonusPoker85,        // Bonus Poker 8/5
     DoubleBonus107,      // Double Bonus 10/7
+    TripleDoubleBonus96, // Triple Double Bonus 9/6
+    AllAmerican,         // All American 8-8-8-3-1-1
+    BonusPokerDeluxe86,  // Bonus Poker Deluxe 8/6
+    TensOrBetter65,      // Tens or Better 6/5
 }
 
 fn is_flush(hand: &[Card]) -> bool {
@@ -299,7 +304,7 @@ fn get_payout(hand: &[Card], game_type: GameType) -> f64 {
     // Four of a kind - handle differently based on game type
     if let Some(qr) = quad_rank {
         match game_type {
-            GameType::JacksOrBetter => return 25.0,
+            GameType::JacksOrBetter | GameType::TensOrBetter65 => return 25.0,
             GameType::BonusPoker85 => {
                 // Bonus Poker: 80 for aces, 40 for 2-4, 25 for 5-K
                 if qr == 12 { return 80.0; }      // Four Aces
@@ -332,6 +337,28 @@ fn get_payout(hand: &[Card], game_type: GameType) -> f64 {
                     return 50.0;
                 }
             }
+            GameType::TripleDoubleBonus96 => {
+                // Find the kicker rank
+                let kicker_rank = counts.iter().enumerate()
+                    .find(|(r, &c)| c == 1 && *r as u8 != qr)
+                    .map(|(r, _)| r as u8)
+                    .unwrap_or(0);
+
+                // Ranks: 0=2, 1=3, 2=4, 12=A
+                let is_low_kicker = kicker_rank <= 2 || kicker_rank == 12; // 2,3,4 or A
+
+                if qr == 12 { // Four Aces
+                    if is_low_kicker { return 800.0; } // Aces with 2-4 kicker (4000 for max bet)
+                    return 160.0; // Aces without kicker bonus
+                } else if qr <= 2 { // Four 2s, 3s, or 4s
+                    if is_low_kicker { return 160.0; } // 2-4 with A-4 kicker
+                    return 80.0; // 2-4 without kicker bonus
+                } else { // Four 5s through Kings
+                    return 50.0;
+                }
+            }
+            GameType::AllAmerican => return 40.0, // All quads pay 40
+            GameType::BonusPokerDeluxe86 => return 80.0, // All quads pay 80
             _ => return 25.0,
         }
     }
@@ -339,10 +366,12 @@ fn get_payout(hand: &[Card], game_type: GameType) -> f64 {
     // Full House
     if trips > 0 && pairs > 0 {
         return match game_type {
-            GameType::JacksOrBetter => 9.0,
+            GameType::JacksOrBetter | GameType::TensOrBetter65 => 9.0,
             GameType::BonusPoker85 => 8.0,
             GameType::DoubleBonus107 => 10.0,
-            GameType::DoubleDoubleBonus => 9.0,
+            GameType::DoubleDoubleBonus | GameType::TripleDoubleBonus96 => 9.0,
+            GameType::AllAmerican => 8.0,
+            GameType::BonusPokerDeluxe86 => 8.0,
             _ => 9.0,
         };
     }
@@ -350,10 +379,12 @@ fn get_payout(hand: &[Card], game_type: GameType) -> f64 {
     // Flush
     if flush {
         return match game_type {
-            GameType::JacksOrBetter => 6.0,
+            GameType::JacksOrBetter | GameType::TensOrBetter65 => 6.0,
             GameType::BonusPoker85 => 5.0,
             GameType::DoubleBonus107 => 7.0,
-            GameType::DoubleDoubleBonus => 6.0,
+            GameType::DoubleDoubleBonus | GameType::TripleDoubleBonus96 => 6.0,
+            GameType::AllAmerican => 8.0, // All American pays 8 for flush
+            GameType::BonusPokerDeluxe86 => 6.0,
             _ => 6.0,
         };
     }
@@ -361,10 +392,12 @@ fn get_payout(hand: &[Card], game_type: GameType) -> f64 {
     // Straight
     if straight {
         return match game_type {
-            GameType::JacksOrBetter => 4.0,
+            GameType::JacksOrBetter | GameType::TensOrBetter65 => 4.0,
             GameType::BonusPoker85 => 4.0,
             GameType::DoubleBonus107 => 5.0,
-            GameType::DoubleDoubleBonus => 4.0,
+            GameType::DoubleDoubleBonus | GameType::TripleDoubleBonus96 => 4.0,
+            GameType::AllAmerican => 8.0, // All American pays 8 for straight
+            GameType::BonusPokerDeluxe86 => 4.0,
             _ => 4.0,
         };
     }
@@ -372,10 +405,12 @@ fn get_payout(hand: &[Card], game_type: GameType) -> f64 {
     // Three of a Kind
     if trips > 0 {
         return match game_type {
-            GameType::JacksOrBetter => 3.0,
+            GameType::JacksOrBetter | GameType::TensOrBetter65 => 3.0,
             GameType::BonusPoker85 => 3.0,
             GameType::DoubleBonus107 => 3.0,
-            GameType::DoubleDoubleBonus => 3.0,
+            GameType::DoubleDoubleBonus | GameType::TripleDoubleBonus96 => 3.0,
+            GameType::AllAmerican => 3.0,
+            GameType::BonusPokerDeluxe86 => 3.0,
             _ => 3.0,
         };
     }
@@ -383,20 +418,32 @@ fn get_payout(hand: &[Card], game_type: GameType) -> f64 {
     // Two Pair
     if pairs == 2 {
         return match game_type {
-            GameType::JacksOrBetter => 2.0,
+            GameType::JacksOrBetter | GameType::TensOrBetter65 => 2.0,
             GameType::BonusPoker85 => 2.0,
             GameType::DoubleBonus107 => 1.0,    // Double Bonus pays 1 for two pair
-            GameType::DoubleDoubleBonus => 1.0, // DDB pays 1 for two pair
+            GameType::DoubleDoubleBonus | GameType::TripleDoubleBonus96 => 1.0, // DDB/TDB pays 1 for two pair
+            GameType::AllAmerican => 1.0,
+            GameType::BonusPokerDeluxe86 => 1.0,
             _ => 2.0,
         };
     }
 
-    // Jacks or Better pair
+    // High pair (Jacks or Better for most games, Tens or Better for TOB)
     if pairs == 1 {
         let pair_rank = pair_ranks[0];
-        // J=9, Q=10, K=11, A=12
-        if pair_rank >= 9 {
-            return 1.0;
+        match game_type {
+            GameType::TensOrBetter65 => {
+                // Tens or better: T=8, J=9, Q=10, K=11, A=12
+                if pair_rank >= 8 {
+                    return 1.0;
+                }
+            }
+            _ => {
+                // J=9, Q=10, K=11, A=12
+                if pair_rank >= 9 {
+                    return 1.0;
+                }
+            }
         }
     }
 
@@ -524,8 +571,7 @@ struct StrategyRow {
     hold_evs: HashMap<String, f64>,
 }
 
-fn upload_batch(batch: &[StrategyRow], supabase_url: &str, service_key: &str) -> Result<(), String> {
-    let client = reqwest::blocking::Client::new();
+fn upload_batch(client: &reqwest::blocking::Client, batch: &[StrategyRow], supabase_url: &str, service_key: &str) -> Result<(), String> {
     let url = format!("{}/rest/v1/strategy", supabase_url);
 
     let response = client
@@ -534,12 +580,15 @@ fn upload_batch(batch: &[StrategyRow], supabase_url: &str, service_key: &str) ->
         .header("Authorization", format!("Bearer {}", service_key))
         .header("Content-Type", "application/json")
         .header("Prefer", "resolution=merge-duplicates")
+        .timeout(std::time::Duration::from_secs(60))
         .json(batch)
         .send()
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| format!("Request error: {}", e))?;
 
     if !response.status().is_success() {
-        return Err(format!("Upload failed: {}", response.status()));
+        let status = response.status();
+        let body = response.text().unwrap_or_default();
+        return Err(format!("Upload failed: {} - {}", status, body));
     }
 
     Ok(())
@@ -559,6 +608,10 @@ fn main() {
         "deuces-wild-full-pay" => GameType::DeucesWildFullPay,
         "bonus-poker-8-5" => GameType::BonusPoker85,
         "double-bonus-10-7" => GameType::DoubleBonus107,
+        "triple-double-bonus-9-6" => GameType::TripleDoubleBonus96,
+        "all-american" => GameType::AllAmerican,
+        "bonus-poker-deluxe-8-6" => GameType::BonusPokerDeluxe86,
+        "tens-or-better-6-5" => GameType::TensOrBetter65,
         _ => {
             eprintln!("Unknown paytable: {}", paytable_id);
             eprintln!("Available paytables:");
@@ -568,6 +621,10 @@ fn main() {
             eprintln!("  deuces-wild-full-pay");
             eprintln!("  bonus-poker-8-5");
             eprintln!("  double-bonus-10-7");
+            eprintln!("  triple-double-bonus-9-6");
+            eprintln!("  all-american");
+            eprintln!("  bonus-poker-deluxe-8-6");
+            eprintln!("  tens-or-better-6-5");
             std::process::exit(1);
         }
     };
@@ -582,16 +639,29 @@ fn main() {
     let total = hands.len();
 
     println!("\nCalculating EVs using {} threads...", rayon::current_num_threads());
+    io::stdout().flush().unwrap();
 
     let processed = Arc::new(AtomicUsize::new(0));
     let uploaded = Arc::new(AtomicUsize::new(0));
+    let errors = Arc::new(AtomicUsize::new(0));
+
+    // Create HTTP client once - it's thread-safe
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .build()
+        .expect("Failed to create HTTP client");
 
     // Process in chunks for batch uploading
     let chunk_size = 500;
+    let print_every = 5000; // Print progress every N hands
 
-    hands.par_chunks(chunk_size).for_each(|chunk| {
+    // Process chunks sequentially (upload) but analyze in parallel within each chunk
+    let mut batch_num = 0;
+    for chunk in hands.chunks(chunk_size) {
+        batch_num += 1;
+        // Parallel analysis within the chunk
         let batch: Vec<StrategyRow> = chunk
-            .iter()
+            .par_iter()
             .map(|(key, hand)| {
                 let (best_hold, best_ev, hold_evs) = analyze_hand(hand, game_type);
                 StrategyRow {
@@ -608,18 +678,33 @@ fn main() {
         processed.fetch_add(count, Ordering::Relaxed);
 
         // Upload batch
-        if let Err(e) = upload_batch(&batch, &supabase_url, &service_key) {
-            eprintln!("Upload error: {}", e);
+        if let Err(e) = upload_batch(&client, &batch, &supabase_url, &service_key) {
+            eprintln!("\nUpload error: {}", e);
+            errors.fetch_add(1, Ordering::Relaxed);
         } else {
             uploaded.fetch_add(count, Ordering::Relaxed);
         }
 
         let p = processed.load(Ordering::Relaxed);
         let u = uploaded.load(Ordering::Relaxed);
-        println!("  Calculated: {}/{} | Uploaded: {}", p, total, u);
-    });
+
+        // Print progress periodically
+        if batch_num % 10 == 0 {
+            let pct = (p as f64 / total as f64 * 100.0) as u32;
+            println!("  Progress: {}/{} ({}%) | Uploaded: {}", p, total, pct, u);
+            io::stdout().flush().unwrap();
+        }
+    }
 
     let elapsed = start.elapsed();
-    println!("\nCompleted in {:.1}s", elapsed.as_secs_f64());
-    println!("Uploaded {} hands", uploaded.load(Ordering::Relaxed));
+    let final_uploaded = uploaded.load(Ordering::Relaxed);
+    let final_errors = errors.load(Ordering::Relaxed);
+
+    println!("\n=== Completed ===");
+    println!("Time: {:.1}s", elapsed.as_secs_f64());
+    println!("Uploaded: {} hands", final_uploaded);
+    if final_errors > 0 {
+        println!("Errors: {} batches failed", final_errors);
+    }
+    io::stdout().flush().unwrap();
 }

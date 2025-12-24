@@ -3,6 +3,7 @@ import SwiftUI
 struct HandAnalyzerView: View {
     @StateObject private var viewModel = AnalyzerViewModel()
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedPaytableId: String = PayTable.jacksOrBetter.id
 
     let allSuits: [Suit] = [.hearts, .diamonds, .clubs, .spades]
     let allRanks: [Rank] = Rank.allCases
@@ -111,12 +112,20 @@ struct HandAnalyzerView: View {
     private var bottomBar: some View {
         VStack(spacing: 12) {
             // Paytable picker
-            Picker("Paytable", selection: $viewModel.selectedPaytable) {
+            Picker("Paytable", selection: $selectedPaytableId) {
                 ForEach(PayTable.allPayTables, id: \.id) { paytable in
-                    Text(paytable.name).tag(paytable)
+                    Text(paytable.name).tag(paytable.id)
                 }
             }
             .pickerStyle(.menu)
+            .onChange(of: selectedPaytableId) { newValue in
+                if let paytable = PayTable.allPayTables.first(where: { $0.id == newValue }) {
+                    viewModel.selectedPaytable = paytable
+                }
+            }
+            .onAppear {
+                selectedPaytableId = viewModel.selectedPaytable.id
+            }
 
             // Error message
             if let error = viewModel.errorMessage {

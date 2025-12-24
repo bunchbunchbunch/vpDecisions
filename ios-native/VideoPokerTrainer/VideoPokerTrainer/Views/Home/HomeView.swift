@@ -2,7 +2,7 @@ import SwiftUI
 
 enum AppScreen: Hashable {
     case quizStart
-    case quizPlay
+    case quizPlay(paytableId: String, weakSpotsMode: Bool, closeDecisionsOnly: Bool)
     case quizResults
     case mastery
     case analyzer
@@ -13,7 +13,11 @@ enum AppScreen: Hashable {
 struct HomeView: View {
     @ObservedObject var authViewModel: AuthViewModel
     @State private var navigationPath = NavigationPath()
-    @State private var selectedPaytable = PayTable.jacksOrBetter
+    @State private var selectedPaytable = PayTable.jacksOrBetter {
+        didSet {
+            NSLog("🏠 HomeView selectedPaytable changed to: %@ - %@", selectedPaytable.id, selectedPaytable.name)
+        }
+    }
     @State private var closeDecisionsOnly = false
     @State private var weakSpotsMode = false
 
@@ -43,10 +47,10 @@ struct HomeView: View {
                         closeDecisionsOnly: $closeDecisionsOnly,
                         weakSpotsMode: $weakSpotsMode
                     )
-                case .quizPlay:
+                case .quizPlay(let paytableId, let weakSpotsMode, let closeDecisionsOnly):
                     QuizPlayView(
                         viewModel: QuizViewModel(
-                            paytableId: selectedPaytable.id,
+                            paytableId: paytableId,
                             weakSpotsMode: weakSpotsMode,
                             closeDecisionsOnly: closeDecisionsOnly
                         ),
@@ -233,6 +237,8 @@ struct QuizStartView: View {
     @Binding var closeDecisionsOnly: Bool
     @Binding var weakSpotsMode: Bool
 
+    @State private var selectedPaytableId: String = PayTable.jacksOrBetter.id
+
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
@@ -261,9 +267,9 @@ struct QuizStartView: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
 
-                    Picker("Paytable", selection: $selectedPaytable) {
+                    Picker("Paytable", selection: $selectedPaytableId) {
                         ForEach(PayTable.allPayTables, id: \.id) { paytable in
-                            Text(paytable.name).tag(paytable)
+                            Text(paytable.name).tag(paytable.id)
                         }
                     }
                     .pickerStyle(.menu)
@@ -271,6 +277,16 @@ struct QuizStartView: View {
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
+                    .onChange(of: selectedPaytableId) { newValue in
+                        NSLog("🎯 Picker changed to ID: %@", newValue)
+                        if let paytable = PayTable.allPayTables.first(where: { $0.id == newValue }) {
+                            selectedPaytable = paytable
+                            NSLog("🎯 Updated selectedPaytable to: %@ - %@", paytable.id, paytable.name)
+                        }
+                    }
+                }
+                .onAppear {
+                    selectedPaytableId = selectedPaytable.id
                 }
 
                 // Close decisions toggle
@@ -285,7 +301,12 @@ struct QuizStartView: View {
 
             // Start button
             Button {
-                navigationPath.append(AppScreen.quizPlay)
+                NSLog("🚀 QuizStartView: Starting quiz with paytable: %@ - %@", selectedPaytable.id, selectedPaytable.name)
+                navigationPath.append(AppScreen.quizPlay(
+                    paytableId: selectedPaytable.id,
+                    weakSpotsMode: weakSpotsMode,
+                    closeDecisionsOnly: closeDecisionsOnly
+                ))
             } label: {
                 Text("Start 25-Hand Quiz")
                     .font(.headline)
