@@ -48,6 +48,22 @@ class SupabaseService: ObservableObject {
         try? await client.auth.session
     }
 
+    func resetPasswordForEmail(email: String) async throws {
+        // Supabase will send email with deep link to vptrainer://reset-password
+        let redirectTo = URL(string: "vptrainer://reset-password")!
+        try await client.auth.resetPasswordForEmail(email, redirectTo: redirectTo)
+    }
+
+    func updatePassword(newPassword: String) async throws {
+        try await client.auth.update(user: UserAttributes(password: newPassword))
+    }
+
+    func signInWithMagicLink(email: String) async throws {
+        // Supabase will send email with deep link to vptrainer://magic-link
+        let redirectTo = URL(string: "vptrainer://magic-link")!
+        try await client.auth.signInWithOTP(email: email, redirectTo: redirectTo)
+    }
+
     // MARK: - Profile Management
 
     func upsertProfile(user: User) async throws {

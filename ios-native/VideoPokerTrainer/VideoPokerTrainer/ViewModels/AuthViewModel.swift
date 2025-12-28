@@ -94,6 +94,68 @@ class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
+    func resetPassword(email: String) async {
+        guard !email.isEmpty else {
+            errorMessage = "Please enter your email"
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            try await supabase.resetPasswordForEmail(email: email)
+            errorMessage = "Password reset email sent! Check your inbox."
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
+    }
+
+    func updatePassword(newPassword: String) async {
+        guard !newPassword.isEmpty else {
+            errorMessage = "Please enter a new password"
+            return
+        }
+
+        guard newPassword.count >= 6 else {
+            errorMessage = "Password must be at least 6 characters"
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            try await supabase.updatePassword(newPassword: newPassword)
+            errorMessage = "Password updated successfully!"
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
+    }
+
+    func signInWithMagicLink(email: String) async {
+        guard !email.isEmpty else {
+            errorMessage = "Please enter your email"
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            try await supabase.signInWithMagicLink(email: email)
+            errorMessage = "Magic link sent! Check your email to sign in."
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
+    }
+
     /// Quick login for testing
     func quickLogin() async {
         await signInWithEmail(

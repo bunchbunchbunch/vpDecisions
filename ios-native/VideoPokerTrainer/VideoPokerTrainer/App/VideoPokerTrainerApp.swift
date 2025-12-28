@@ -3,13 +3,63 @@ import SwiftUI
 @main
 struct VideoPokerTrainerApp: App {
     @StateObject private var authViewModel = AuthViewModel()
+    @State private var showResetPassword = false
 
     var body: some Scene {
         WindowGroup {
-            if authViewModel.isAuthenticated {
-                HomeView(authViewModel: authViewModel)
-            } else {
-                AuthView()
+            Group {
+                if authViewModel.isAuthenticated {
+                    HomeView(authViewModel: authViewModel)
+                } else {
+                    AuthView()
+                }
+            }
+            .sheet(isPresented: $showResetPassword) {
+                ResetPasswordView(viewModel: authViewModel)
+            }
+            .onOpenURL { url in
+                handleDeepLink(url)
+            }
+        }
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        // Handle deep links from email (password reset, magic link, etc.)
+        // Supabase format: vptrainer://[path]#access_token=xxx&refresh_token=yyy
+        print("📱 Deep link received: \(url.absoluteString)")
+
+        // Extract tokens from URL fragment
+        if let fragment = url.fragment {
+            let params = fragment.components(separatedBy: "&")
+            var accessToken: String?
+            var refreshToken: String?
+            var type: String?
+
+            for param in params {
+                let keyValue = param.components(separatedBy: "=")
+                if keyValue.count == 2 {
+                    let key = keyValue[0]
+                    let value = keyValue[1]
+
+                    if key == "access_token" {
+                        accessToken = value
+                    } else if key == "refresh_token" {
+                        refreshToken = value
+                    } else if key == "type" {
+                        type = value
+                    }
+                }
+            }
+
+            // Handle the deep link based on type
+            Task {
+                await MainActor.run {
+                    if url.path == "/reset-password" || type == "recovery" {
+                        // Show reset password screen
+                        showResetPassword = true
+                    }
+                    // Magic link and other auth types are handled automatically by Supabase
+                }
             }
         }
     }

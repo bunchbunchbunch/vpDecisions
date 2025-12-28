@@ -5,9 +5,11 @@ struct AuthView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var isSignUp = false
+    @State private var showForgotPassword = false
 
     var body: some View {
-        VStack(spacing: 24) {
+        NavigationStack {
+            VStack(spacing: 24) {
             Spacer()
 
             // Logo/Title
@@ -38,6 +40,20 @@ struct AuthView: View {
                 SecureField("Password", text: $password)
                     .textFieldStyle(.roundedBorder)
                     .textContentType(isSignUp ? .newPassword : .password)
+
+                // Forgot password link (only show when signing in)
+                if !isSignUp {
+                    HStack {
+                        Spacer()
+                        Button {
+                            showForgotPassword = true
+                        } label: {
+                            Text("Forgot Password?")
+                                .font(.caption)
+                                .foregroundColor(Color(hex: "667eea"))
+                        }
+                    }
+                }
 
                 // Error message
                 if let error = viewModel.errorMessage {
@@ -83,6 +99,25 @@ struct AuthView: View {
             Divider()
                 .padding(.horizontal)
 
+            // Magic link sign in
+            Button {
+                Task {
+                    await viewModel.signInWithMagicLink(email: email)
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "link.circle.fill")
+                    Text("Send Magic Link")
+                }
+            }
+            .buttonStyle(.bordered)
+            .tint(Color(hex: "3498db"))
+            .disabled(email.isEmpty || viewModel.isLoading)
+
+            #if DEBUG
+            Divider()
+                .padding(.horizontal)
+
             // Quick login for dev
             Button {
                 Task {
@@ -96,10 +131,15 @@ struct AuthView: View {
             }
             .buttonStyle(.bordered)
             .disabled(viewModel.isLoading)
+            #endif
 
-            Spacer()
+                Spacer()
+            }
+            .padding()
+            .navigationDestination(isPresented: $showForgotPassword) {
+                ForgotPasswordView(viewModel: viewModel)
+            }
         }
-        .padding()
     }
 }
 

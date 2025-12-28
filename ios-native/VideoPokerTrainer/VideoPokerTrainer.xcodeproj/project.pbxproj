@@ -11,17 +11,21 @@
 		0F16C32059109F21E351814D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */; };
 		0FDBAFBF64162DEDFD208EAD /* submit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BA6C1E385E108694180D1EBE /* submit.mp3 */; };
 		0FE869B3D3FA170517561BD1 /* PayTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */; };
+		212AADE9C95CA00DE1FF9B59 /* strategy_double_double_bonus_9_6.json in Resources */ = {isa = PBXBuildFile; fileRef = 8A0A9C948D9D9086824FA72D /* strategy_double_double_bonus_9_6.json */; };
 		2723E123A48A2FFB91BA72C0 /* HapticService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */; };
 		2D12B9D50B6BE8EFFB32868D /* button-tap.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = DCE574B6713DC27CBB847898 /* button-tap.mp3 */; };
+		38D2B5DC081395DAE5D3B0FB /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CDFD929FF8F295FDC95267 /* ForgotPasswordView.swift */; };
 		4B04B4CD4470F1A26E6022E8 /* DealtWinnerBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */; };
 		536F632E405D093299FE5B59 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E42FBAD025A5534A6E4850 /* AuthView.swift */; };
 		5438E7F43028F95D65AACEED /* HandCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */; };
 		5D20F966F1DDA1E06819F3A2 /* QuizPlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6A631F3E90A1B2FCFA8934 /* QuizPlayView.swift */; };
 		611CF46743CA88B71B485BCD /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A372C2B67ECD0E057210D57 /* Card.swift */; };
 		71A602043D2B35B4789E7D57 /* incorrect.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A938B302053EBA1843CDBDD8 /* incorrect.mp3 */; };
+		7351CB9F3269192F4EF9CC71 /* strategy_jacks_or_better_9_6.json in Resources */ = {isa = PBXBuildFile; fileRef = 05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json */; };
 		7DD564D08C78F917E261534E /* MasteryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */; };
 		7F19D2CB801A784CD2487F3A /* VideoPokerTrainerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */; };
 		7F91767A20F844B17A466A75 /* Hand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03FD663D9F07AEE4E1829685 /* Hand.swift */; };
+		880BF76C2AAB5FA877AEFF8A /* ResetPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D795BF36AA1D7A6ED28A80 /* ResetPasswordView.swift */; };
 		8A9A3CE99246EFF4C4EF47AF /* CardGlowEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */; };
 		8E430B3CF10EA07783EAC4E5 /* dealt-winner.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 192AEE07411E5DBD2F6F8F0D /* dealt-winner.mp3 */; };
 		973BBB083DDAACDE2DD8DBBB /* card-select.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 52626371C1AE90FB294E4C82 /* card-select.mp3 */; };
@@ -29,6 +33,7 @@
 		9AD6A559445353450025DD68 /* StrategyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B14813ABEB1C877847870FF /* StrategyService.swift */; };
 		9B4B7A366425E722369EE9D1 /* next-hand.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D90A1B2C22F69A4059A0AF90 /* next-hand.mp3 */; };
 		A6AFCD3472AC36B416F46E5E /* QuizViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6EA254B114941319176353 /* QuizViewModel.swift */; };
+		ACFD07FBC574DF302C8702B5 /* strategy_bonus_poker_8_5.json in Resources */ = {isa = PBXBuildFile; fileRef = F7392AA987E6BD3BAFBABE48 /* strategy_bonus_poker_8_5.json */; };
 		B51629FBBA7A29969D895CBB /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F1393C11511534CE0AA9C5 /* HomeView.swift */; };
 		BA434B4D8AC3FBDEB0229B26 /* MasteryScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C10505BC1A5BB00B74307D /* MasteryScore.swift */; };
 		BBA7D3A4A818EF4046841A1E /* quiz-complete.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */; };
@@ -48,6 +53,7 @@
 /* Begin PBXFileReference section */
 		03FD663D9F07AEE4E1829685 /* Hand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hand.swift; sourceTree = "<group>"; };
 		0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticService.swift; sourceTree = "<group>"; };
+		05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = strategy_jacks_or_better_9_6.json; sourceTree = "<group>"; };
 		07C10505BC1A5BB00B74307D /* MasteryScore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryScore.swift; sourceTree = "<group>"; };
 		0D6A631F3E90A1B2FCFA8934 /* QuizPlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizPlayView.swift; sourceTree = "<group>"; };
 		12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryViewModel.swift; sourceTree = "<group>"; };
@@ -63,14 +69,17 @@
 		5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandCategory.swift; sourceTree = "<group>"; };
 		6FCBC58743A80FDACE84FB39 /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
+		79CDFD929FF8F295FDC95267 /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
 		7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayTable.swift; sourceTree = "<group>"; };
 		7C7B891E2E0E0C3A4CE8293E /* correct.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = correct.mp3; sourceTree = "<group>"; };
 		8717FB49A524CDA76F3D730A /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		8A0A9C948D9D9086824FA72D /* strategy_double_double_bonus_9_6.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = strategy_double_double_bonus_9_6.json; sourceTree = "<group>"; };
 		8E6EA254B114941319176353 /* QuizViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizViewModel.swift; sourceTree = "<group>"; };
 		99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DealtWinnerBanner.swift; sourceTree = "<group>"; };
 		A6B33083F0FB3889082928E6 /* QuizResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultsView.swift; sourceTree = "<group>"; };
 		A938B302053EBA1843CDBDD8 /* incorrect.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = incorrect.mp3; sourceTree = "<group>"; };
 		AC11F57C339351683A7A945E /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		B0D795BF36AA1D7A6ED28A80 /* ResetPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPasswordView.swift; sourceTree = "<group>"; };
 		BA55DBC9DB3C3D1B66159FE2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BA6C1E385E108694180D1EBE /* submit.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = submit.mp3; sourceTree = "<group>"; };
 		C0F1393C11511534CE0AA9C5 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -82,6 +91,7 @@
 		E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardGlowEffect.swift; sourceTree = "<group>"; };
 		EEFE93106067A8CC6C7D44E0 /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
 		EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpacedRepetitionService.swift; sourceTree = "<group>"; };
+		F7392AA987E6BD3BAFBABE48 /* strategy_bonus_poker_8_5.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = strategy_bonus_poker_8_5.json; sourceTree = "<group>"; };
 		F8BB591ADA1CB751A89760BF /* MasteryDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryDashboardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -111,6 +121,8 @@
 			isa = PBXGroup;
 			children = (
 				38E42FBAD025A5534A6E4850 /* AuthView.swift */,
+				79CDFD929FF8F295FDC95267 /* ForgotPasswordView.swift */,
+				B0D795BF36AA1D7A6ED28A80 /* ResetPasswordView.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -155,6 +167,7 @@
 				166952A2BDC1FD0345A5C569 /* Info.plist */,
 				C251C0B772EF56E0FD46E043 /* App */,
 				B098BF53AA85868FDD597FA1 /* Models */,
+				C4B3ED6511A0EB765E437CCF /* Resources */,
 				CDF8FB137B13BFE605890F2A /* Services */,
 				6D4E6C8A92962B0696AE19C9 /* Sounds */,
 				8BAC83D5CBC631F213D57F2F /* ViewModels */,
@@ -229,6 +242,16 @@
 				E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		C4B3ED6511A0EB765E437CCF /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				F7392AA987E6BD3BAFBABE48 /* strategy_bonus_poker_8_5.json */,
+				8A0A9C948D9D9086824FA72D /* strategy_double_double_bonus_9_6.json */,
+				05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		CDF8FB137B13BFE605890F2A /* Services */ = {
@@ -333,6 +356,9 @@
 				71A602043D2B35B4789E7D57 /* incorrect.mp3 in Resources */,
 				9B4B7A366425E722369EE9D1 /* next-hand.mp3 in Resources */,
 				BBA7D3A4A818EF4046841A1E /* quiz-complete.mp3 in Resources */,
+				ACFD07FBC574DF302C8702B5 /* strategy_bonus_poker_8_5.json in Resources */,
+				212AADE9C95CA00DE1FF9B59 /* strategy_double_double_bonus_9_6.json in Resources */,
+				7351CB9F3269192F4EF9CC71 /* strategy_jacks_or_better_9_6.json in Resources */,
 				0FDBAFBF64162DEDFD208EAD /* submit.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -352,6 +378,7 @@
 				8A9A3CE99246EFF4C4EF47AF /* CardGlowEffect.swift in Sources */,
 				D7F21D806CD72B4FBBE789EE /* CardView.swift in Sources */,
 				4B04B4CD4470F1A26E6022E8 /* DealtWinnerBanner.swift in Sources */,
+				38D2B5DC081395DAE5D3B0FB /* ForgotPasswordView.swift in Sources */,
 				7F91767A20F844B17A466A75 /* Hand.swift in Sources */,
 				BE125462B9396E73249C962A /* HandAnalyzerView.swift in Sources */,
 				5438E7F43028F95D65AACEED /* HandCategory.swift in Sources */,
@@ -365,6 +392,7 @@
 				5D20F966F1DDA1E06819F3A2 /* QuizPlayView.swift in Sources */,
 				EB31AC2671CF70D41545F0FC /* QuizResultsView.swift in Sources */,
 				A6AFCD3472AC36B416F46E5E /* QuizViewModel.swift in Sources */,
+				880BF76C2AAB5FA877AEFF8A /* ResetPasswordView.swift in Sources */,
 				0F16C32059109F21E351814D /* SettingsView.swift in Sources */,
 				D377E7F8A6EA6B272F609CC3 /* SpacedRepetitionService.swift in Sources */,
 				9AD6A559445353450025DD68 /* StrategyService.swift in Sources */,
