@@ -172,6 +172,10 @@ class QuizViewModel: ObservableObject {
             hapticService.trigger(.success)
             isQuizComplete = true
         } else {
+            // Clear dealt winner state before moving to next hand
+            showDealtWinner = false
+            dealtWinnerName = nil
+
             currentIndex += 1
             selectedIndices = []
             showFeedback = false
@@ -195,7 +199,7 @@ class QuizViewModel: ObservableObject {
         )
 
         if result.isWinner, let handName = result.handName {
-            // Show celebration immediately, cards remain selectable
+            // Show banner and keep it visible until next hand
             await MainActor.run {
                 showDealtWinner = true
                 dealtWinnerName = handName
@@ -203,14 +207,6 @@ class QuizViewModel: ObservableObject {
                 // Play sound and haptic
                 audioService.play(.dealtWinner)
                 hapticService.trigger(.success)
-            }
-
-            // Hide after 2 seconds
-            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2.0 seconds
-            await MainActor.run {
-                withAnimation(.easeOut(duration: 0.3)) {
-                    showDealtWinner = false
-                }
             }
         } else {
             // Not a winner, clear state
