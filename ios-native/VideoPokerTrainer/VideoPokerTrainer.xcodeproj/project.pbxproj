@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -86,7 +86,7 @@
 		D25485E3CB6182634F963032 /* HandEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandEvaluator.swift; sourceTree = "<group>"; };
 		D90A1B2C22F69A4059A0AF90 /* next-hand.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "next-hand.mp3"; sourceTree = "<group>"; };
 		DCE574B6713DC27CBB847898 /* button-tap.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "button-tap.mp3"; sourceTree = "<group>"; };
-		DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = VideoPokerTrainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VideoPokerTrainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPokerTrainerApp.swift; sourceTree = "<group>"; };
 		E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardGlowEffect.swift; sourceTree = "<group>"; };
 		EEFE93106067A8CC6C7D44E0 /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
@@ -316,7 +316,6 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					08F61A8A66CC9CDB546E1B8F = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -334,7 +333,6 @@
 			packageReferences = (
 				204AC625DCF6E53F6C3058EB /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -474,7 +472,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 7NDW5TK87N;
 				INFOPLIST_FILE = VideoPokerTrainer/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -551,7 +549,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 7NDW5TK87N;
 				INFOPLIST_FILE = VideoPokerTrainer/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

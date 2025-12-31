@@ -105,7 +105,7 @@ class QuizViewModel: ObservableObject {
     }
 
     func toggleCard(_ index: Int) {
-        guard !showFeedback, !showDealtWinner else { return }
+        guard !showFeedback else { return }
 
         audioService.play(.cardSelect)
         hapticService.trigger(.light)
@@ -195,15 +195,10 @@ class QuizViewModel: ObservableObject {
         )
 
         if result.isWinner, let handName = result.handName {
-            // Wait a moment for cards to be visible
-            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
-
-            // Show celebration
+            // Show celebration immediately, cards remain selectable
             await MainActor.run {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    showDealtWinner = true
-                    dealtWinnerName = handName
-                }
+                showDealtWinner = true
+                dealtWinnerName = handName
 
                 // Play sound and haptic
                 audioService.play(.dealtWinner)
