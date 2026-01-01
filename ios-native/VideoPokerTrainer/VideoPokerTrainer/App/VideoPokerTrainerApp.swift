@@ -106,7 +106,6 @@ struct ContentView: View {
                         ) {
                             toggleCard(index)
                             audioService.play(.cardSelect)
-                            hapticService.trigger(.light)
                         }
                         .frame(width: 55)
                     }

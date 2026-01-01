@@ -4,7 +4,6 @@ struct QuizPlayView: View {
     @StateObject var viewModel: QuizViewModel
     @Binding var navigationPath: NavigationPath
     @Environment(\.dismiss) private var dismiss
-    @State private var showAllOptions = false
     @State private var swipedCardIndices: Set<Int> = []
     @State private var isDragging = false
     @State private var dragStartLocation: CGPoint?
@@ -53,17 +52,17 @@ struct QuizPlayView: View {
         VStack(spacing: 0) {
             // Progress bar
             progressBar
+                .padding(.bottom, 8)
 
-            Spacer()
-
-            // Paytable
+            // Paytable (fixed height)
             if let paytable = PayTable.allPayTables.first(where: { $0.id == viewModel.paytableId }) {
                 CompactPayTableView(paytable: paytable)
+                    .frame(height: 120)
                     .padding(.horizontal)
                     .padding(.bottom, 8)
             }
 
-            // Cards area
+            // Cards area (fixed height)
             ZStack {
                 // Green felt background
                 RoundedRectangle(cornerRadius: 16)
@@ -138,20 +137,26 @@ struct QuizPlayView: View {
                 }
                 .padding()
             }
-            .frame(height: 250)
+            .frame(height: 220)
             .padding(.horizontal)
 
-            // EV Options Table (below cards and feedback)
-            if viewModel.showFeedback, let currentHand = viewModel.currentHand {
-                evOptionsTable(for: currentHand)
-                    .padding(.horizontal)
+            // EV Options Table (fixed height, scrollable)
+            ZStack {
+                if viewModel.showFeedback, let currentHand = viewModel.currentHand {
+                    ScrollView {
+                        evOptionsTable(for: currentHand)
+                            .padding(.horizontal)
+                    }
+                }
             }
+            .frame(height: 160)
 
             Spacer()
 
-            // Action button
+            // Action button (fixed at bottom)
             actionButton
-                .padding()
+                .padding(.horizontal)
+                .padding(.bottom, 8)
         }
     }
 
@@ -230,7 +235,6 @@ struct QuizPlayView: View {
 
     private func evOptionsTable(for quizHand: QuizHand) -> some View {
         let options = quizHand.strategyResult.sortedHoldOptions
-        let displayCount = showAllOptions ? options.count : min(3, options.count)
 
         return VStack(spacing: 8) {
             // Table header
@@ -257,7 +261,7 @@ struct QuizPlayView: View {
 
             // Table rows
             VStack(spacing: 4) {
-                ForEach(Array(options.prefix(displayCount).enumerated()), id: \.offset) { index, option in
+                ForEach(Array(options.enumerated()), id: \.offset) { index, option in
                     let optionOriginalIndices = quizHand.hand.canonicalIndicesToOriginal(option.indices)
                     let optionCards = optionOriginalIndices.map { quizHand.hand.cards[$0] }
                     let isBest = index == 0
@@ -299,29 +303,8 @@ struct QuizPlayView: View {
                     .cornerRadius(6)
                 }
             }
-
-            // Show more/less button
-            if options.count > 3 {
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        showAllOptions.toggle()
-                    }
-                } label: {
-                    HStack {
-                        Text(showAllOptions ? "Show Less" : "Show All (\(options.count) options)")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        Image(systemName: showAllOptions ? "chevron.up" : "chevron.down")
-                    }
-                    .foregroundColor(Color(hex: "667eea"))
-                    .padding(.vertical, 8)
-                }
-            }
         }
-        .padding(.vertical, 8)
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+        .padding(.vertical, 4)
     }
 
     // MARK: - Action Button
@@ -329,7 +312,6 @@ struct QuizPlayView: View {
     private var actionButton: some View {
         Button {
             if viewModel.showFeedback {
-                showAllOptions = false
                 viewModel.next()
             } else {
                 viewModel.submit()
@@ -338,7 +320,7 @@ struct QuizPlayView: View {
             Text(buttonText)
                 .font(.headline)
                 .frame(maxWidth: .infinity)
-                .padding()
+                .padding(.vertical, 16)
         }
         .buttonStyle(.borderedProminent)
         .tint(viewModel.showFeedback ? Color(hex: "3498db") : Color(hex: "667eea"))

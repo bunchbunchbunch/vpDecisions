@@ -108,7 +108,6 @@ class QuizViewModel: ObservableObject {
         guard !showFeedback else { return }
 
         audioService.play(.cardSelect)
-        hapticService.trigger(.light)
 
         if selectedIndices.contains(index) {
             selectedIndices.remove(index)
@@ -121,7 +120,6 @@ class QuizViewModel: ObservableObject {
         guard let currentHand = currentHand, !showFeedback else { return }
 
         audioService.play(.submit)
-        hapticService.trigger(.medium)
 
         // User selection is in original deal order
         let userHold = Array(selectedIndices).sorted()
@@ -146,7 +144,6 @@ class QuizViewModel: ObservableObject {
             correctCount += 1
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                 self.audioService.play(.correct)
-                self.hapticService.trigger(.success)
             }
         } else {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
@@ -169,7 +166,6 @@ class QuizViewModel: ObservableObject {
         if currentIndex + 1 >= hands.count {
             // Quiz complete
             audioService.play(.quizComplete)
-            hapticService.trigger(.success)
             isQuizComplete = true
         } else {
             // Clear dealt winner state before moving to next hand
@@ -204,9 +200,8 @@ class QuizViewModel: ObservableObject {
                 showDealtWinner = true
                 dealtWinnerName = handName
 
-                // Play sound and haptic
+                // Play sound
                 audioService.play(.dealtWinner)
-                hapticService.trigger(.success)
             }
         } else {
             // Not a winner, clear state
