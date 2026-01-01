@@ -77,7 +77,24 @@ actor StrategyService {
             return cached
         }
 
-        // Check local strategies second (offline-first)
+        // Try Supabase first to get full strategy with all hold options
+        if let result = try await SupabaseService.shared.lookupStrategy(
+            paytableId: paytableId,
+            handKey: hand.canonicalKey
+        ) {
+            // Cache the result
+            if cache.count >= maxCacheSize {
+                // Remove oldest entries (simple approach: clear half)
+                let keysToRemove = Array(cache.keys.prefix(maxCacheSize / 2))
+                for key in keysToRemove {
+                    cache.removeValue(forKey: key)
+                }
+            }
+            cache[key] = result
+            return result
+        }
+
+        // Fall back to local strategies if Supabase fails (offline mode)
         if let localStrategy = localStrategies[paytableId]?[hand.canonicalKey] {
             // Create a StrategyResult from local data (without hold_evs)
             let result = StrategyResult(
@@ -91,25 +108,7 @@ actor StrategyService {
             return result
         }
 
-        // Fall back to Supabase for missing strategies or custom paytables
-        guard let result = try await SupabaseService.shared.lookupStrategy(
-            paytableId: paytableId,
-            handKey: hand.canonicalKey
-        ) else {
-            return nil
-        }
-
-        // Cache the result
-        if cache.count >= maxCacheSize {
-            // Remove oldest entries (simple approach: clear half)
-            let keysToRemove = Array(cache.keys.prefix(maxCacheSize / 2))
-            for key in keysToRemove {
-                cache.removeValue(forKey: key)
-            }
-        }
-        cache[key] = result
-
-        return result
+        return nil
     }
 
     /// Clear the cache

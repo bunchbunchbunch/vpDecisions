@@ -25,17 +25,16 @@ struct CardView: View {
             .offset(y: isSelected ? -10 : 0)
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
 
-            // HELD label
-            if isSelected {
-                Text("HELD")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.yellow)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(Color.black.opacity(0.7))
-                    .cornerRadius(4)
-            }
+            // HELD label (always reserve space, but only show when selected)
+            Text("HELD")
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.yellow)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .background(Color.black.opacity(isSelected ? 0.7 : 0))
+                .cornerRadius(4)
+                .opacity(isSelected ? 1 : 0)
         }
         .contentShape(Rectangle())
         .onTapGesture {

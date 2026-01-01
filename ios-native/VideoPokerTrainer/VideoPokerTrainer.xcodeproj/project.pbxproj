@@ -15,6 +15,7 @@
 		2723E123A48A2FFB91BA72C0 /* HapticService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */; };
 		2D12B9D50B6BE8EFFB32868D /* button-tap.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = DCE574B6713DC27CBB847898 /* button-tap.mp3 */; };
 		38D2B5DC081395DAE5D3B0FB /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CDFD929FF8F295FDC95267 /* ForgotPasswordView.swift */; };
+		3B02824BED9C868617E34C34 /* PayTableData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEC6E4EE5E71F8D44366E1EF /* PayTableData.swift */; };
 		4B04B4CD4470F1A26E6022E8 /* DealtWinnerBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */; };
 		536F632E405D093299FE5B59 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E42FBAD025A5534A6E4850 /* AuthView.swift */; };
 		5438E7F43028F95D65AACEED /* HandCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */; };
@@ -38,6 +39,7 @@
 		BA434B4D8AC3FBDEB0229B26 /* MasteryScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C10505BC1A5BB00B74307D /* MasteryScore.swift */; };
 		BBA7D3A4A818EF4046841A1E /* quiz-complete.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */; };
 		BE125462B9396E73249C962A /* HandAnalyzerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EBF4D48AC1D577D0A2CC087 /* HandAnalyzerView.swift */; };
+		CA02749FA8C7CEE2A99CAA8A /* CompactPayTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BD0AFFC99AFF87B9DEFC49E /* CompactPayTableView.swift */; };
 		D0C135BCFDBFCCEA4C74A6DA /* HandEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D25485E3CB6182634F963032 /* HandEvaluator.swift */; };
 		D353D33B14246C03446A1BFF /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C4FD2CF0865B3C43DC64102E /* Supabase */; };
 		D377E7F8A6EA6B272F609CC3 /* SpacedRepetitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */; };
@@ -65,6 +67,7 @@
 		36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "quiz-complete.mp3"; sourceTree = "<group>"; };
 		38E42FBAD025A5534A6E4850 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		3A372C2B67ECD0E057210D57 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
+		3BD0AFFC99AFF87B9DEFC49E /* CompactPayTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompactPayTableView.swift; sourceTree = "<group>"; };
 		52626371C1AE90FB294E4C82 /* card-select.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "card-select.mp3"; sourceTree = "<group>"; };
 		5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandCategory.swift; sourceTree = "<group>"; };
@@ -89,6 +92,7 @@
 		DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VideoPokerTrainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPokerTrainerApp.swift; sourceTree = "<group>"; };
 		E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardGlowEffect.swift; sourceTree = "<group>"; };
+		EEC6E4EE5E71F8D44366E1EF /* PayTableData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayTableData.swift; sourceTree = "<group>"; };
 		EEFE93106067A8CC6C7D44E0 /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
 		EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpacedRepetitionService.swift; sourceTree = "<group>"; };
 		F7392AA987E6BD3BAFBABE48 /* strategy_bonus_poker_8_5.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = strategy_bonus_poker_8_5.json; sourceTree = "<group>"; };
@@ -112,6 +116,7 @@
 			children = (
 				E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */,
 				6FCBC58743A80FDACE84FB39 /* CardView.swift */,
+				3BD0AFFC99AFF87B9DEFC49E /* CompactPayTableView.swift */,
 				99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */,
 			);
 			path = Components;
@@ -232,6 +237,7 @@
 				6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */,
 				07C10505BC1A5BB00B74307D /* MasteryScore.swift */,
 				7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */,
+				EEC6E4EE5E71F8D44366E1EF /* PayTableData.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -375,6 +381,7 @@
 				611CF46743CA88B71B485BCD /* Card.swift in Sources */,
 				8A9A3CE99246EFF4C4EF47AF /* CardGlowEffect.swift in Sources */,
 				D7F21D806CD72B4FBBE789EE /* CardView.swift in Sources */,
+				CA02749FA8C7CEE2A99CAA8A /* CompactPayTableView.swift in Sources */,
 				4B04B4CD4470F1A26E6022E8 /* DealtWinnerBanner.swift in Sources */,
 				38D2B5DC081395DAE5D3B0FB /* ForgotPasswordView.swift in Sources */,
 				7F91767A20F844B17A466A75 /* Hand.swift in Sources */,
@@ -387,6 +394,7 @@
 				BA434B4D8AC3FBDEB0229B26 /* MasteryScore.swift in Sources */,
 				7DD564D08C78F917E261534E /* MasteryViewModel.swift in Sources */,
 				0FE869B3D3FA170517561BD1 /* PayTable.swift in Sources */,
+				3B02824BED9C868617E34C34 /* PayTableData.swift in Sources */,
 				5D20F966F1DDA1E06819F3A2 /* QuizPlayView.swift in Sources */,
 				EB31AC2671CF70D41545F0FC /* QuizResultsView.swift in Sources */,
 				A6AFCD3472AC36B416F46E5E /* QuizViewModel.swift in Sources */,

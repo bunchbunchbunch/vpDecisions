@@ -4,6 +4,10 @@ struct QuizPlayView: View {
     @StateObject var viewModel: QuizViewModel
     @Binding var navigationPath: NavigationPath
     @Environment(\.dismiss) private var dismiss
+    @State private var showAllOptions = false
+    @State private var swipedCardIndices: Set<Int> = []
+    @State private var isDragging = false
+    @State private var dragStartLocation: CGPoint?
 
     var body: some View {
         Group {
@@ -52,6 +56,13 @@ struct QuizPlayView: View {
 
             Spacer()
 
+            // Paytable
+            if let paytable = PayTable.allPayTables.first(where: { $0.id == viewModel.paytableId }) {
+                CompactPayTableView(paytable: paytable)
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
+            }
+
             // Cards area
             ZStack {
                 // Green felt background
@@ -68,16 +79,56 @@ struct QuizPlayView: View {
 
                     // Cards
                     if let currentHand = viewModel.currentHand {
-                        HStack(spacing: 8) {
-                            ForEach(Array(currentHand.hand.cards.enumerated()), id: \.element.id) { index, card in
-                                CardView(
-                                    card: card,
-                                    isSelected: viewModel.selectedIndices.contains(index)
-                                ) {
-                                    viewModel.toggleCard(index)
+                        GeometryReader { geometry in
+                            HStack(spacing: 8) {
+                                ForEach(Array(currentHand.hand.cards.enumerated()), id: \.element.id) { index, card in
+                                    CardView(
+                                        card: card,
+                                        isSelected: viewModel.selectedIndices.contains(index)
+                                    ) {
+                                        viewModel.toggleCard(index)
+                                    }
                                 }
                             }
+                            .simultaneousGesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onChanged { value in
+                                        // Calculate which card is at this position
+                                        let cardWidth = (geometry.size.width - 32) / 5  // 8px spacing * 4
+                                        let xPosition = value.location.x
+                                        let cardIndex = Int(xPosition / (cardWidth + 8))
+
+                                        if !isDragging {
+                                            isDragging = true
+                                            dragStartLocation = value.location
+                                            swipedCardIndices = []
+                                        }
+
+                                        // Check if this is a valid card and we haven't toggled it yet
+                                        if cardIndex >= 0 && cardIndex < 5 && !swipedCardIndices.contains(cardIndex) {
+                                            // Check if we've moved enough to be a swipe
+                                            guard let startLocation = dragStartLocation else { return }
+                                            let dragDistance = hypot(
+                                                value.location.x - startLocation.x,
+                                                value.location.y - startLocation.y
+                                            )
+
+                                            // If we've moved more than 10 points OR already swiped other cards, toggle immediately
+                                            if dragDistance > 10 || !swipedCardIndices.isEmpty {
+                                                swipedCardIndices.insert(cardIndex)
+                                                viewModel.toggleCard(cardIndex)
+                                            }
+                                        }
+                                    }
+                                    .onEnded { _ in
+                                        // Reset state
+                                        swipedCardIndices = []
+                                        isDragging = false
+                                        dragStartLocation = nil
+                                    }
+                            )
                         }
+                        .frame(height: 100)
                     }
 
                     // Feedback overlay
@@ -89,6 +140,12 @@ struct QuizPlayView: View {
             }
             .frame(height: 250)
             .padding(.horizontal)
+
+            // EV Options Table (below cards and feedback)
+            if viewModel.showFeedback, let currentHand = viewModel.currentHand {
+                evOptionsTable(for: currentHand)
+                    .padding(.horizontal)
+            }
 
             Spacer()
 
@@ -153,7 +210,7 @@ struct QuizPlayView: View {
                 } else {
                     ForEach(bestCards, id: \.id) { card in
                         Text(card.displayText)
-                            .foregroundColor(card.suit.color == Color(hex: "e74c3c") ? .red : .white)
+                            .foregroundColor(card.suit.color)
                             .fontWeight(.bold)
                     }
                 }
@@ -165,8 +222,106 @@ struct QuizPlayView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(viewModel.isCorrect ? Color.green.opacity(0.9) : Color(hex: "d35400").opacity(0.9))
+                .fill(viewModel.isCorrect ? Color.green.opacity(0.9) : Color(hex: "FFA726").opacity(0.9))
         )
+    }
+
+    // MARK: - EV Options Table
+
+    private func evOptionsTable(for quizHand: QuizHand) -> some View {
+        let options = quizHand.strategyResult.sortedHoldOptions
+        let displayCount = showAllOptions ? options.count : min(3, options.count)
+
+        return VStack(spacing: 8) {
+            // Table header
+            HStack {
+                Text("Rank")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .frame(width: 40, alignment: .leading)
+
+                Text("Hold")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Text("EV")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .frame(width: 60, alignment: .trailing)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color(.systemGray5))
+            .cornerRadius(8)
+
+            // Table rows
+            VStack(spacing: 4) {
+                ForEach(Array(options.prefix(displayCount).enumerated()), id: \.offset) { index, option in
+                    let optionOriginalIndices = quizHand.hand.canonicalIndicesToOriginal(option.indices)
+                    let optionCards = optionOriginalIndices.map { quizHand.hand.cards[$0] }
+                    let isBest = index == 0
+
+                    HStack(spacing: 8) {
+                        // Rank
+                        Text("\(index + 1)")
+                            .font(.subheadline)
+                            .fontWeight(isBest ? .bold : .regular)
+                            .frame(width: 40, alignment: .leading)
+
+                        // Hold cards
+                        if optionCards.isEmpty {
+                            Text("Draw all")
+                                .font(.subheadline)
+                                .italic()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            HStack(spacing: 4) {
+                                ForEach(optionCards, id: \.id) { card in
+                                    Text(card.displayText)
+                                        .font(.subheadline)
+                                        .foregroundColor(card.suit.color)
+                                        .fontWeight(isBest ? .bold : .regular)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+
+                        // EV
+                        Text(String(format: "%.3f", option.ev))
+                            .font(.subheadline)
+                            .fontWeight(isBest ? .bold : .regular)
+                            .frame(width: 60, alignment: .trailing)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(isBest ? Color(hex: "667eea").opacity(0.2) : Color(.systemGray6))
+                    .cornerRadius(6)
+                }
+            }
+
+            // Show more/less button
+            if options.count > 3 {
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        showAllOptions.toggle()
+                    }
+                } label: {
+                    HStack {
+                        Text(showAllOptions ? "Show Less" : "Show All (\(options.count) options)")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Image(systemName: showAllOptions ? "chevron.up" : "chevron.down")
+                    }
+                    .foregroundColor(Color(hex: "667eea"))
+                    .padding(.vertical, 8)
+                }
+            }
+        }
+        .padding(.vertical, 8)
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
     }
 
     // MARK: - Action Button
@@ -174,6 +329,7 @@ struct QuizPlayView: View {
     private var actionButton: some View {
         Button {
             if viewModel.showFeedback {
+                showAllOptions = false
                 viewModel.next()
             } else {
                 viewModel.submit()
