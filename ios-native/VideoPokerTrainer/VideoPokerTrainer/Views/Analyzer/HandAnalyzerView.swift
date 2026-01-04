@@ -10,6 +10,11 @@ struct HandAnalyzerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Paytable picker at top
+            paytablePickerBar
+
+            Divider()
+
             // Selected cards display
             selectedCardsBar
 
@@ -18,44 +23,61 @@ struct HandAnalyzerView: View {
             // Card grid
             cardGrid
 
-            // Paytable picker and analyze button
-            bottomBar
+            // Results table (inline, similar to quiz mode)
+            if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
+                Divider()
+                resultsTable(hand: hand, result: result)
+            }
+
+            // Bottom bar with just error message
+            if let error = viewModel.errorMessage {
+                bottomErrorBar(error: error)
+            }
         }
         .navigationTitle("Hand Analyzer")
-        .sheet(isPresented: $viewModel.showResults) {
-            resultsSheet
-        }
     }
 
     // MARK: - Selected Cards Bar
 
     private var selectedCardsBar: some View {
-        HStack(spacing: 8) {
-            ForEach(0..<5) { index in
-                if index < viewModel.selectedCards.count {
-                    let card = viewModel.selectedCards[index]
-                    CardView(card: card, isSelected: false)
-                        .frame(width: 50, height: 70)
-                } else {
-                    // Placeholder
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(.systemGray5))
-                        .frame(width: 50, height: 70)
-                        .overlay(
-                            Text("?")
-                                .font(.title2)
-                                .foregroundColor(.secondary)
-                        )
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                ForEach(0..<5) { index in
+                    if index < viewModel.selectedCards.count {
+                        let card = viewModel.selectedCards[index]
+                        CardView(card: card, isSelected: false)
+                            .frame(width: 60, height: 84)
+                    } else {
+                        // Card back placeholder - match CardView structure exactly
+                        VStack(spacing: 4) {
+                            Image("1B")
+                                .resizable()
+                                .aspectRatio(2.5/3.5, contentMode: .fit)
+                                .cornerRadius(8)
+                                .shadow(color: Color.black.opacity(0.2),
+                                        radius: 4,
+                                        x: 0,
+                                        y: 2)
+
+                            // Invisible spacer to match HELD label space in CardView
+                            Text("HELD")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .opacity(0)
+                        }
+                        .frame(width: 60, height: 84)
+                    }
                 }
             }
-
-            Spacer()
 
             if !viewModel.selectedCards.isEmpty {
                 Button("Clear") {
                     viewModel.clear()
                 }
-                .font(.caption)
+                .font(.subheadline)
+                .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
         .padding()
@@ -107,11 +129,15 @@ struct HandAnalyzerView: View {
         .disabled(isDisabled)
     }
 
-    // MARK: - Bottom Bar
+    // MARK: - Paytable Picker Bar
 
-    private var bottomBar: some View {
-        VStack(spacing: 12) {
-            // Paytable picker
+    private var paytablePickerBar: some View {
+        VStack(spacing: 8) {
+            Text("Game Type")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
             Picker("Paytable", selection: $selectedPaytableId) {
                 ForEach(PayTable.allPayTables, id: \.id) { paytable in
                     Text(paytable.name).tag(paytable.id)
@@ -126,133 +152,135 @@ struct HandAnalyzerView: View {
             .onAppear {
                 selectedPaytableId = viewModel.selectedPaytable.id
             }
-
-            // Error message
-            if let error = viewModel.errorMessage {
-                Text(error)
-                    .font(.caption)
-                    .foregroundColor(.red)
-            }
-
-            // Analyze button
-            Button {
-                Task {
-                    await viewModel.analyze()
-                }
-            } label: {
-                if viewModel.isAnalyzing {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                } else {
-                    Text("Analyze")
-                        .frame(maxWidth: .infinity)
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(!viewModel.canAnalyze || viewModel.isAnalyzing)
         }
         .padding()
         .background(Color(.systemBackground))
     }
 
-    // MARK: - Results Sheet
+    // MARK: - Bottom Error Bar
 
-    private var resultsSheet: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                if let hand = viewModel.hand, let result = viewModel.strategyResult {
-                    // Convert canonical indices to original for best hold
-                    let bestHoldOriginal = hand.canonicalIndicesToOriginal(result.bestHoldIndices)
-
-                    // Best hold
-                    VStack(spacing: 8) {
-                        Text("Best Hold")
-                            .font(.headline)
-
-                        HStack(spacing: 8) {
-                            if bestHoldOriginal.isEmpty {
-                                Text("Draw all 5 cards")
-                                    .foregroundColor(.secondary)
-                            } else {
-                                ForEach(bestHoldOriginal, id: \.self) { index in
-                                    CardView(card: hand.cards[index], isSelected: false)
-                                        .frame(width: 50, height: 70)
-                                }
-                            }
-                        }
-
-                        Text("EV: \(String(format: "%.4f", result.bestEv))")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color(hex: "27ae60"))
-                    }
-                    .padding()
-
-                    Divider()
-
-                    // All options
-                    Text("All Hold Options")
-                        .font(.headline)
-
-                    ScrollView {
-                        VStack(spacing: 8) {
-                            ForEach(Array(result.sortedHoldOptions.prefix(10).enumerated()), id: \.offset) { i, option in
-                                holdOptionRow(hand: hand, option: option, rank: i + 1)
-                            }
-
-                            if result.sortedHoldOptions.count > 10 {
-                                Text("+ \(result.sortedHoldOptions.count - 10) more options")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                }
-            }
-            .navigationTitle("Results")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        viewModel.showResults = false
-                    }
-                }
-            }
+    private func bottomErrorBar(error: String) -> some View {
+        HStack {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(.red)
+            Text(error)
+                .font(.caption)
+                .foregroundColor(.red)
         }
+        .padding()
+        .background(Color(.systemBackground))
     }
 
-    private func holdOptionRow(hand: Hand, option: (bitmask: Int, ev: Double, indices: [Int]), rank: Int) -> some View {
-        // Convert canonical indices to original
-        let originalIndices = hand.canonicalIndicesToOriginal(option.indices)
+    // MARK: - Results Table (inline, similar to quiz mode)
 
-        return HStack {
-            Text("\(rank).")
-                .foregroundColor(.secondary)
-                .frame(width: 24)
+    private func resultsTable(hand: Hand, result: StrategyResult) -> some View {
+        ScrollView {
+            VStack(spacing: 12) {
+                // Best hold summary
+                VStack(spacing: 8) {
+                    Text("Best Hold")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
 
-            if originalIndices.isEmpty {
-                Text("Draw all")
-                    .italic()
-                    .foregroundColor(.secondary)
-            } else {
-                ForEach(originalIndices, id: \.self) { index in
-                    Text(hand.cards[index].displayText)
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(hand.cards[index].suit.color)
+                    let bestHoldOriginal = hand.canonicalIndicesToOriginal(result.bestHoldIndices)
+                    HStack(spacing: 6) {
+                        if bestHoldOriginal.isEmpty {
+                            Text("Draw all 5 cards")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        } else {
+                            ForEach(bestHoldOriginal, id: \.self) { index in
+                                Text(hand.cards[index].displayText)
+                                    .font(.system(.body, design: .monospaced))
+                                    .fontWeight(.bold)
+                                    .foregroundColor(hand.cards[index].suit.color)
+                            }
+                        }
+                    }
+
+                    Text("EV: \(String(format: "%.4f", result.bestEv))")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(Color(hex: "27ae60"))
                 }
+                .padding()
+                .background(Color(hex: "667eea").opacity(0.1))
+                .cornerRadius(12)
+
+                // All options table
+                VStack(spacing: 8) {
+                    // Table header
+                    HStack {
+                        Text("Rank")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .frame(width: 40, alignment: .leading)
+
+                        Text("Hold")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Text("EV")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .frame(width: 60, alignment: .trailing)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color(.systemGray5))
+                    .cornerRadius(8)
+
+                    // Table rows
+                    VStack(spacing: 4) {
+                        ForEach(Array(result.sortedHoldOptions.enumerated()), id: \.offset) { index, option in
+                            let optionOriginalIndices = hand.canonicalIndicesToOriginal(option.indices)
+                            let optionCards = optionOriginalIndices.map { hand.cards[$0] }
+                            let isBest = index == 0
+
+                            HStack(spacing: 8) {
+                                // Rank
+                                Text("\(index + 1)")
+                                    .font(.subheadline)
+                                    .fontWeight(isBest ? .bold : .regular)
+                                    .frame(width: 40, alignment: .leading)
+
+                                // Hold cards
+                                if optionCards.isEmpty {
+                                    Text("Draw all")
+                                        .font(.subheadline)
+                                        .italic()
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                } else {
+                                    HStack(spacing: 4) {
+                                        ForEach(optionCards, id: \.id) { card in
+                                            Text(card.displayText)
+                                                .font(.subheadline)
+                                                .foregroundColor(card.suit.color)
+                                                .fontWeight(isBest ? .bold : .regular)
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+
+                                // EV
+                                Text(String(format: "%.3f", option.ev))
+                                    .font(.subheadline)
+                                    .fontWeight(isBest ? .bold : .regular)
+                                    .frame(width: 60, alignment: .trailing)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(isBest ? Color(hex: "667eea").opacity(0.2) : Color(.systemGray6))
+                            .cornerRadius(6)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
             }
-
-            Spacer()
-
-            Text(String(format: "%.4f", option.ev))
-                .font(.system(.body, design: .monospaced))
-                .foregroundColor(.secondary)
+            .padding()
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(rank == 1 ? Color.green.opacity(0.1) : Color(.systemGray6))
-        .cornerRadius(8)
+        .background(Color(.systemBackground))
     }
 }
 

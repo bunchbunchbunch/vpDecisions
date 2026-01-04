@@ -49,114 +49,130 @@ struct QuizPlayView: View {
     // MARK: - Quiz View
 
     private var quizView: some View {
-        VStack(spacing: 0) {
-            // Progress bar
-            progressBar
-                .padding(.bottom, 8)
-
-            // Paytable (fixed height)
-            if let paytable = PayTable.allPayTables.first(where: { $0.id == viewModel.paytableId }) {
-                CompactPayTableView(paytable: paytable)
-                    .frame(height: 120)
-                    .padding(.horizontal)
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                // Progress bar
+                progressBar
                     .padding(.bottom, 8)
-            }
 
-            // Cards area (fixed height)
-            ZStack {
-                // Green felt background
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(hex: "2d5016"))
-                    .shadow(radius: 5)
+                // Scrollable content
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Paytable
+                        if let paytable = PayTable.allPayTables.first(where: { $0.id == viewModel.paytableId }) {
+                            CompactPayTableView(paytable: paytable)
+                                .padding(.horizontal)
+                                .padding(.bottom, 8)
+                        }
 
-                VStack(spacing: 16) {
-                    // Dealt winner banner
-                    if viewModel.showDealtWinner, let handName = viewModel.dealtWinnerName {
-                        DealtWinnerBanner(handName: handName)
-                            .transition(AnyTransition.scale.combined(with: AnyTransition.opacity))
-                    }
+                        // Cards area
+                        ZStack {
+                            // Green felt background
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(hex: "2d5016"))
+                                .shadow(radius: 5)
 
-                    // Cards
-                    if let currentHand = viewModel.currentHand {
-                        GeometryReader { geometry in
-                            HStack(spacing: 8) {
-                                ForEach(Array(currentHand.hand.cards.enumerated()), id: \.element.id) { index, card in
-                                    CardView(
-                                        card: card,
-                                        isSelected: viewModel.selectedIndices.contains(index)
-                                    ) {
-                                        viewModel.toggleCard(index)
-                                    }
-                                }
-                            }
-                            .simultaneousGesture(
-                                DragGesture(minimumDistance: 0)
-                                    .onChanged { value in
-                                        // Calculate which card is at this position
-                                        let cardWidth = (geometry.size.width - 32) / 5  // 8px spacing * 4
-                                        let xPosition = value.location.x
-                                        let cardIndex = Int(xPosition / (cardWidth + 8))
-
-                                        if !isDragging {
-                                            isDragging = true
-                                            dragStartLocation = value.location
-                                            swipedCardIndices = []
-                                        }
-
-                                        // Check if this is a valid card and we haven't toggled it yet
-                                        if cardIndex >= 0 && cardIndex < 5 && !swipedCardIndices.contains(cardIndex) {
-                                            // Check if we've moved enough to be a swipe
-                                            guard let startLocation = dragStartLocation else { return }
-                                            let dragDistance = hypot(
-                                                value.location.x - startLocation.x,
-                                                value.location.y - startLocation.y
-                                            )
-
-                                            // If we've moved more than 10 points OR already swiped other cards, toggle immediately
-                                            if dragDistance > 10 || !swipedCardIndices.isEmpty {
-                                                swipedCardIndices.insert(cardIndex)
-                                                viewModel.toggleCard(cardIndex)
+                            // Cards (fixed vertical position)
+                            if let currentHand = viewModel.currentHand {
+                                GeometryReader { cardGeometry in
+                                    HStack(spacing: 8) {
+                                        ForEach(Array(currentHand.hand.cards.enumerated()), id: \.element.id) { index, card in
+                                            CardView(
+                                                card: card,
+                                                isSelected: viewModel.selectedIndices.contains(index)
+                                            ) {
+                                                viewModel.toggleCard(index)
                                             }
                                         }
                                     }
-                                    .onEnded { _ in
-                                        // Reset state
-                                        swipedCardIndices = []
-                                        isDragging = false
-                                        dragStartLocation = nil
-                                    }
-                            )
+                                    .simultaneousGesture(
+                                        DragGesture(minimumDistance: 0)
+                                            .onChanged { value in
+                                                // Calculate which card is at this position
+                                                let cardWidth = (cardGeometry.size.width - 32) / 5  // 8px spacing * 4
+                                                let xPosition = value.location.x
+                                                let cardIndex = Int(xPosition / (cardWidth + 8))
+
+                                                if !isDragging {
+                                                    isDragging = true
+                                                    dragStartLocation = value.location
+                                                    swipedCardIndices = []
+                                                }
+
+                                                // Check if this is a valid card and we haven't toggled it yet
+                                                if cardIndex >= 0 && cardIndex < 5 && !swipedCardIndices.contains(cardIndex) {
+                                                    // Check if we've moved enough to be a swipe
+                                                    guard let startLocation = dragStartLocation else { return }
+                                                    let dragDistance = hypot(
+                                                        value.location.x - startLocation.x,
+                                                        value.location.y - startLocation.y
+                                                    )
+
+                                                    // If we've moved more than 10 points OR already swiped other cards, toggle immediately
+                                                    if dragDistance > 10 || !swipedCardIndices.isEmpty {
+                                                        swipedCardIndices.insert(cardIndex)
+                                                        viewModel.toggleCard(cardIndex)
+                                                    }
+                                                }
+                                            }
+                                            .onEnded { _ in
+                                                // Reset state
+                                                swipedCardIndices = []
+                                                isDragging = false
+                                                dragStartLocation = nil
+                                            }
+                                    )
+                                }
+                                .frame(height: 100)
+                                .padding(.horizontal)
+                            }
+
+                            // Dealt winner banner (overlay above cards)
+                            VStack {
+                                if viewModel.showDealtWinner, let handName = viewModel.dealtWinnerName {
+                                    DealtWinnerBanner(handName: handName)
+                                        .transition(AnyTransition.scale.combined(with: AnyTransition.opacity))
+                                        .padding(.top, 8)
+                                }
+                                Spacer()
+                            }
+
+                            // Feedback overlay (below cards)
+                            VStack {
+                                Spacer()
+                                if viewModel.showFeedback, let currentHand = viewModel.currentHand {
+                                    feedbackOverlay(for: currentHand)
+                                        .padding(.bottom, 8)
+                                }
+                            }
+
+                            // Swipe tip (below cards, shown initially)
+                            VStack {
+                                Spacer()
+                                if viewModel.showSwipeTip && !viewModel.showFeedback {
+                                    swipeTipOverlay
+                                        .padding(.bottom, 8)
+                                        .transition(.opacity)
+                                }
+                            }
                         }
-                        .frame(height: 100)
-                    }
+                        .frame(height: 220)
+                        .padding(.horizontal)
 
-                    // Feedback overlay
-                    if viewModel.showFeedback, let currentHand = viewModel.currentHand {
-                        feedbackOverlay(for: currentHand)
-                    }
-                }
-                .padding()
-            }
-            .frame(height: 220)
-            .padding(.horizontal)
-
-            // EV Options Table (fixed height, scrollable)
-            ZStack {
-                if viewModel.showFeedback, let currentHand = viewModel.currentHand {
-                    ScrollView {
-                        evOptionsTable(for: currentHand)
-                            .padding(.horizontal)
+                        // EV Options Table (scrollable)
+                        if viewModel.showFeedback, let currentHand = viewModel.currentHand {
+                            evOptionsTable(for: currentHand)
+                                .padding(.horizontal)
+                                .padding(.top, 8)
+                        }
                     }
                 }
+
+                // Action button (fixed at bottom)
+                actionButton
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
             }
-            .frame(height: 160)
-
-            Spacer()
-
-            // Action button (fixed at bottom)
-            actionButton
-                .padding(.horizontal)
-                .padding(.bottom, 8)
         }
     }
 
@@ -194,40 +210,41 @@ struct QuizPlayView: View {
     // MARK: - Feedback Overlay
 
     private func feedbackOverlay(for quizHand: QuizHand) -> some View {
-        // Convert canonical (sorted) indices to original deal order
-        let canonicalIndices = quizHand.strategyResult.bestHoldIndices
-        let originalIndices = quizHand.hand.canonicalIndicesToOriginal(canonicalIndices)
-        let bestCards = originalIndices.map { quizHand.hand.cards[$0] }
-
-        return VStack(spacing: 8) {
+        return VStack(spacing: 4) {
             Text(viewModel.isCorrect ? "Correct!" : "Incorrect")
                 .font(.headline)
                 .foregroundColor(.white)
 
-            // Best hold
-            HStack(spacing: 4) {
-                Text("Best:")
-                    .foregroundColor(.white.opacity(0.8))
-                if bestCards.isEmpty {
-                    Text("Draw all")
-                        .foregroundColor(.white.opacity(0.8))
-                        .italic()
-                } else {
-                    ForEach(bestCards, id: \.id) { card in
-                        Text(card.displayText)
-                            .foregroundColor(card.suit.color)
-                            .fontWeight(.bold)
-                    }
-                }
-                Text("EV: \(String(format: "%.3f", quizHand.strategyResult.bestEv))")
-                    .foregroundColor(.white.opacity(0.8))
+            if !viewModel.isCorrect && viewModel.evLost > 0 {
+                Text("EV Lost: \(String(format: "%.3f", viewModel.evLost))")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.9))
             }
-            .font(.caption)
         }
-        .padding()
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 8)
                 .fill(viewModel.isCorrect ? Color.green.opacity(0.9) : Color(hex: "FFA726").opacity(0.9))
+        )
+    }
+
+    // MARK: - Swipe Tip Overlay
+
+    private var swipeTipOverlay: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "hand.draw")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.9))
+            Text("Tip: Swipe to select cards")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.9))
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(hex: "667eea").opacity(0.85))
         )
     }
 
@@ -265,6 +282,7 @@ struct QuizPlayView: View {
                     let optionOriginalIndices = quizHand.hand.canonicalIndicesToOriginal(option.indices)
                     let optionCards = optionOriginalIndices.map { quizHand.hand.cards[$0] }
                     let isBest = index == 0
+                    let isUserSelection = viewModel.showFeedback && optionOriginalIndices.sorted() == quizHand.userHoldIndices.sorted()
 
                     HStack(spacing: 8) {
                         // Rank
@@ -299,7 +317,11 @@ struct QuizPlayView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(isBest ? Color(hex: "667eea").opacity(0.2) : Color(.systemGray6))
+                    .background(
+                        isUserSelection && !viewModel.isCorrect
+                            ? Color(hex: "FFA726").opacity(0.3)
+                            : (isBest ? Color(hex: "667eea").opacity(0.2) : Color(.systemGray6))
+                    )
                     .cornerRadius(6)
                 }
             }

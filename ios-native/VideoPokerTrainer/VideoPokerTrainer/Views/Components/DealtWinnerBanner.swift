@@ -7,10 +7,10 @@ struct DealtWinnerBanner: View {
 
     var body: some View {
         Text(handName)
-            .font(.system(size: 18, weight: .bold))
+            .font(.system(size: 14, weight: .bold))
             .foregroundColor(.white)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
             .background(
                 LinearGradient(
                     colors: [Color(hex: "FFD700"), Color(hex: "FFA500")],
@@ -18,12 +18,12 @@ struct DealtWinnerBanner: View {
                     endPoint: .trailing
                 )
             )
-            .cornerRadius(12)
+            .cornerRadius(8)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.white, lineWidth: 2)
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.white, lineWidth: 1.5)
             )
-            .shadow(color: .black.opacity(0.3), radius: 12, x: 0, y: 4)
+            .shadow(color: .black.opacity(0.2), radius: 6, x: 0, y: 2)
             .scaleEffect(scale)
             .opacity(opacity)
             .onAppear {

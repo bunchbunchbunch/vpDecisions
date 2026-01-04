@@ -24,6 +24,13 @@ class AnalyzerViewModel: ObservableObject {
             selectedCards.remove(at: index)
         } else if selectedCards.count < 5 {
             selectedCards.append(card)
+
+            // Auto-analyze when 5 cards are selected
+            if selectedCards.count == 5 {
+                Task {
+                    await analyze()
+                }
+            }
         }
     }
 

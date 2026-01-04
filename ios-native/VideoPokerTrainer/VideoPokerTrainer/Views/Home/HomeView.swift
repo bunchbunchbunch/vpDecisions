@@ -2,7 +2,7 @@ import SwiftUI
 
 enum AppScreen: Hashable {
     case quizStart
-    case quizPlay(paytableId: String, weakSpotsMode: Bool, closeDecisionsOnly: Bool)
+    case quizPlay(paytableId: String, weakSpotsMode: Bool, closeDecisionsOnly: Bool, quizSize: Int)
     case quizResults
     case mastery
     case analyzer
@@ -47,12 +47,13 @@ struct HomeView: View {
                         closeDecisionsOnly: $closeDecisionsOnly,
                         weakSpotsMode: $weakSpotsMode
                     )
-                case .quizPlay(let paytableId, let weakSpotsMode, let closeDecisionsOnly):
+                case .quizPlay(let paytableId, let weakSpotsMode, let closeDecisionsOnly, let quizSize):
                     QuizPlayView(
                         viewModel: QuizViewModel(
                             paytableId: paytableId,
                             weakSpotsMode: weakSpotsMode,
-                            closeDecisionsOnly: closeDecisionsOnly
+                            closeDecisionsOnly: closeDecisionsOnly,
+                            quizSize: quizSize
                         ),
                         navigationPath: $navigationPath
                     )
@@ -238,6 +239,7 @@ struct QuizStartView: View {
     @Binding var weakSpotsMode: Bool
 
     @State private var selectedPaytableId: String = PayTable.jacksOrBetter.id
+    @State private var selectedQuizSize: Int = 25
 
     var body: some View {
         VStack(spacing: 24) {
@@ -299,16 +301,80 @@ struct QuizStartView: View {
 
             Spacer()
 
-            // Start button
+            // Quiz size selection
+            VStack(spacing: 12) {
+                Text("Quiz Size")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                HStack(spacing: 12) {
+                    // 10 hands
+                    Button {
+                        selectedQuizSize = 10
+                    } label: {
+                        Text("10")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea"))
+                    .opacity(selectedQuizSize == 10 ? 1.0 : 0.5)
+                    .background(
+                        selectedQuizSize == 10 ? (weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea")).opacity(0.15) : Color.clear
+                    )
+                    .cornerRadius(10)
+
+                    // 25 hands (default)
+                    Button {
+                        selectedQuizSize = 25
+                    } label: {
+                        Text("25")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea"))
+                    .opacity(selectedQuizSize == 25 ? 1.0 : 0.5)
+                    .background(
+                        selectedQuizSize == 25 ? (weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea")).opacity(0.15) : Color.clear
+                    )
+                    .cornerRadius(10)
+
+                    // 100 hands
+                    Button {
+                        selectedQuizSize = 100
+                    } label: {
+                        Text("100")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea"))
+                    .opacity(selectedQuizSize == 100 ? 1.0 : 0.5)
+                    .background(
+                        selectedQuizSize == 100 ? (weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea")).opacity(0.15) : Color.clear
+                    )
+                    .cornerRadius(10)
+                }
+            }
+            .padding(.horizontal)
+
+            Spacer()
+
+            // Start Quiz button
             Button {
-                NSLog("🚀 QuizStartView: Starting quiz with paytable: %@ - %@", selectedPaytable.id, selectedPaytable.name)
+                NSLog("🚀 QuizStartView: Starting %d-hand quiz with paytable: %@ - %@", selectedQuizSize, selectedPaytable.id, selectedPaytable.name)
                 navigationPath.append(AppScreen.quizPlay(
                     paytableId: selectedPaytable.id,
                     weakSpotsMode: weakSpotsMode,
-                    closeDecisionsOnly: closeDecisionsOnly
+                    closeDecisionsOnly: closeDecisionsOnly,
+                    quizSize: selectedQuizSize
                 ))
             } label: {
-                Text("Start 25-Hand Quiz")
+                Text("Start Quiz")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()

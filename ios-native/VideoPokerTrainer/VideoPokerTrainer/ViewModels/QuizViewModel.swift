@@ -21,12 +21,14 @@ class QuizViewModel: ObservableObject {
     @Published var loadingProgress = 0
     @Published var isQuizComplete = false
     @Published var correctCount = 0
+    @Published var evLost: Double = 0
+    @Published var showSwipeTip = true
 
     // Dealt winner celebration
     @Published var showDealtWinner = false
     @Published var dealtWinnerName: String? = nil
 
-    let quizSize = 25
+    let quizSize: Int
     let paytableId: String
     let weakSpotsMode: Bool
     let closeDecisionsOnly: Bool
@@ -35,11 +37,12 @@ class QuizViewModel: ObservableObject {
     private let audioService = AudioService.shared
     private let hapticService = HapticService.shared
 
-    init(paytableId: String, weakSpotsMode: Bool = false, closeDecisionsOnly: Bool = false) {
+    init(paytableId: String, weakSpotsMode: Bool = false, closeDecisionsOnly: Bool = false, quizSize: Int = 25) {
         self.paytableId = paytableId
         self.weakSpotsMode = weakSpotsMode
         self.closeDecisionsOnly = closeDecisionsOnly
-        NSLog("📊 QuizViewModel initialized with paytableId: %@", paytableId)
+        self.quizSize = quizSize
+        NSLog("📊 QuizViewModel initialized with paytableId: %@, quizSize: %d", paytableId, quizSize)
     }
 
     var currentHand: QuizHand? {
@@ -139,6 +142,16 @@ class QuizViewModel: ObservableObject {
             holdIndices: correctHold
         )
 
+        // Calculate EV difference if wrong
+        evLost = 0
+        if !correct {
+            let userCanonicalHold = currentHand.hand.originalIndicesToCanonical(userHold)
+            let userCanonicalBitmask = Hand.bitmaskFromHoldIndices(userCanonicalHold)
+            if let userEv = currentHand.strategyResult.holdEvs[String(userCanonicalBitmask)] {
+                evLost = currentHand.strategyResult.bestEv - userEv
+            }
+        }
+
         isCorrect = correct
         if correct {
             correctCount += 1
@@ -153,6 +166,11 @@ class QuizViewModel: ObservableObject {
         }
 
         showFeedback = true
+
+        // Hide swipe tip after first submission
+        if showSwipeTip {
+            showSwipeTip = false
+        }
 
         // Save attempt to Supabase (async, don't wait)
         Task {
