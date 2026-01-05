@@ -8,6 +8,8 @@ enum AppScreen: Hashable {
     case analyzer
     case settings
     case weakSpots
+    case playStart
+    case playGame
 }
 
 struct HomeView: View {
@@ -75,6 +77,10 @@ struct HomeView: View {
                         closeDecisionsOnly: $closeDecisionsOnly,
                         weakSpotsMode: .constant(true)
                     )
+                case .playStart:
+                    PlayStartView(navigationPath: $navigationPath)
+                case .playGame:
+                    PlayView(navigationPath: $navigationPath)
                 }
             }
         }
@@ -144,7 +150,16 @@ struct HomeView: View {
 
     private var actionButtons: some View {
         VStack(spacing: 12) {
-            // Row 1: Quiz and Weak Spots
+            // Row 1: Play Mode (featured)
+            ActionButton(
+                title: "Play Mode",
+                icon: "suit.spade.fill",
+                color: Color(hex: "9b59b6")
+            ) {
+                navigationPath.append(AppScreen.playStart)
+            }
+
+            // Row 2: Quiz and Weak Spots
             HStack(spacing: 12) {
                 ActionButton(
                     title: "Quiz Mode",
@@ -165,7 +180,7 @@ struct HomeView: View {
                 }
             }
 
-            // Row 2: Progress and Analyzer
+            // Row 3: Progress and Analyzer
             HStack(spacing: 12) {
                 ActionButton(
                     title: "Progress",
@@ -184,7 +199,7 @@ struct HomeView: View {
                 }
             }
 
-            // Row 3: Settings (full width)
+            // Row 4: Settings (full width)
             ActionButton(
                 title: "Settings",
                 icon: "gearshape.fill",

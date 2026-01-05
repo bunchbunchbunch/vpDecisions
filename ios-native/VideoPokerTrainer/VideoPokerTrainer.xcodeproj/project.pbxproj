@@ -8,6 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		07D564051B4CBB23DFDF41B2 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC11F57C339351683A7A945E /* AuthViewModel.swift */; };
+		PLAY001A2B3C4D5E6F7A8B9C /* PlayModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY001A2B3C4D5E6F7A8B9D /* PlayModels.swift */; };
+		PLAY002A2B3C4D5E6F7A8B9C /* PlayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY002A2B3C4D5E6F7A8B9D /* PlayViewModel.swift */; };
+		PLAY003A2B3C4D5E6F7A8B9C /* PlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY003A2B3C4D5E6F7A8B9D /* PlayView.swift */; };
+		PLAY004A2B3C4D5E6F7A8B9C /* PlayStartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY004A2B3C4D5E6F7A8B9D /* PlayStartView.swift */; };
+		PLAY005A2B3C4D5E6F7A8B9C /* MiniCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY005A2B3C4D5E6F7A8B9D /* MiniCardView.swift */; };
+		PLAY006A2B3C4D5E6F7A8B9C /* MiniHandView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY006A2B3C4D5E6F7A8B9D /* MiniHandView.swift */; };
+		PLAY007A2B3C4D5E6F7A8B9C /* MultiHandGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY007A2B3C4D5E6F7A8B9D /* MultiHandGrid.swift */; };
 		0F16C32059109F21E351814D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */; };
 		0FDBAFBF64162DEDFD208EAD /* submit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BA6C1E385E108694180D1EBE /* submit.mp3 */; };
 		0FE869B3D3FA170517561BD1 /* PayTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */; };
@@ -54,6 +61,13 @@
 
 /* Begin PBXFileReference section */
 		03FD663D9F07AEE4E1829685 /* Hand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hand.swift; sourceTree = "<group>"; };
+		PLAY001A2B3C4D5E6F7A8B9D /* PlayModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayModels.swift; sourceTree = "<group>"; };
+		PLAY002A2B3C4D5E6F7A8B9D /* PlayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayViewModel.swift; sourceTree = "<group>"; };
+		PLAY003A2B3C4D5E6F7A8B9D /* PlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayView.swift; sourceTree = "<group>"; };
+		PLAY004A2B3C4D5E6F7A8B9D /* PlayStartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayStartView.swift; sourceTree = "<group>"; };
+		PLAY005A2B3C4D5E6F7A8B9D /* MiniCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniCardView.swift; sourceTree = "<group>"; };
+		PLAY006A2B3C4D5E6F7A8B9D /* MiniHandView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniHandView.swift; sourceTree = "<group>"; };
+		PLAY007A2B3C4D5E6F7A8B9D /* MultiHandGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiHandGrid.swift; sourceTree = "<group>"; };
 		0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticService.swift; sourceTree = "<group>"; };
 		05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = strategy_jacks_or_better_9_6.json; sourceTree = "<group>"; };
 		07C10505BC1A5BB00B74307D /* MasteryScore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryScore.swift; sourceTree = "<group>"; };
@@ -210,6 +224,7 @@
 				21C33530EF32164D02A03169 /* AnalyzerViewModel.swift */,
 				AC11F57C339351683A7A945E /* AuthViewModel.swift */,
 				12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */,
+				PLAY002A2B3C4D5E6F7A8B9D /* PlayViewModel.swift */,
 				8E6EA254B114941319176353 /* QuizViewModel.swift */,
 			);
 			path = ViewModels;
@@ -223,10 +238,23 @@
 				0C30F74B7D0F644A2250C0A5 /* Components */,
 				E81B72C9861D38C16DB52371 /* Home */,
 				1F927749606AFC7EF7480BE6 /* Mastery */,
+				PLAY005A2B3C4D5E6F7A8B9E /* Play */,
 				1823DBFE242CBA4C772FA17A /* Quiz */,
 				6FC640280B3760399F4A8BCC /* Settings */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		PLAY005A2B3C4D5E6F7A8B9E /* Play */ = {
+			isa = PBXGroup;
+			children = (
+				PLAY005A2B3C4D5E6F7A8B9D /* MiniCardView.swift */,
+				PLAY006A2B3C4D5E6F7A8B9D /* MiniHandView.swift */,
+				PLAY007A2B3C4D5E6F7A8B9D /* MultiHandGrid.swift */,
+				PLAY003A2B3C4D5E6F7A8B9D /* PlayView.swift */,
+				PLAY004A2B3C4D5E6F7A8B9D /* PlayStartView.swift */,
+			);
+			path = Play;
 			sourceTree = "<group>";
 		};
 		B098BF53AA85868FDD597FA1 /* Models */ = {
@@ -238,6 +266,7 @@
 				07C10505BC1A5BB00B74307D /* MasteryScore.swift */,
 				7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */,
 				EEC6E4EE5E71F8D44366E1EF /* PayTableData.swift */,
+				PLAY001A2B3C4D5E6F7A8B9D /* PlayModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -393,8 +422,15 @@
 				F302A693B13FFCB4A467F149 /* MasteryDashboardView.swift in Sources */,
 				BA434B4D8AC3FBDEB0229B26 /* MasteryScore.swift in Sources */,
 				7DD564D08C78F917E261534E /* MasteryViewModel.swift in Sources */,
+				PLAY005A2B3C4D5E6F7A8B9C /* MiniCardView.swift in Sources */,
+				PLAY006A2B3C4D5E6F7A8B9C /* MiniHandView.swift in Sources */,
+				PLAY007A2B3C4D5E6F7A8B9C /* MultiHandGrid.swift in Sources */,
 				0FE869B3D3FA170517561BD1 /* PayTable.swift in Sources */,
 				3B02824BED9C868617E34C34 /* PayTableData.swift in Sources */,
+				PLAY001A2B3C4D5E6F7A8B9C /* PlayModels.swift in Sources */,
+				PLAY002A2B3C4D5E6F7A8B9C /* PlayViewModel.swift in Sources */,
+				PLAY003A2B3C4D5E6F7A8B9C /* PlayView.swift in Sources */,
+				PLAY004A2B3C4D5E6F7A8B9C /* PlayStartView.swift in Sources */,
 				5D20F966F1DDA1E06819F3A2 /* QuizPlayView.swift in Sources */,
 				EB31AC2671CF70D41545F0FC /* QuizResultsView.swift in Sources */,
 				A6AFCD3472AC36B416F46E5E /* QuizViewModel.swift in Sources */,
