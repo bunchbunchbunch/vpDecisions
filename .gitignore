@@ -3,6 +3,9 @@
 .env.local
 .env.*.local
 
+# App Store review credentials
+APP_REVIEW_CREDENTIALS.md
+
 # Dependencies
 node_modules/
 
