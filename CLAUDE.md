@@ -150,6 +150,10 @@ enum AppError: LocalizedError {
 - `git reset` — Ask before any reset operations
 - `git merge` — Ask before merging
 
+**Permission is per-action, not per-session.** If I give you permission to commit/push once, that permission applies ONLY to that specific action. You must ask again for each subsequent commit or push.
+
+**Always commit AND push together.** Never just commit without pushing. When I approve a commit, always push it immediately after.
+
 **You MAY freely use** (no permission needed):
 - `git status`
 - `git diff`
