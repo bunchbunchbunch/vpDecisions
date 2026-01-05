@@ -22,33 +22,29 @@ struct PlayView: View {
                 // Top bar with balance and settings
                 topBar
 
-                // Main content
-                ScrollView {
-                    VStack(spacing: 12) {
-                        // Multi-hand grid (for 5/10 line modes)
-                        if viewModel.settings.lineCount != .one {
-                            MultiHandGrid(
-                                lineCount: viewModel.settings.lineCount,
-                                results: gridResults,
-                                phase: viewModel.phase,
-                                denomination: viewModel.settings.denomination.rawValue
-                            )
-                        }
+                // Multi-hand grid (for 5/10 line modes) - fixed
+                if viewModel.settings.lineCount != .one {
+                    MultiHandGrid(
+                        lineCount: viewModel.settings.lineCount,
+                        results: gridResults,
+                        phase: viewModel.phase,
+                        denomination: viewModel.settings.denomination.rawValue
+                    )
+                }
 
-                        // Cards area (main hand - last line)
-                        cardsArea(geometry: geometry)
+                // Cards area (main hand - last line) - fixed
+                cardsArea(geometry: geometry)
+                    .padding(.top, 12)
 
-                        // Result display (when in result phase)
-                        if viewModel.phase == .result {
-                            resultDisplay
-                        }
-
-                        // EV Options Table (when showing optimal feedback and in result phase)
-                        if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
-                            evOptionsTable
-                                .padding(.horizontal)
-                        }
+                // EV Options Table (scrollable when visible)
+                if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
+                    ScrollView {
+                        evOptionsTable
+                            .padding(.horizontal)
+                            .padding(.top, 12)
                     }
+                } else {
+                    Spacer()
                 }
 
                 // Bottom controls
@@ -60,11 +56,11 @@ struct PlayView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button("Quit") {
+                Button("Back") {
                     Task {
                         await viewModel.endSession()
                     }
-                    navigationPath.removeLast(navigationPath.count)
+                    dismiss()
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -206,91 +202,143 @@ struct PlayView: View {
 
                 Spacer()
 
-                // Cards
-                if !viewModel.dealtCards.isEmpty {
-                    GeometryReader { cardGeometry in
-                        HStack(spacing: 8) {
-                            ForEach(Array(viewModel.dealtCards.enumerated()), id: \.element.id) { index, card in
-                                let displayCard = displayCardForIndex(index)
-                                CardView(
-                                    card: displayCard,
-                                    isSelected: viewModel.selectedIndices.contains(index)
-                                ) {
-                                    if viewModel.phase == .dealt {
-                                        viewModel.toggleCard(index)
-                                    }
-                                }
-                            }
-                        }
-                        .simultaneousGesture(
-                            DragGesture(minimumDistance: 0)
-                                .onChanged { value in
-                                    guard viewModel.phase == .dealt else { return }
-
-                                    let cardWidth = (cardGeometry.size.width - 32) / 5
-                                    let xPosition = value.location.x
-                                    let cardIndex = Int(xPosition / (cardWidth + 8))
-
-                                    if !isDragging {
-                                        isDragging = true
-                                        dragStartLocation = value.location
-                                        swipedCardIndices = []
-                                    }
-
-                                    if cardIndex >= 0 && cardIndex < 5 && !swipedCardIndices.contains(cardIndex) {
-                                        guard let startLocation = dragStartLocation else { return }
-                                        let dragDistance = hypot(
-                                            value.location.x - startLocation.x,
-                                            value.location.y - startLocation.y
-                                        )
-
-                                        if dragDistance > 10 || !swipedCardIndices.isEmpty {
-                                            swipedCardIndices.insert(cardIndex)
-                                            viewModel.toggleCard(cardIndex)
+                // Cards with win badge overlay
+                ZStack(alignment: .bottom) {
+                    if !viewModel.dealtCards.isEmpty {
+                        GeometryReader { cardGeometry in
+                            HStack(spacing: 8) {
+                                ForEach(Array(viewModel.dealtCards.enumerated()), id: \.element.id) { index, card in
+                                    let displayCard = displayCardForIndex(index)
+                                    CardView(
+                                        card: displayCard,
+                                        isSelected: viewModel.selectedIndices.contains(index)
+                                    ) {
+                                        if viewModel.phase == .dealt {
+                                            viewModel.toggleCard(index)
                                         }
                                     }
                                 }
-                                .onEnded { _ in
-                                    swipedCardIndices = []
-                                    isDragging = false
-                                    dragStartLocation = nil
-                                }
-                        )
-                    }
-                    .frame(height: 100)
-                    .padding(.horizontal)
-                } else {
-                    // Empty card placeholders
-                    HStack(spacing: 8) {
-                        ForEach(0..<5, id: \.self) { _ in
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.white.opacity(0.1))
-                                .aspectRatio(2.5/3.5, contentMode: .fit)
+                            }
+                            .simultaneousGesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onChanged { value in
+                                        guard viewModel.phase == .dealt else { return }
+
+                                        let cardWidth = (cardGeometry.size.width - 32) / 5
+                                        let xPosition = value.location.x
+                                        let cardIndex = Int(xPosition / (cardWidth + 8))
+
+                                        if !isDragging {
+                                            isDragging = true
+                                            dragStartLocation = value.location
+                                            swipedCardIndices = []
+                                        }
+
+                                        if cardIndex >= 0 && cardIndex < 5 && !swipedCardIndices.contains(cardIndex) {
+                                            guard let startLocation = dragStartLocation else { return }
+                                            let dragDistance = hypot(
+                                                value.location.x - startLocation.x,
+                                                value.location.y - startLocation.y
+                                            )
+
+                                            if dragDistance > 10 || !swipedCardIndices.isEmpty {
+                                                swipedCardIndices.insert(cardIndex)
+                                                viewModel.toggleCard(cardIndex)
+                                            }
+                                        }
+                                    }
+                                    .onEnded { _ in
+                                        swipedCardIndices = []
+                                        isDragging = false
+                                        dragStartLocation = nil
+                                    }
+                            )
+                        }
+                    } else {
+                        // Empty card placeholders
+                        HStack(spacing: 8) {
+                            ForEach(0..<5, id: \.self) { _ in
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.white.opacity(0.1))
+                                    .aspectRatio(2.5/3.5, contentMode: .fit)
+                            }
                         }
                     }
-                    .frame(height: 100)
-                    .padding(.horizontal)
-                }
 
-                // Swipe tip overlay (when in dealt phase)
-                if viewModel.showSwipeTip && viewModel.phase == .dealt {
-                    swipeTipOverlay
-                        .padding(.top, 4)
-                        .transition(.opacity)
+                    // Win badge overlay (result phase only)
+                    if viewModel.phase == .result, let result = mainHandResult {
+                        mainHandWinBadge(result: result)
+                            .offset(y: 12)
+                    }
                 }
-
-                // Play feedback overlay (when in result phase with optimal feedback enabled)
-                if viewModel.phase == .result && viewModel.settings.showOptimalFeedback {
-                    playFeedbackOverlay
-                        .padding(.top, 4)
-                        .transition(.opacity)
-                }
+                .frame(height: 100)
+                .padding(.horizontal)
 
                 Spacer()
+
+                // Unified info line below cards
+                handInfoLine
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, 8)
             }
         }
-        .frame(height: (viewModel.showSwipeTip && viewModel.phase == .dealt) || (viewModel.phase == .result && viewModel.settings.showOptimalFeedback) ? 220 : 200)
+        .frame(height: 200)
         .padding(.horizontal)
+    }
+
+    // MARK: - Hand Info Line
+
+    @ViewBuilder
+    private var handInfoLine: some View {
+        HStack(spacing: 8) {
+            if viewModel.phase == .betting {
+                // Empty placeholder to maintain layout
+                Text(" ")
+                    .font(.caption)
+            } else if viewModel.phase == .dealt {
+                // Swipe tip during dealt phase
+                if viewModel.showSwipeTip {
+                    Image(systemName: "hand.draw")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                    Text("Swipe to select")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                } else {
+                    Text(" ")
+                        .font(.caption)
+                }
+            } else if viewModel.phase == .result {
+                // Result info: Feedback | Bet summary (win/no-win shown as badge on cards)
+
+                // Feedback (if enabled)
+                if viewModel.settings.showOptimalFeedback {
+                    if viewModel.showMistakeFeedback {
+                        Text("✗")
+                            .font(.caption)
+                            .foregroundColor(Color(hex: "FFA726"))
+                        if viewModel.userEvLost > 0 {
+                            Text("-\(String(format: "%.2f", viewModel.userEvLost)) EV")
+                                .font(.caption)
+                                .foregroundColor(Color(hex: "FFA726"))
+                        }
+                    } else {
+                        Text("✓")
+                            .font(.caption)
+                            .foregroundColor(.green)
+                    }
+
+                    Text("•")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.4))
+                }
+
+                // Bet summary
+                Text("\(formatCurrency(viewModel.settings.totalBetDollars))→\(formatCurrency(viewModel.totalPayoutDollars))")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.7))
+            }
+        }
     }
 
     private func displayCardForIndex(_ index: Int) -> Card {
@@ -312,47 +360,37 @@ struct PlayView: View {
         viewModel.lineResults.last
     }
 
-    // MARK: - Swipe Tip Overlay
+    // MARK: - Win Badge
 
-    private var swipeTipOverlay: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "hand.draw")
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.9))
-            Text("Tip: Swipe to select cards")
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.9))
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(hex: "667eea").opacity(0.85))
-        )
-    }
-
-    // MARK: - Play Feedback Overlay
-
-    private var playFeedbackOverlay: some View {
-        let isCorrect = !viewModel.showMistakeFeedback
-
-        return VStack(spacing: 4) {
-            Text(isCorrect ? "Correct!" : "Incorrect")
-                .font(.headline)
-                .foregroundColor(.white)
-
-            if !isCorrect && viewModel.userEvLost > 0 {
-                Text("EV Lost: \(String(format: "%.3f", viewModel.userEvLost))")
+    @ViewBuilder
+    private func mainHandWinBadge(result: PlayHandResult) -> some View {
+        if let handName = result.handName, result.payout > 0 {
+            // Winner badge (only show for wins, matching mini-hand behavior)
+            HStack(spacing: 6) {
+                Text(handName)
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.9))
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                Text("+\(formatCurrency(Double(result.payout) * viewModel.settings.denomination.rawValue))")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "FFD700"), Color(hex: "FFA500")],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+            )
+            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(isCorrect ? Color.green.opacity(0.9) : Color(hex: "FFA726").opacity(0.9))
-        )
+        // No badge shown for non-winning hands (matches mini-hand grid behavior)
     }
 
     // MARK: - EV Options Table
@@ -443,44 +481,6 @@ struct PlayView: View {
         }
     }
 
-    // MARK: - Result Display
-
-    private var resultDisplay: some View {
-        VStack(spacing: 8) {
-            if viewModel.isWinner {
-                // Winner!
-                VStack(spacing: 4) {
-                    Text("WINNER!")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color(hex: "f1c40f"))
-
-                    // Show the main hand's win name
-                    if let handName = mainHandResult?.handName {
-                        Text(handName)
-                            .font(.headline)
-                            .foregroundColor(.white)
-                    }
-
-                    Text("+\(formatCurrency(viewModel.totalPayoutDollars))")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
-                }
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: "27ae60").opacity(0.9))
-                )
-            } else {
-                Text("No Win")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .padding()
-            }
-        }
-        .padding(.horizontal)
-    }
 
     // MARK: - Bottom Controls
 

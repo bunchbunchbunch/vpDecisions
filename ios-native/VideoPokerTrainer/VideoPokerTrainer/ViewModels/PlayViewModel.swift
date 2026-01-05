@@ -116,7 +116,6 @@ class PlayViewModel: ObservableObject {
         phase = .dealt
 
         audioService.play(.cardSelect)
-        hapticService.trigger(.medium)
 
         // Check if dealt hand is already a winner
         evaluateDealtHandForBanner()
@@ -152,6 +151,9 @@ class PlayViewModel: ObservableObject {
         // Check for mistakes if feedback is enabled
         if settings.showOptimalFeedback {
             checkForMistake()
+            if showMistakeFeedback {
+                hapticService.trigger(.error)
+            }
         }
 
         // Perform draws for each line
@@ -173,7 +175,7 @@ class PlayViewModel: ObservableObject {
                 lineNumber: lineNum + 1,
                 finalHand: finalHand,
                 handName: evaluation.handName,
-                payout: payout * settings.coinsPerLine,
+                payout: payout,
                 winningIndices: evaluation.winningIndices
             )
             results.append(result)
@@ -201,7 +203,6 @@ class PlayViewModel: ObservableObject {
             }
 
             audioService.play(.correct)
-            hapticService.trigger(.success)
         } else {
             audioService.play(.submit)
         }
