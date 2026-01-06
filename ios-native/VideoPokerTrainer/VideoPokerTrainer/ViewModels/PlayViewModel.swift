@@ -597,21 +597,43 @@ class PlayViewModel: ObservableObject {
     }
 
     private func canMakeStraightWithWilds(_ cards: [Card], numDeuces: Int) -> Bool {
-        let nonDeuceRanks = cards.filter { $0.rank.rawValue != 2 }.map { $0.rank.rawValue }.sorted()
+        let nonDeuceRanks = cards.filter { $0.rank.rawValue != 2 }.map { $0.rank.rawValue }
         guard nonDeuceRanks.count + numDeuces == 5 else { return false }
 
-        // Check if ranks can form a straight with wilds
+        // If all cards are wild, any straight is possible
         if nonDeuceRanks.isEmpty { return true }
 
-        let minRank = nonDeuceRanks.min()!
-        let maxRank = nonDeuceRanks.max()!
+        // Try each possible straight window (A-low through 10-high)
+        // Straights: A-2-3-4-5 (1-5), 2-6, 3-7, 4-8, 5-9, 6-10, 7-J, 8-Q, 9-K, 10-A
+        let startRanks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-        // Check for gaps that can be filled
-        if maxRank - minRank > 4 && !(minRank <= 5 && maxRank == 14) {
-            return false
+        for low in startRanks {
+            let high = low + 4
+
+            // Check if ALL non-wild cards fit in this window
+            var allFit = true
+            for rank in nonDeuceRanks {
+                // For A-low straight (wheel), Ace (14) counts as 1
+                let effectiveRank = (low == 1 && rank == 14) ? 1 : rank
+                if effectiveRank < low || effectiveRank > high {
+                    allFit = false
+                    break
+                }
+            }
+
+            if allFit {
+                // Count unique ranks in this window to see how many wilds we need
+                let uniqueRanksInWindow = Set(nonDeuceRanks.map { rank -> Int in
+                    (low == 1 && rank == 14) ? 1 : rank
+                })
+                let neededWilds = 5 - uniqueRanksInWindow.count
+                if neededWilds <= numDeuces {
+                    return true
+                }
+            }
         }
 
-        return true
+        return false
     }
 
     private func canMakeStraightFlushWithWilds(_ cards: [Card], numDeuces: Int) -> Bool {

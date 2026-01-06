@@ -52,7 +52,23 @@ extension PayTable {
                 PayTableRow(handName: "Jacks or Better", payouts: [1, 2, 3, 4, 5])
             ]
 
-        case "deuces-wild-nsud", "deuces-wild-full-pay":
+        case "deuces-wild-nsud":
+            // NSUD (Not So Ugly Ducks): 800-200-25-16-10-4-4-3-2-1
+            return [
+                PayTableRow(handName: "Natural Royal", payouts: [250, 500, 750, 1000, 4000]),
+                PayTableRow(handName: "Four Deuces", payouts: [200, 400, 600, 800, 1000]),
+                PayTableRow(handName: "Wild Royal", payouts: [25, 50, 75, 100, 125]),
+                PayTableRow(handName: "Five of a Kind", payouts: [16, 32, 48, 64, 80]),
+                PayTableRow(handName: "Straight Flush", payouts: [10, 20, 30, 40, 50]),
+                PayTableRow(handName: "Four of a Kind", payouts: [4, 8, 12, 16, 20]),
+                PayTableRow(handName: "Full House", payouts: [4, 8, 12, 16, 20]),
+                PayTableRow(handName: "Flush", payouts: [3, 6, 9, 12, 15]),
+                PayTableRow(handName: "Straight", payouts: [2, 4, 6, 8, 10]),
+                PayTableRow(handName: "Three of a Kind", payouts: [1, 2, 3, 4, 5])
+            ]
+
+        case "deuces-wild-full-pay":
+            // Full Pay Deuces: 25-15-9-5-3-2-2-1
             return [
                 PayTableRow(handName: "Natural Royal", payouts: [250, 500, 750, 1000, 4000]),
                 PayTableRow(handName: "Four Deuces", payouts: [200, 400, 600, 800, 1000]),

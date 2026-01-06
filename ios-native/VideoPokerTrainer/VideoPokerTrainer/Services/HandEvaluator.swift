@@ -243,7 +243,7 @@ actor HandEvaluator {
         }
 
         // Straight Flush
-        if isStraightFlush(hand: hand) {
+        if isStraightFlushWithWilds(hand: hand, numDeuces: numDeuces) {
             return DealtWinnerResult(
                 isWinner: true,
                 handName: "Straight Flush",
@@ -283,7 +283,7 @@ actor HandEvaluator {
         }
 
         // Straight
-        if isStraight(hand: hand) {
+        if isStraightWithWilds(hand: hand, numDeuces: numDeuces) {
             return DealtWinnerResult(
                 isWinner: true,
                 handName: "Straight",
@@ -341,8 +341,58 @@ actor HandEvaluator {
         return false
     }
 
+    /// Check for straight in Deuces Wild where 2s are wild cards
+    private func isStraightWithWilds(hand: Hand, numDeuces: Int) -> Bool {
+        // Get non-wild ranks (exclude 2s)
+        let nonWildRanks = hand.cards
+            .filter { $0.rank.rawValue != 2 }
+            .map { $0.rank.rawValue }
+
+        // If all cards are wild, any straight is possible
+        if nonWildRanks.isEmpty {
+            return true
+        }
+
+        // Try each possible straight window (A-low through 10-high)
+        // Straights: A-2-3-4-5 (1-5), 2-6, 3-7, 4-8, 5-9, 6-10, 7-J, 8-Q, 9-K, 10-A
+        let startRanks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        for low in startRanks {
+            let high = low + 4
+
+            // Check if ALL non-wild cards fit in this window
+            var allFit = true
+            for rank in nonWildRanks {
+                // For A-low straight (wheel), Ace (14) counts as 1
+                let effectiveRank = (low == 1 && rank == 14) ? 1 : rank
+                if effectiveRank < low || effectiveRank > high {
+                    allFit = false
+                    break
+                }
+            }
+
+            if allFit {
+                // Count unique ranks in this window to see how many wilds we need
+                let uniqueRanksInWindow = Set(nonWildRanks.map { rank -> Int in
+                    (low == 1 && rank == 14) ? 1 : rank
+                })
+                let neededWilds = 5 - uniqueRanksInWindow.count
+                if neededWilds <= numDeuces {
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+
     private func isStraightFlush(hand: Hand) -> Bool {
         return isFlush(hand: hand) && isStraight(hand: hand)
+    }
+
+    /// Check for straight flush in Deuces Wild where 2s are wild cards
+    private func isStraightFlushWithWilds(hand: Hand, numDeuces: Int) -> Bool {
+        return isFlush(hand: hand) && isStraightWithWilds(hand: hand, numDeuces: numDeuces)
     }
 
     private func isRoyalFlush(hand: Hand) -> Bool {

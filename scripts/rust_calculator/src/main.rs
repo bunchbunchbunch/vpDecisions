@@ -39,7 +39,7 @@ type Hand = [Card; 5];
 enum GameType {
     JacksOrBetter,
     DoubleDoubleBonus,
-    DeucesWildNSUD,      // Not So Ugly Deuces (25-15-9-4-4-3-2-1)
+    DeucesWildNSUD,      // Not So Ugly Deuces (800-200-25-16-10-4-4-3-2-1)
     DeucesWildFullPay,   // Full Pay Deuces (25-15-9-5-3-2-2-1)
     BonusPoker85,        // Bonus Poker 8/5
     DoubleBonus107,      // Double Bonus 10/7
@@ -189,12 +189,20 @@ fn get_deuces_wild_payout(hand: &[Card], game_type: GameType) -> f64 {
 
     // Five of a Kind (4 of same rank + 1 wild, or 3 + 2 wilds, etc.)
     if max_count + num_deuces >= 5 {
-        return 15.0;
+        match game_type {
+            GameType::DeucesWildNSUD => return 16.0,
+            GameType::DeucesWildFullPay => return 15.0,
+            _ => return 15.0,
+        }
     }
 
     // Straight Flush (not royal)
     if is_flush && is_straight && !is_royal_wild(&non_deuces, num_deuces) {
-        return 9.0;
+        match game_type {
+            GameType::DeucesWildNSUD => return 10.0,
+            GameType::DeucesWildFullPay => return 9.0,
+            _ => return 9.0,
+        }
     }
 
     // Four of a Kind
