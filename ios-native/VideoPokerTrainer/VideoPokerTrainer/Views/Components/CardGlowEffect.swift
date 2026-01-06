@@ -24,7 +24,7 @@ struct CardGlowEffect: ViewModifier {
                     startPulsing()
                 }
             }
-            .onChange(of: isGlowing) { newValue in
+            .onChange(of: isGlowing) { _, newValue in
                 if newValue {
                     startPulsing()
                 } else {

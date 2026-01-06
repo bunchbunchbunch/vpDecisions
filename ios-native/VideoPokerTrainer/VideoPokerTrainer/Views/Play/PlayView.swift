@@ -4,6 +4,7 @@ struct PlayView: View {
     @StateObject private var viewModel = PlayViewModel()
     @Binding var navigationPath: NavigationPath
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var showSettings = false
     @State private var showStats = false
@@ -314,7 +315,7 @@ struct PlayView: View {
                 // Feedback (if enabled)
                 if viewModel.settings.showOptimalFeedback {
                     if viewModel.showMistakeFeedback {
-                        Text("✗")
+                        Text("✗ Incorrect Decision")
                             .font(.caption)
                             .foregroundColor(Color(hex: "FFA726"))
                         if viewModel.userEvLost > 0 {
@@ -324,7 +325,7 @@ struct PlayView: View {
                                 .foregroundColor(Color(hex: "FFA726"))
                         }
                     } else {
-                        Text("✓")
+                        Text("✓ Correct Decision")
                             .font(.caption)
                             .foregroundColor(.green)
                     }
@@ -489,7 +490,7 @@ struct PlayView: View {
                                         ForEach(optionCards, id: \.id) { card in
                                             Text(card.displayText)
                                                 .font(.subheadline)
-                                                .foregroundColor(card.suit.color)
+                                                .foregroundColor(card.suit.textColor(for: colorScheme))
                                                 .fontWeight(isBest ? .bold : .regular)
                                         }
                                     }

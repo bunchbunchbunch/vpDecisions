@@ -95,47 +95,42 @@ fn is_flush_wild(non_deuces: &[Card]) -> bool {
 }
 
 // Check for straight with wild cards
+// ALL non-deuce cards must fit within a single straight pattern
 fn is_straight_wild(non_deuces: &[Card], num_wilds: u8) -> bool {
-    if non_deuces.is_empty() { return true; }
+    if non_deuces.is_empty() { return true; } // All wilds can make any straight
 
     let mut ranks: Vec<u8> = non_deuces.iter().map(|c| c.rank()).collect();
     ranks.sort();
-    ranks.dedup(); // Remove duplicates (can't make straight with duplicate non-wilds)
 
-    if ranks.len() + (num_wilds as usize) < 5 { return false; }
+    // Check for duplicate ranks - can't make straight with pairs
+    for i in 1..ranks.len() {
+        if ranks[i] == ranks[i - 1] {
+            return false;
+        }
+    }
 
-    // Check if cards can form a straight with wilds filling gaps
-    // Need to check all possible 5-card windows
+    // Regular straights: ALL cards must fit within a 5-rank window
     for start in 0..=8u8 { // 0-8 for straights starting at 2-T
-        let mut needed = 0u8;
-        for r in start..start+5 {
-            if !ranks.contains(&r) {
-                needed += 1;
+        let end = start + 4;
+        // Check if ALL non-deuces fit in this window
+        if ranks.iter().all(|&r| r >= start && r <= end) {
+            // Count gaps that wilds need to fill
+            let gaps = (start..=end).filter(|r| !ranks.contains(r)).count() as u8;
+            if gaps == num_wilds {
+                return true;
             }
         }
-        if needed <= num_wilds { return true; }
     }
 
-    // Check wheel (A-2-3-4-5) - but 2s are wild, so check A-3-4-5 can be made
-    // Ace = rank 12, 3=1, 4=2, 5=3
-    let wheel_ranks = [1u8, 2, 3, 12]; // 3, 4, 5, A (2 is wild)
-    let mut needed = 0u8;
-    for &r in &wheel_ranks {
-        if !ranks.contains(&r) {
-            needed += 1;
+    // Wheel (A-2-3-4-5): ALL cards must be from {3,4,5,A} (ranks 1,2,3,12)
+    // Note: 2s are wild, so wheel positions are A,3,4,5
+    let wheel_ranks = [1u8, 2, 3, 12]; // 3, 4, 5, A
+    if ranks.iter().all(|&r| wheel_ranks.contains(&r)) {
+        let gaps = wheel_ranks.iter().filter(|&&r| !ranks.contains(&r)).count() as u8;
+        if gaps == num_wilds {
+            return true;
         }
     }
-    if needed <= num_wilds { return true; }
-
-    // Check royal (T-J-Q-K-A)
-    let royal_ranks = [8u8, 9, 10, 11, 12]; // T, J, Q, K, A
-    let mut needed = 0u8;
-    for &r in &royal_ranks {
-        if !ranks.contains(&r) {
-            needed += 1;
-        }
-    }
-    if needed <= num_wilds { return true; }
 
     false
 }
@@ -594,7 +589,98 @@ fn upload_batch(client: &reqwest::blocking::Client, batch: &[StrategyRow], supab
     Ok(())
 }
 
+// Helper to create a card from rank char and suit char
+fn card_from_str(rank: char, suit: char) -> Card {
+    let rank_val = match rank {
+        '2' => 0, '3' => 1, '4' => 2, '5' => 3, '6' => 4,
+        '7' => 5, '8' => 6, '9' => 7, 'T' | 't' => 8,
+        'J' | 'j' => 9, 'Q' | 'q' => 10, 'K' | 'k' => 11, 'A' | 'a' => 12,
+        _ => panic!("Invalid rank: {}", rank)
+    };
+    let suit_val = match suit {
+        'h' | 'H' => 0, 'd' | 'D' => 1, 'c' | 'C' => 2, 's' | 'S' => 3,
+        _ => panic!("Invalid suit: {}", suit)
+    };
+    Card(rank_val * 4 + suit_val)
+}
+
+fn test_hands() {
+    println!("=== Testing Deuces Wild NSUD Hands ===\n");
+    let game_type = GameType::DeucesWildNSUD;
+
+    // Test hand 1: Tc, Ac, 2d, 4d, 3s
+    // User says: "It thinks this is a straight when it is not"
+    println!("Hand 1: Tc, Ac, 2d, 4d, 3s");
+    let hand1: Hand = [
+        card_from_str('T', 'c'),
+        card_from_str('A', 'c'),
+        card_from_str('2', 'd'),
+        card_from_str('4', 'd'),
+        card_from_str('3', 's'),
+    ];
+    let payout1 = get_deuces_wild_payout(&hand1, game_type);
+    println!("  Payout: {} (should be 0 or 1 for three of a kind at best)", payout1);
+    let (best_hold1, best_ev1, _) = analyze_hand(&hand1, game_type);
+    println!("  Best hold mask: {} (binary: {:05b})", best_hold1, best_hold1);
+    println!("  Best EV: {:.4}", best_ev1);
+    println!();
+
+    // Test hand 2: Kh, 7d, 9h, Qd, Ts
+    // User says: Best play should be holding Kh, 9h, Qd, Ts (4 to a straight)
+    println!("Hand 2: Kh, 7d, 9h, Qd, Ts");
+    let hand2: Hand = [
+        card_from_str('K', 'h'),
+        card_from_str('7', 'd'),
+        card_from_str('9', 'h'),
+        card_from_str('Q', 'd'),
+        card_from_str('T', 's'),
+    ];
+    let (best_hold2, best_ev2, hold_evs2) = analyze_hand(&hand2, game_type);
+    println!("  Best hold mask: {} (binary: {:05b})", best_hold2, best_hold2);
+    println!("  Best EV: {:.4}", best_ev2);
+    // Show EV for holding K,9,Q,T (positions 0,2,3,4 = mask 11101 = 29)
+    let hold_k9qt = 0b11101u8; // K(0), 9(2), Q(3), T(4)
+    if let Some(ev) = hold_evs2.get(&hold_k9qt.to_string()) {
+        println!("  EV for holding K,9,Q,T (mask {}): {:.4}", hold_k9qt, ev);
+    }
+    // Show EV for draw all
+    if let Some(ev) = hold_evs2.get("0") {
+        println!("  EV for draw all (mask 0): {:.4}", ev);
+    }
+    println!();
+
+    // Test hand 3: 3d, Jc, 6s, Ad, 7h
+    // User says: Best play should be draw all, not hold Ad, 3d
+    println!("Hand 3: 3d, Jc, 6s, Ad, 7h");
+    let hand3: Hand = [
+        card_from_str('3', 'd'),
+        card_from_str('J', 'c'),
+        card_from_str('6', 's'),
+        card_from_str('A', 'd'),
+        card_from_str('7', 'h'),
+    ];
+    let (best_hold3, best_ev3, hold_evs3) = analyze_hand(&hand3, game_type);
+    println!("  Best hold mask: {} (binary: {:05b})", best_hold3, best_hold3);
+    println!("  Best EV: {:.4}", best_ev3);
+    // Show EV for holding A,3 suited (positions 0,3 = mask 01001 = 9)
+    let hold_a3 = 0b01001u8; // 3d(0), Ad(3)
+    if let Some(ev) = hold_evs3.get(&hold_a3.to_string()) {
+        println!("  EV for holding 3d,Ad (mask {}): {:.4}", hold_a3, ev);
+    }
+    // Show EV for draw all
+    if let Some(ev) = hold_evs3.get("0") {
+        println!("  EV for draw all (mask 0): {:.4}", ev);
+    }
+    println!();
+}
+
 fn main() {
+    // Check for test mode
+    if std::env::args().nth(1).as_deref() == Some("test") {
+        test_hands();
+        return;
+    }
+
     dotenv::from_path("../../.env").ok();
 
     let supabase_url = std::env::var("SUPABASE_URL").expect("SUPABASE_URL not set");

@@ -4,6 +4,7 @@ struct HandAnalyzerView: View {
     @StateObject private var viewModel = AnalyzerViewModel()
     @Environment(\.dismiss) private var dismiss
     @State private var selectedPaytableId: String = PayTable.jacksOrBetter.id
+    @State private var showPaytable = false
 
     let allSuits: [Suit] = [.hearts, .diamonds, .clubs, .spades]
     let allRanks: [Rank] = Rank.allCases
@@ -35,6 +36,9 @@ struct HandAnalyzerView: View {
             }
         }
         .navigationTitle("Hand Analyzer")
+        .sheet(isPresented: $showPaytable) {
+            AnalyzerPaytableSheet(paytable: viewModel.selectedPaytable, isPresented: $showPaytable)
+        }
     }
 
     // MARK: - Selected Cards Bar
@@ -132,11 +136,10 @@ struct HandAnalyzerView: View {
     // MARK: - Paytable Picker Bar
 
     private var paytablePickerBar: some View {
-        VStack(spacing: 8) {
+        HStack {
             Text("Game Type")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
 
             Picker("Paytable", selection: $selectedPaytableId) {
                 ForEach(PayTable.allPayTables, id: \.id) { paytable in
@@ -144,7 +147,7 @@ struct HandAnalyzerView: View {
                 }
             }
             .pickerStyle(.menu)
-            .onChange(of: selectedPaytableId) { newValue in
+            .onChange(of: selectedPaytableId) { _, newValue in
                 if let paytable = PayTable.allPayTables.first(where: { $0.id == newValue }) {
                     viewModel.selectedPaytable = paytable
                 }
@@ -152,8 +155,27 @@ struct HandAnalyzerView: View {
             .onAppear {
                 selectedPaytableId = viewModel.selectedPaytable.id
             }
+
+            Spacer()
+
+            Button {
+                showPaytable = true
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "list.bullet.rectangle")
+                        .font(.caption)
+                    Text("Paytable")
+                        .font(.caption)
+                }
+                .foregroundColor(Color(hex: "3498db"))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color(hex: "3498db").opacity(0.15))
+                .cornerRadius(6)
+            }
         }
-        .padding()
+        .padding(.horizontal)
+        .padding(.vertical, 10)
         .background(Color(.systemBackground))
     }
 
@@ -281,6 +303,77 @@ struct HandAnalyzerView: View {
             .padding()
         }
         .background(Color(.systemBackground))
+    }
+}
+
+// MARK: - Paytable Sheet
+
+struct AnalyzerPaytableSheet: View {
+    let paytable: PayTable
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    Text(paytable.name)
+                        .font(.headline)
+                        .padding(.top)
+
+                    // Paytable rows
+                    VStack(spacing: 4) {
+                        // Header
+                        HStack {
+                            Text("Hand")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            ForEach(1...5, id: \.self) { coins in
+                                Text("\(coins)")
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .frame(width: 45, alignment: .trailing)
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(8)
+
+                        // Rows
+                        ForEach(paytable.rows, id: \.handName) { row in
+                            HStack {
+                                Text(row.handName)
+                                    .font(.subheadline)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                                ForEach(Array(row.payouts.enumerated()), id: \.offset) { index, payout in
+                                    Text("\(payout)")
+                                        .font(.subheadline)
+                                        .fontWeight(index == 4 ? .bold : .regular)
+                                        .frame(width: 45, alignment: .trailing)
+                                }
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(6)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+            }
+            .navigationTitle("Paytable")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        isPresented = false
+                    }
+                }
+            }
+        }
     }
 }
 

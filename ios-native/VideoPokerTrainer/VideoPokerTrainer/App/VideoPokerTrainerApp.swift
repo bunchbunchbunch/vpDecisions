@@ -31,8 +31,6 @@ struct VideoPokerTrainerApp: App {
         // Extract tokens from URL fragment
         if let fragment = url.fragment {
             let params = fragment.components(separatedBy: "&")
-            var accessToken: String?
-            var refreshToken: String?
             var type: String?
 
             for param in params {
@@ -41,11 +39,8 @@ struct VideoPokerTrainerApp: App {
                     let key = keyValue[0]
                     let value = keyValue[1]
 
-                    if key == "access_token" {
-                        accessToken = value
-                    } else if key == "refresh_token" {
-                        refreshToken = value
-                    } else if key == "type" {
+                    // Tokens are handled automatically by Supabase SDK
+                    if key == "type" {
                         type = value
                     }
                 }

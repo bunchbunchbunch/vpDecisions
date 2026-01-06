@@ -12,8 +12,13 @@ struct Hand: Identifiable {
     /// Generate canonical key for database lookup
     /// Matches the React Native implementation exactly
     var canonicalKey: String {
-        // Sort by rank value
-        let sorted = cards.sorted { $0.rank.rawValue < $1.rank.rawValue }
+        // Sort by rank value, then by suit for deterministic ordering
+        let sorted = cards.sorted {
+            if $0.rank.rawValue != $1.rank.rawValue {
+                return $0.rank.rawValue < $1.rank.rawValue
+            }
+            return $0.suit.rawValue < $1.suit.rawValue
+        }
 
         // Map suits to canonical letters (a, b, c, d) in order of appearance
         var suitMap: [Suit: String] = [:]
@@ -71,7 +76,12 @@ struct Hand: Identifiable {
     /// The database stores hold bitmasks in sorted order, but we display cards in deal order
     func canonicalIndicesToOriginal(_ canonicalIndices: [Int]) -> [Int] {
         // Get the sorted version of the hand (same sorting used for canonical key)
-        let sorted = cards.sorted { $0.rank.rawValue < $1.rank.rawValue }
+        let sorted = cards.sorted {
+            if $0.rank.rawValue != $1.rank.rawValue {
+                return $0.rank.rawValue < $1.rank.rawValue
+            }
+            return $0.suit.rawValue < $1.suit.rawValue
+        }
 
         // For each canonical index, find the card in sorted order,
         // then find that card's position in the original deal order
@@ -86,8 +96,13 @@ struct Hand: Identifiable {
     /// Convert indices from original deal order to canonical (sorted) order
     /// Needed when comparing user selection against database best hold
     func originalIndicesToCanonical(_ originalIndices: [Int]) -> [Int] {
-        // Get the sorted version of the hand
-        let sorted = cards.sorted { $0.rank.rawValue < $1.rank.rawValue }
+        // Get the sorted version of the hand (same sorting used for canonical key)
+        let sorted = cards.sorted {
+            if $0.rank.rawValue != $1.rank.rawValue {
+                return $0.rank.rawValue < $1.rank.rawValue
+            }
+            return $0.suit.rawValue < $1.suit.rawValue
+        }
 
         // For each original index, find the card in the original hand,
         // then find that card's position in the sorted order

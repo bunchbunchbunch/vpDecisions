@@ -22,17 +22,12 @@ struct HomeView: View {
     }
     @State private var closeDecisionsOnly = false
     @State private var weakSpotsMode = false
+    @State private var showInDevelopment = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack(spacing: 20) {
-                    // User profile bar
-                    userProfileBar
-
-                    // Overall mastery card
-                    masteryCard
-
                     // Main action buttons
                     actionButtons
                 }
@@ -40,6 +35,11 @@ struct HomeView: View {
             }
             .navigationTitle("VP Trainer")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    accountMenu
+                }
+            }
             .navigationDestination(for: AppScreen.self) { screen in
                 switch screen {
                 case .quizStart:
@@ -88,64 +88,41 @@ struct HomeView: View {
 
     // MARK: - Subviews
 
-    private var userProfileBar: some View {
-        HStack {
-            // Avatar placeholder
-            Circle()
-                .fill(Color(hex: "667eea").opacity(0.2))
-                .frame(width: 40, height: 40)
-                .overlay(
-                    Text(String(authViewModel.currentUser?.email?.prefix(1).uppercased() ?? "?"))
-                        .font(.headline)
-                        .foregroundColor(Color(hex: "667eea"))
-                )
-
-            VStack(alignment: .leading) {
-                Text(authViewModel.currentUser?.email ?? "User")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+    private var accountMenu: some View {
+        Menu {
+            // User email (non-interactive label)
+            Section {
+                Label(authViewModel.currentUser?.email ?? "User", systemImage: "envelope")
             }
 
-            Spacer()
+            // Settings
+            Button {
+                navigationPath.append(AppScreen.settings)
+            } label: {
+                Label("Settings", systemImage: "gearshape")
+            }
 
-            Button("Sign Out") {
+            Divider()
+
+            // Sign Out
+            Button(role: .destructive) {
                 Task {
                     await authViewModel.signOut()
                 }
+            } label: {
+                Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
             }
-            .font(.caption)
-            .foregroundColor(.secondary)
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 5)
-    }
-
-    private var masteryCard: some View {
-        Button {
-            navigationPath.append(AppScreen.mastery)
         } label: {
-            VStack(spacing: 8) {
-                Text("Overall Mastery")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                Text("--")
-                    .font(.system(size: 48, weight: .bold))
-                    .foregroundColor(Color(hex: "667eea"))
-
-                Text("Tap to view progress")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 24)
-            .background(Color(.systemBackground))
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.05), radius: 5)
+            Circle()
+                .fill(Color(hex: "667eea").opacity(0.2))
+                .frame(width: 36, height: 36)
+                .overlay(
+                    Text(String(authViewModel.currentUser?.email?.prefix(1).uppercased() ?? "?"))
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(Color(hex: "667eea"))
+                )
         }
-        .buttonStyle(.plain)
     }
 
     private var actionButtons: some View {
@@ -159,7 +136,7 @@ struct HomeView: View {
                 navigationPath.append(AppScreen.playStart)
             }
 
-            // Row 2: Quiz and Weak Spots
+            // Row 2: Quiz and Analyzer
             HStack(spacing: 12) {
                 ActionButton(
                     title: "Quiz Mode",
@@ -171,26 +148,6 @@ struct HomeView: View {
                 }
 
                 ActionButton(
-                    title: "Weak Spots",
-                    icon: "flame.fill",
-                    color: Color(hex: "e74c3c")
-                ) {
-                    weakSpotsMode = true
-                    navigationPath.append(AppScreen.weakSpots)
-                }
-            }
-
-            // Row 3: Progress and Analyzer
-            HStack(spacing: 12) {
-                ActionButton(
-                    title: "Progress",
-                    icon: "chart.bar.fill",
-                    color: Color(hex: "27ae60")
-                ) {
-                    navigationPath.append(AppScreen.mastery)
-                }
-
-                ActionButton(
                     title: "Analyzer",
                     icon: "magnifyingglass",
                     color: Color(hex: "3498db")
@@ -199,13 +156,63 @@ struct HomeView: View {
                 }
             }
 
-            // Row 4: Settings (full width)
-            ActionButton(
-                title: "Settings",
-                icon: "gearshape.fill",
-                color: Color(hex: "95a5a6")
-            ) {
-                navigationPath.append(AppScreen.settings)
+            // In Development Section
+            inDevelopmentSection
+        }
+    }
+
+    private var inDevelopmentSection: some View {
+        VStack(spacing: 12) {
+            // Collapsible header
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    showInDevelopment.toggle()
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "hammer.fill")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    Text("In Development")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+
+                    Spacer()
+
+                    Image(systemName: showInDevelopment ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+            }
+            .buttonStyle(.plain)
+
+            // Expandable content
+            if showInDevelopment {
+                HStack(spacing: 12) {
+                    ActionButton(
+                        title: "Weak Spots",
+                        icon: "flame.fill",
+                        color: Color(hex: "e74c3c")
+                    ) {
+                        weakSpotsMode = true
+                        navigationPath.append(AppScreen.weakSpots)
+                    }
+
+                    ActionButton(
+                        title: "Progress",
+                        icon: "chart.bar.fill",
+                        color: Color(hex: "27ae60")
+                    ) {
+                        navigationPath.append(AppScreen.mastery)
+                    }
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
     }
@@ -294,7 +301,7 @@ struct QuizStartView: View {
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
-                    .onChange(of: selectedPaytableId) { newValue in
+                    .onChange(of: selectedPaytableId) { _, newValue in
                         NSLog("🎯 Picker changed to ID: %@", newValue)
                         if let paytable = PayTable.allPayTables.first(where: { $0.id == newValue }) {
                             selectedPaytable = paytable

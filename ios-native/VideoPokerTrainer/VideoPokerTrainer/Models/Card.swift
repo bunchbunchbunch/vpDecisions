@@ -22,6 +22,14 @@ enum Suit: String, CaseIterable, Codable {
         }
     }
 
+    /// Adaptive color for text display - black suits show as white in dark mode
+    func textColor(for colorScheme: ColorScheme) -> Color {
+        switch self {
+        case .hearts, .diamonds: return Color(hex: "e74c3c")
+        case .clubs, .spades: return colorScheme == .dark ? .white : Color(hex: "2c3e50")
+        }
+    }
+
     var code: String {
         switch self {
         case .hearts: return "H"
