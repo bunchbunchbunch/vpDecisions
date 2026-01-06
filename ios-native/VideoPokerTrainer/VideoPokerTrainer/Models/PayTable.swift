@@ -6,8 +6,8 @@ struct PayTable: Identifiable, Hashable {
 
     static let jacksOrBetter = PayTable(id: "jacks-or-better-9-6", name: "Jacks or Better 9/6")
     static let doubleDoubleBonus = PayTable(id: "double-double-bonus-9-6", name: "Double Double Bonus 9/6")
+    static let tripleDoubleBonus = PayTable(id: "triple-double-bonus-9-6", name: "Triple Double Bonus 9/6")
     static let deucesWildNSUD = PayTable(id: "deuces-wild-nsud", name: "Deuces Wild NSUD")
-    static let deucesWildFullPay = PayTable(id: "deuces-wild-full-pay", name: "Deuces Wild Full Pay")
     static let bonusPoker85 = PayTable(id: "bonus-poker-8-5", name: "Bonus Poker 8/5")
     static let doubleBonus107 = PayTable(id: "double-bonus-10-7", name: "Double Bonus 10/7")
 
@@ -15,8 +15,8 @@ struct PayTable: Identifiable, Hashable {
     static let allPayTables: [PayTable] = [
         .jacksOrBetter,
         .doubleDoubleBonus,
+        .tripleDoubleBonus,
         .deucesWildNSUD,
-        .deucesWildFullPay,
         .bonusPoker85,
         .doubleBonus107
     ]
