@@ -31,16 +31,14 @@ class QuizViewModel: ObservableObject {
     let quizSize: Int
     let paytableId: String
     let weakSpotsMode: Bool
-    let closeDecisionsOnly: Bool
 
     private var handStartTime: Date?
     private let audioService = AudioService.shared
     private let hapticService = HapticService.shared
 
-    init(paytableId: String, weakSpotsMode: Bool = false, closeDecisionsOnly: Bool = false, quizSize: Int = 25) {
+    init(paytableId: String, weakSpotsMode: Bool = false, quizSize: Int = 25) {
         self.paytableId = paytableId
         self.weakSpotsMode = weakSpotsMode
-        self.closeDecisionsOnly = closeDecisionsOnly
         self.quizSize = quizSize
         NSLog("📊 QuizViewModel initialized with paytableId: %@, quizSize: %d", paytableId, quizSize)
     }
@@ -77,17 +75,6 @@ class QuizViewModel: ObservableObject {
                 if let result = try await StrategyService.shared.lookup(hand: hand, paytableId: paytableId) {
                     if foundHands.count == 0 {
                         NSLog("🔍 First hand lookup using paytableId: %@, hand: %@", paytableId, hand.canonicalKey)
-                    }
-                    // Check if this hand meets our criteria
-                    if closeDecisionsOnly {
-                        let options = result.sortedHoldOptions
-                        if options.count >= 2 {
-                            let evGap = options[0].ev - options[1].ev
-                            // Only include hands where top 2 options are within 0.1 EV
-                            if evGap > 0.1 {
-                                continue
-                            }
-                        }
                     }
 
                     let quizHand = QuizHand(hand: hand, strategyResult: result)

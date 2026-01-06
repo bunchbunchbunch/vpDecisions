@@ -2,7 +2,7 @@ import SwiftUI
 
 enum AppScreen: Hashable {
     case quizStart
-    case quizPlay(paytableId: String, weakSpotsMode: Bool, closeDecisionsOnly: Bool, quizSize: Int)
+    case quizPlay(paytableId: String, weakSpotsMode: Bool, quizSize: Int)
     case quizResults
     case mastery
     case analyzer
@@ -20,7 +20,6 @@ struct HomeView: View {
             NSLog("🏠 HomeView selectedPaytable changed to: %@ - %@", selectedPaytable.id, selectedPaytable.name)
         }
     }
-    @State private var closeDecisionsOnly = false
     @State private var weakSpotsMode = false
     @State private var showInDevelopment = false
 
@@ -47,15 +46,13 @@ struct HomeView: View {
                     QuizStartView(
                         navigationPath: $navigationPath,
                         selectedPaytable: $selectedPaytable,
-                        closeDecisionsOnly: $closeDecisionsOnly,
                         weakSpotsMode: $weakSpotsMode
                     )
-                case .quizPlay(let paytableId, let weakSpotsMode, let closeDecisionsOnly, let quizSize):
+                case .quizPlay(let paytableId, let weakSpotsMode, let quizSize):
                     QuizPlayView(
                         viewModel: QuizViewModel(
                             paytableId: paytableId,
                             weakSpotsMode: weakSpotsMode,
-                            closeDecisionsOnly: closeDecisionsOnly,
                             quizSize: quizSize
                         ),
                         navigationPath: $navigationPath
@@ -75,7 +72,6 @@ struct HomeView: View {
                     QuizStartView(
                         navigationPath: $navigationPath,
                         selectedPaytable: $selectedPaytable,
-                        closeDecisionsOnly: $closeDecisionsOnly,
                         weakSpotsMode: .constant(true)
                     )
                 case .playStart:
@@ -280,7 +276,6 @@ struct ActionButton: View {
 struct QuizStartView: View {
     @Binding var navigationPath: NavigationPath
     @Binding var selectedPaytable: PayTable
-    @Binding var closeDecisionsOnly: Bool
     @Binding var weakSpotsMode: Bool
 
     @State private var selectedPaytableId: String = PayTable.jacksOrBetter.id
@@ -344,12 +339,6 @@ struct QuizStartView: View {
                 .onAppear {
                     selectedPaytableId = selectedPaytable.id
                 }
-
-                // Close decisions toggle
-                Toggle("Close Decisions Only", isOn: $closeDecisionsOnly)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
             }
             .padding(.horizontal)
 
@@ -424,7 +413,6 @@ struct QuizStartView: View {
                 navigationPath.append(AppScreen.quizPlay(
                     paytableId: selectedPaytable.id,
                     weakSpotsMode: weakSpotsMode,
-                    closeDecisionsOnly: closeDecisionsOnly,
                     quizSize: selectedQuizSize
                 ))
             } label: {
