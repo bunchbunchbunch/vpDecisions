@@ -11,6 +11,9 @@ struct HandAnalyzerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Compact gradient header
+            analyzerHeader
+
             // Paytable picker at top
             paytablePickerBar
 
@@ -35,9 +38,29 @@ struct HandAnalyzerView: View {
                 bottomErrorBar(error: error)
             }
         }
-        .navigationTitle("Hand Analyzer")
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showPaytable) {
             AnalyzerPaytableSheet(paytable: viewModel.selectedPaytable, isPresented: $showPaytable)
+        }
+    }
+
+    // MARK: - Analyzer Header
+
+    private var analyzerHeader: some View {
+        ZStack {
+            AppTheme.Gradients.blue
+                .frame(height: 70)
+
+            HStack(spacing: 10) {
+                Image(systemName: "magnifyingglass")
+                    .font(.title2)
+                    .foregroundColor(.white)
+
+                Text("Hand Analyzer")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
         }
     }
 

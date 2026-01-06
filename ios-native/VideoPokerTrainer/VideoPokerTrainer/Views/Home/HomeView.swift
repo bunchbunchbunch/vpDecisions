@@ -28,13 +28,14 @@ struct HomeView: View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Branded header
+                    brandedHeader
+
                     // Main action buttons
                     actionButtons
                 }
                 .padding()
             }
-            .navigationTitle("VP Trainer")
-            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     accountMenu
@@ -87,6 +88,19 @@ struct HomeView: View {
     }
 
     // MARK: - Subviews
+
+    private var brandedHeader: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("VP Trainer")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundStyle(AppTheme.Gradients.primary)
+            }
+            Spacer()
+        }
+        .padding(.top, 8)
+    }
 
     private var accountMenu: some View {
         Menu {
@@ -228,25 +242,34 @@ struct ActionButton: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(color)
+            VStack(spacing: 10) {
+                // Icon with background circle
+                ZStack {
+                    Circle()
+                        .fill(color.opacity(0.12))
+                        .frame(width: AppTheme.Layout.iconSizeMedium, height: AppTheme.Layout.iconSizeMedium)
+
+                    Image(systemName: icon)
+                        .font(.title2)
+                        .foregroundColor(color)
+                }
 
                 Text(title)
                     .font(.subheadline)
-                    .fontWeight(.medium)
+                    .fontWeight(.semibold)
                     .foregroundColor(.primary)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
-            .background(Color(.systemBackground))
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(color.opacity(0.3), lineWidth: 2)
+            .padding(.vertical, 24)
+            .background(
+                RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusLarge)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: color.opacity(0.15), radius: 8, y: 4)
             )
-            .shadow(color: .black.opacity(0.05), radius: 5)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusLarge)
+                    .stroke(color.opacity(0.15), lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
     }
@@ -267,19 +290,28 @@ struct QuizStartView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            // Title
-            VStack(spacing: 8) {
-                Image(systemName: weakSpotsMode ? "flame.fill" : "target")
-                    .font(.system(size: 50))
-                    .foregroundColor(weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea"))
+            // Gradient header card
+            ZStack {
+                RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusXL)
+                    .fill(weakSpotsMode ? AppTheme.Gradients.red : AppTheme.Gradients.primary)
+                    .frame(height: 140)
 
-                Text(weakSpotsMode ? "Weak Spots Mode" : "Quiz Mode")
-                    .font(.title)
-                    .fontWeight(.bold)
+                VStack(spacing: 8) {
+                    Image(systemName: weakSpotsMode ? "flame.fill" : "target")
+                        .font(.system(size: 44))
+                        .foregroundColor(.white)
 
-                Text("Test your video poker strategy")
-                    .foregroundColor(.secondary)
+                    Text(weakSpotsMode ? "Weak Spots Mode" : "Quiz Mode")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+
+                    Text("Test your video poker strategy")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.85))
+                }
             }
+            .padding(.horizontal)
 
             Spacer()
 

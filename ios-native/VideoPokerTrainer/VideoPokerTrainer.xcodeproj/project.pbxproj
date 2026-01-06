@@ -35,6 +35,7 @@
 		7F91767A20F844B17A466A75 /* Hand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03FD663D9F07AEE4E1829685 /* Hand.swift */; };
 		880BF76C2AAB5FA877AEFF8A /* ResetPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D795BF36AA1D7A6ED28A80 /* ResetPasswordView.swift */; };
 		8A9A3CE99246EFF4C4EF47AF /* CardGlowEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */; };
+		THEME001A2B3C4D5E6F7A8B9C /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = THEME001A2B3C4D5E6F7A8B9D /* AppTheme.swift */; };
 		8E430B3CF10EA07783EAC4E5 /* dealt-winner.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 192AEE07411E5DBD2F6F8F0D /* dealt-winner.mp3 */; };
 		973BBB083DDAACDE2DD8DBBB /* card-select.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 52626371C1AE90FB294E4C82 /* card-select.mp3 */; };
 		99CB3FBBAF8F43A1B2761404 /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEFE93106067A8CC6C7D44E0 /* AudioService.swift */; };
@@ -106,6 +107,7 @@
 		DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VideoPokerTrainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPokerTrainerApp.swift; sourceTree = "<group>"; };
 		E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardGlowEffect.swift; sourceTree = "<group>"; };
+		THEME001A2B3C4D5E6F7A8B9D /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		EEC6E4EE5E71F8D44366E1EF /* PayTableData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayTableData.swift; sourceTree = "<group>"; };
 		EEFE93106067A8CC6C7D44E0 /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
 		EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpacedRepetitionService.swift; sourceTree = "<group>"; };
@@ -128,6 +130,7 @@
 		0C30F74B7D0F644A2250C0A5 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				THEME001A2B3C4D5E6F7A8B9D /* AppTheme.swift */,
 				E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */,
 				6FCBC58743A80FDACE84FB39 /* CardView.swift */,
 				3BD0AFFC99AFF87B9DEFC49E /* CompactPayTableView.swift */,
@@ -404,6 +407,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EE6CCDF2456A20BA420ACF8D /* AnalyzerViewModel.swift in Sources */,
+				THEME001A2B3C4D5E6F7A8B9C /* AppTheme.swift in Sources */,
 				99CB3FBBAF8F43A1B2761404 /* AudioService.swift in Sources */,
 				536F632E405D093299FE5B59 /* AuthView.swift in Sources */,
 				07D564051B4CBB23DFDF41B2 /* AuthViewModel.swift in Sources */,

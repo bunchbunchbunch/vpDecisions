@@ -6,21 +6,29 @@ struct PlayStartView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Title section
-            VStack(spacing: 8) {
-                Image(systemName: "suit.spade.fill")
-                    .font(.system(size: 44))
-                    .foregroundColor(Color(hex: "9b59b6"))
+            // Gradient header card
+            ZStack {
+                RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusXL)
+                    .fill(AppTheme.Gradients.purple)
+                    .frame(height: 140)
 
-                Text("Play Mode")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                VStack(spacing: 8) {
+                    Image(systemName: "suit.spade.fill")
+                        .font(.system(size: 44))
+                        .foregroundColor(.white)
 
-                Text("Simulate real video poker")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    Text("Play Mode")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+
+                    Text("Simulate real video poker")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.85))
+                }
             }
-            .padding(.top, 24)
+            .padding(.horizontal)
+            .padding(.top, 16)
             .padding(.bottom, 20)
 
             // Settings section
