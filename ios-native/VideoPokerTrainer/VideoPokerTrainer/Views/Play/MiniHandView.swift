@@ -75,7 +75,7 @@ struct MiniHandView: View {
                 Capsule()
                     .fill(
                         LinearGradient(
-                            colors: [Color(hex: "FFD700"), Color(hex: "FFA500")],
+                            colors: winBadgeColors(for: handName),
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -84,6 +84,44 @@ struct MiniHandView: View {
             .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
         }
         .padding(.bottom, -8)
+    }
+
+    private func winBadgeColors(for handName: String?) -> [Color] {
+        guard let handName = handName else {
+            return [Color(hex: "FFD700"), Color(hex: "FFA500")]
+        }
+        switch handName {
+        case "Jacks or Better", "Tens or Better":
+            // Light Purple
+            return [Color(hex: "B388FF"), Color(hex: "9575CD")]
+        case "Two Pair":
+            // Light Blue
+            return [Color(hex: "81D4FA"), Color(hex: "4FC3F7")]
+        case "Three of a Kind":
+            // Yellow
+            return [Color(hex: "FFEE58"), Color(hex: "FDD835")]
+        case "Straight":
+            // Dark Pink
+            return [Color(hex: "F06292"), Color(hex: "EC407A")]
+        case "Flush":
+            // Green
+            return [Color(hex: "66BB6A"), Color(hex: "43A047")]
+        case "Full House":
+            // Dark Blue
+            return [Color(hex: "5C6BC0"), Color(hex: "3F51B5")]
+        case _ where handName.contains("Four"):
+            // Light Pink (Four of a Kind and variants)
+            return [Color(hex: "F8BBD9"), Color(hex: "F48FB1")]
+        case "Straight Flush":
+            // Dark Purple
+            return [Color(hex: "7E57C2"), Color(hex: "5E35B1")]
+        case "Royal Flush", "Natural Royal", "Wild Royal":
+            // Red
+            return [Color(hex: "EF5350"), Color(hex: "E53935")]
+        default:
+            // Default gold
+            return [Color(hex: "FFD700"), Color(hex: "FFA500")]
+        }
     }
 
     private func shortHandName(_ name: String) -> String {

@@ -318,7 +318,8 @@ struct PlayView: View {
                             .font(.caption)
                             .foregroundColor(Color(hex: "FFA726"))
                         if viewModel.userEvLost > 0 {
-                            Text("-\(String(format: "%.2f", viewModel.userEvLost)) EV")
+                            let dollarEvLost = viewModel.userEvLost * viewModel.settings.totalBetDollars
+                            Text("-\(formatCurrency(dollarEvLost))")
                                 .font(.caption)
                                 .foregroundColor(Color(hex: "FFA726"))
                         }
@@ -365,6 +366,7 @@ struct PlayView: View {
     @ViewBuilder
     private func mainHandWinBadge(result: PlayHandResult) -> some View {
         if let handName = result.handName, result.payout > 0 {
+            let badgeColors = winBadgeColors(for: handName)
             // Winner badge (only show for wins, matching mini-hand behavior)
             HStack(spacing: 6) {
                 Text(handName)
@@ -382,7 +384,7 @@ struct PlayView: View {
                 Capsule()
                     .fill(
                         LinearGradient(
-                            colors: [Color(hex: "FFD700"), Color(hex: "FFA500")],
+                            colors: badgeColors,
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -391,6 +393,41 @@ struct PlayView: View {
             .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
         }
         // No badge shown for non-winning hands (matches mini-hand grid behavior)
+    }
+
+    private func winBadgeColors(for handName: String) -> [Color] {
+        switch handName {
+        case "Jacks or Better", "Tens or Better":
+            // Light Purple
+            return [Color(hex: "B388FF"), Color(hex: "9575CD")]
+        case "Two Pair":
+            // Light Blue
+            return [Color(hex: "81D4FA"), Color(hex: "4FC3F7")]
+        case "Three of a Kind":
+            // Yellow
+            return [Color(hex: "FFEE58"), Color(hex: "FDD835")]
+        case "Straight":
+            // Dark Pink
+            return [Color(hex: "F06292"), Color(hex: "EC407A")]
+        case "Flush":
+            // Green
+            return [Color(hex: "66BB6A"), Color(hex: "43A047")]
+        case "Full House":
+            // Dark Blue
+            return [Color(hex: "5C6BC0"), Color(hex: "3F51B5")]
+        case _ where handName.contains("Four"):
+            // Light Pink (Four of a Kind and variants)
+            return [Color(hex: "F8BBD9"), Color(hex: "F48FB1")]
+        case "Straight Flush":
+            // Dark Purple
+            return [Color(hex: "7E57C2"), Color(hex: "5E35B1")]
+        case "Royal Flush", "Natural Royal", "Wild Royal":
+            // Red
+            return [Color(hex: "EF5350"), Color(hex: "E53935")]
+        default:
+            // Default gold
+            return [Color(hex: "FFD700"), Color(hex: "FFA500")]
+        }
     }
 
     // MARK: - EV Options Table
@@ -416,10 +453,10 @@ struct PlayView: View {
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity, alignment: .leading)
 
-                        Text("EV")
+                        Text("Exp. Value")
                             .font(.caption)
                             .fontWeight(.bold)
-                            .frame(width: 60, alignment: .trailing)
+                            .frame(width: 70, alignment: .trailing)
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
@@ -459,11 +496,12 @@ struct PlayView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 }
 
-                                // EV
-                                Text(String(format: "%.3f", option.ev))
+                                // Expected Value in dollars
+                                let dollarEv = option.ev * viewModel.settings.totalBetDollars
+                                Text(formatCurrency(dollarEv))
                                     .font(.subheadline)
                                     .fontWeight(isBest ? .bold : .regular)
-                                    .frame(width: 60, alignment: .trailing)
+                                    .frame(width: 70, alignment: .trailing)
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)

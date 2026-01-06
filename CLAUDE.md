@@ -154,6 +154,8 @@ enum AppError: LocalizedError {
 
 **Always commit AND push together.** Never just commit without pushing. When I approve a commit, always push it immediately after.
 
+**Do NOT ask if I want to push.** I will tell you when I'm ready to push changes. Just complete the work and wait for my instruction.
+
 **You MAY freely use** (no permission needed):
 - `git status`
 - `git diff`
