@@ -114,6 +114,22 @@ struct AuthView: View {
             .tint(Color(hex: "3498db"))
             .disabled(email.isEmpty || viewModel.isLoading)
 
+            // Google Sign-In
+            Button {
+                Task {
+                    await viewModel.signInWithGoogle()
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "g.circle.fill")
+                    Text("Continue with Google")
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .tint(.primary)
+            .disabled(viewModel.isLoading)
+
             #if DEBUG
             Divider()
                 .padding(.horizontal)

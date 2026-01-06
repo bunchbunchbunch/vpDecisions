@@ -24,7 +24,17 @@ struct PlayView: View {
                 topBar
 
                 // Multi-hand grid (for 5/10 line modes) - fixed
-                if viewModel.settings.lineCount != .one {
+                // For 100-play, show tally view in result phase instead
+                if viewModel.settings.lineCount == .oneHundred {
+                    // 100-play tally view - same position as 10-play grid
+                    // Fixed height container with internal scrolling
+                    HundredPlayTallyView(
+                        tallyResults: viewModel.phase == .result ? viewModel.hundredPlayTally : [],
+                        denomination: viewModel.settings.denomination.rawValue
+                    )
+                    .frame(height: 180) // Match approximate height of 10-play grid
+                    .padding(.horizontal)
+                } else if viewModel.settings.lineCount != .one {
                     MultiHandGrid(
                         lineCount: viewModel.settings.lineCount,
                         results: gridResults,

@@ -28,6 +28,18 @@ struct VideoPokerTrainerApp: App {
         // Supabase format: vptrainer://[path]#access_token=xxx&refresh_token=yyy
         print("📱 Deep link received: \(url.absoluteString)")
 
+        // Google OAuth callback - handle session from URL
+        if url.host == "google-callback" || url.absoluteString.contains("access_token") {
+            Task {
+                do {
+                    try await SupabaseService.shared.handleOAuthCallback(url: url)
+                } catch {
+                    print("❌ OAuth callback error: \(error)")
+                }
+            }
+            return
+        }
+
         // Extract tokens from URL fragment
         if let fragment = url.fragment {
             let params = fragment.components(separatedBy: "&")

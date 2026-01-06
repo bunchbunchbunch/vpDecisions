@@ -15,6 +15,7 @@
 		PLAY005A2B3C4D5E6F7A8B9C /* MiniCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY005A2B3C4D5E6F7A8B9D /* MiniCardView.swift */; };
 		PLAY006A2B3C4D5E6F7A8B9C /* MiniHandView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY006A2B3C4D5E6F7A8B9D /* MiniHandView.swift */; };
 		PLAY007A2B3C4D5E6F7A8B9C /* MultiHandGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY007A2B3C4D5E6F7A8B9D /* MultiHandGrid.swift */; };
+		PLAY008A2B3C4D5E6F7A8B9C /* HundredPlayTallyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY008A2B3C4D5E6F7A8B9D /* HundredPlayTallyView.swift */; };
 		0F16C32059109F21E351814D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */; };
 		0FDBAFBF64162DEDFD208EAD /* submit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BA6C1E385E108694180D1EBE /* submit.mp3 */; };
 		0FE869B3D3FA170517561BD1 /* PayTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */; };
@@ -69,6 +70,7 @@
 		PLAY005A2B3C4D5E6F7A8B9D /* MiniCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniCardView.swift; sourceTree = "<group>"; };
 		PLAY006A2B3C4D5E6F7A8B9D /* MiniHandView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniHandView.swift; sourceTree = "<group>"; };
 		PLAY007A2B3C4D5E6F7A8B9D /* MultiHandGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiHandGrid.swift; sourceTree = "<group>"; };
+		PLAY008A2B3C4D5E6F7A8B9D /* HundredPlayTallyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HundredPlayTallyView.swift; sourceTree = "<group>"; };
 		0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticService.swift; sourceTree = "<group>"; };
 		05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = strategy_jacks_or_better_9_6.json; sourceTree = "<group>"; };
 		07C10505BC1A5BB00B74307D /* MasteryScore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryScore.swift; sourceTree = "<group>"; };
@@ -251,6 +253,7 @@
 		PLAY005A2B3C4D5E6F7A8B9E /* Play */ = {
 			isa = PBXGroup;
 			children = (
+				PLAY008A2B3C4D5E6F7A8B9D /* HundredPlayTallyView.swift */,
 				PLAY005A2B3C4D5E6F7A8B9D /* MiniCardView.swift */,
 				PLAY006A2B3C4D5E6F7A8B9D /* MiniHandView.swift */,
 				PLAY007A2B3C4D5E6F7A8B9D /* MultiHandGrid.swift */,
@@ -435,6 +438,7 @@
 				PLAY002A2B3C4D5E6F7A8B9C /* PlayViewModel.swift in Sources */,
 				PLAY003A2B3C4D5E6F7A8B9C /* PlayView.swift in Sources */,
 				PLAY004A2B3C4D5E6F7A8B9C /* PlayStartView.swift in Sources */,
+				PLAY008A2B3C4D5E6F7A8B9C /* HundredPlayTallyView.swift in Sources */,
 				5D20F966F1DDA1E06819F3A2 /* QuizPlayView.swift in Sources */,
 				EB31AC2671CF70D41545F0FC /* QuizResultsView.swift in Sources */,
 				A6AFCD3472AC36B416F46E5E /* QuizViewModel.swift in Sources */,

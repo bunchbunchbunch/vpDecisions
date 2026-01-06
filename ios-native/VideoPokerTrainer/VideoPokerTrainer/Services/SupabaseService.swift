@@ -64,6 +64,18 @@ class SupabaseService: ObservableObject {
         try await client.auth.signInWithOTP(email: email, redirectTo: redirectTo)
     }
 
+    func signInWithGoogle() async throws -> URL {
+        let redirectTo = URL(string: "vptrainer://google-callback")!
+        return try await client.auth.getOAuthSignInURL(
+            provider: .google,
+            redirectTo: redirectTo
+        )
+    }
+
+    func handleOAuthCallback(url: URL) async throws {
+        try await client.auth.session(from: url)
+    }
+
     // MARK: - Profile Management
 
     func upsertProfile(user: User) async throws {

@@ -17,6 +17,7 @@ class PlayViewModel: ObservableObject {
 
     // Multi-line results
     @Published var lineResults: [PlayHandResult] = []
+    @Published var hundredPlayTally: [HundredPlayTallyResult] = []
     @Published var isAnimating = false
 
     // Optimal play feedback
@@ -51,7 +52,10 @@ class PlayViewModel: ObservableObject {
     }
 
     var totalPayout: Int {
-        lineResults.reduce(0) { $0 + $1.payout }
+        if settings.lineCount == .oneHundred {
+            return hundredPlayTally.reduce(0) { $0 + $1.subtotal }
+        }
+        return lineResults.reduce(0) { $0 + $1.payout }
     }
 
     var totalPayoutDollars: Double {
@@ -106,6 +110,7 @@ class PlayViewModel: ObservableObject {
         remainingDeck = Array(deck.dropFirst(5))
         selectedIndices = []
         lineResults = []
+        hundredPlayTally = []
         optimalHoldIndices = []
         userEvLost = 0
         showMistakeFeedback = false
@@ -156,6 +161,18 @@ class PlayViewModel: ObservableObject {
             }
         }
 
+        // Handle 100-play mode differently with tally
+        if settings.lineCount == .oneHundred {
+            await performHundredPlayDraw()
+        } else {
+            await performStandardDraw()
+        }
+
+        isAnimating = false
+        phase = .result
+    }
+
+    private func performStandardDraw() async {
         // Perform draws for each line
         var results: [PlayHandResult] = []
         var deckCopy = remainingDeck
@@ -206,9 +223,84 @@ class PlayViewModel: ObservableObject {
         } else {
             audioService.play(.submit)
         }
+    }
 
-        isAnimating = false
-        phase = .result
+    private func performHundredPlayDraw() async {
+        // Track hand counts for tally
+        var handCounts: [String: Int] = [:]
+        var totalCreditsWon = 0
+        var biggestSingleWin = 0
+        var biggestWinHand: String?
+
+        // Perform 100 draws
+        for _ in 0..<100 {
+            // Create a fresh deck for each hand (minus dealt cards)
+            var freshDeck = Card.shuffledDeck()
+            freshDeck.removeAll { card in
+                dealtCards.contains { $0.rank == card.rank && $0.suit == card.suit }
+            }
+
+            let (finalHand, _) = performDraw(
+                dealtCards: dealtCards,
+                heldIndices: selectedIndices,
+                deck: freshDeck
+            )
+
+            let evaluation = evaluateFinalHand(finalHand)
+            let payout = calculatePayout(handName: evaluation.handName)
+
+            if let handName = evaluation.handName {
+                handCounts[handName, default: 0] += 1
+                totalCreditsWon += payout
+
+                if payout > biggestSingleWin {
+                    biggestSingleWin = payout
+                    biggestWinHand = handName
+                }
+            }
+        }
+
+        // Build tally results sorted by pay value (highest first)
+        var tallyResults: [HundredPlayTallyResult] = []
+        for (handName, count) in handCounts {
+            let payPerHand = calculatePayout(handName: handName)
+            let subtotal = count * payPerHand
+            tallyResults.append(HundredPlayTallyResult(
+                handName: handName,
+                payPerHand: payPerHand,
+                count: count,
+                subtotal: subtotal
+            ))
+        }
+        tallyResults.sort { $0.payPerHand > $1.payPerHand }
+        hundredPlayTally = tallyResults
+
+        // Clear line results for 100-play mode
+        lineResults = []
+
+        // Update balance with winnings
+        let winAmount = Double(totalCreditsWon) * settings.denomination.rawValue
+        if winAmount > 0 {
+            balance.win(winAmount)
+            await PlayPersistence.shared.saveBalance(balance)
+
+            // Update stats
+            currentStats.totalWon += winAmount
+            let biggestWinDollars = Double(biggestSingleWin) * settings.denomination.rawValue
+            if biggestWinDollars > currentStats.biggestWin {
+                currentStats.biggestWin = biggestWinDollars
+                currentStats.biggestWinHandName = biggestWinHand
+            }
+
+            // Track wins by hand type
+            for (handName, count) in handCounts {
+                currentStats.winsByHandType[handName, default: 0] += count
+            }
+
+            audioService.play(.correct)
+        } else {
+            audioService.play(.submit)
+        }
     }
 
     func newHand() {
@@ -216,6 +308,7 @@ class PlayViewModel: ObservableObject {
         dealtCards = []
         selectedIndices = []
         lineResults = []
+        hundredPlayTally = []
         remainingDeck = []
         optimalHoldIndices = []
         userEvLost = 0

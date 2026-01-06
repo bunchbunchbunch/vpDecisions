@@ -9,8 +9,8 @@ struct MultiHandGrid: View {
 
     private var gridConfig: (columns: Int, rows: Int, handCount: Int) {
         switch lineCount {
-        case .one:
-            return (0, 0, 0)  // No grid for 1-line
+        case .one, .oneHundred:
+            return (0, 0, 0)  // No grid for 1-line or 100-play (100-play uses tally view)
         case .five:
             return (2, 2, 4)  // 2x2 grid, 4 hands (5th in main area)
         case .ten:

@@ -26,13 +26,29 @@ enum LineCount: Int, CaseIterable, Codable {
     case one = 1
     case five = 5
     case ten = 10
+    case oneHundred = 100
 
     var displayName: String {
         switch self {
         case .one: return "1 Line"
         case .five: return "5 Lines"
         case .ten: return "10 Lines"
+        case .oneHundred: return "100 Lines"
         }
+    }
+}
+
+// MARK: - Hundred Play Tally Result
+
+struct HundredPlayTallyResult: Identifiable {
+    let id = UUID()
+    let handName: String
+    let payPerHand: Int  // Credits per hand at 5 coins
+    let count: Int
+    let subtotal: Int    // count * payPerHand
+
+    var subtotalDollars: Double {
+        Double(subtotal)
     }
 }
 

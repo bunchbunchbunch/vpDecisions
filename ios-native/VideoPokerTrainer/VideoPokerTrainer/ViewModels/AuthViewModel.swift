@@ -1,5 +1,6 @@
 import Foundation
 import Supabase
+import UIKit
 
 @MainActor
 class AuthViewModel: ObservableObject {
@@ -149,6 +150,20 @@ class AuthViewModel: ObservableObject {
         do {
             try await supabase.signInWithMagicLink(email: email)
             errorMessage = "Magic link sent! Check your email to sign in."
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
+    }
+
+    func signInWithGoogle() async {
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            let url = try await supabase.signInWithGoogle()
+            await UIApplication.shared.open(url)
         } catch {
             errorMessage = error.localizedDescription
         }
