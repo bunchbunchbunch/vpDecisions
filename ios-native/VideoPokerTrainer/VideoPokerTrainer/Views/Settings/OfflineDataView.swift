@@ -7,6 +7,7 @@ struct PaytableListItem: Identifiable {
     let isBundled: Bool  // Included with app
     var storageMode: PaytableStorageMode
     var isLoaded: Bool  // Currently in SQLite
+    var isDownloading: Bool = false  // Currently downloading
 }
 
 struct OfflineDataView: View {
@@ -16,6 +17,8 @@ struct OfflineDataView: View {
     @State private var showDeleteConfirmation = false
     @State private var paytableToDelete: PaytableListItem?
     @State private var totalStorageUsed: Int64 = 0
+    @State private var downloadError: String?
+    @State private var showDownloadError = false
 
     var body: some View {
         List {
@@ -77,15 +80,20 @@ struct OfflineDataView: View {
         .refreshable {
             await loadPaytables()
         }
-        .alert("Delete Strategy Data?", isPresented: $showDeleteConfirmation, presenting: paytableToDelete) { paytable in
+        .alert("Remove Download?", isPresented: $showDeleteConfirmation, presenting: paytableToDelete) { paytable in
             Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
+            Button("Remove", role: .destructive) {
                 Task {
                     await deletePaytable(paytable)
                 }
             }
         } message: { paytable in
-            Text("This will remove the uncompressed strategy data for \(paytable.name). It will be re-decompressed when you next play this game.")
+            Text("This will remove all strategy data for \(paytable.name). You'll need to download it again to play this game.")
+        }
+        .alert("Download Failed", isPresented: $showDownloadError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(downloadError ?? "An unknown error occurred while downloading.")
         }
     }
 
@@ -149,13 +157,35 @@ struct OfflineDataView: View {
 
     private func deletePaytable(_ paytable: PaytableListItem) async {
         await LocalStrategyStore.shared.deletePaytable(paytableId: paytable.id)
+        PaytablePreferences.shared.removePreference(for: paytable.id)
         await loadPaytables()  // Refresh the list
     }
 
     private func downloadPaytable(_ paytable: PaytableListItem) {
-        // TODO: Implement download from Supabase
-        // For now, show that it's not implemented
-        NSLog("Download not yet implemented for: %@", paytable.id)
+        // Set downloading state
+        if let index = paytables.firstIndex(where: { $0.id == paytable.id }) {
+            paytables[index].isDownloading = true
+        }
+
+        Task {
+            let success = await StrategyService.shared.downloadPaytable(paytableId: paytable.id)
+
+            await MainActor.run {
+                if success {
+                    // Set the default storage mode preference for this paytable
+                    PaytablePreferences.shared.setStorageMode(
+                        PaytablePreferences.shared.defaultStorageMode,
+                        for: paytable.id
+                    )
+                } else {
+                    downloadError = "Could not download \(paytable.name). Please check your internet connection and try again."
+                    showDownloadError = true
+                }
+            }
+
+            // Refresh the list
+            await loadPaytables()
+        }
     }
 
     // MARK: - Helpers
@@ -183,7 +213,12 @@ struct PaytableRow: View {
             Spacer()
 
             // Action buttons
-            if !paytable.isBundled && !paytable.isLoaded {
+            if paytable.isDownloading {
+                // Show spinner while downloading
+                ProgressView()
+                    .scaleEffect(0.8)
+                    .frame(width: 80)
+            } else if !paytable.isBundled && !paytable.isLoaded {
                 // Download button for non-bundled, not-yet-downloaded paytables
                 Button {
                     onDownload()
@@ -210,6 +245,17 @@ struct PaytableRow: View {
                         }
                     } label: {
                         Label("Compressed", systemImage: paytable.storageMode == .compressed ? "checkmark" : "")
+                    }
+
+                    // Remove Download option for non-bundled paytables
+                    if !paytable.isBundled {
+                        Divider()
+
+                        Button(role: .destructive) {
+                            onDelete()
+                        } label: {
+                            Label("Remove Download", systemImage: "trash")
+                        }
                     }
                 } label: {
                     HStack(spacing: 4) {

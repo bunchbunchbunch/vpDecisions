@@ -47,11 +47,11 @@ struct QuizPlayView: View {
                     .foregroundColor(.primary)
 
                 VStack(spacing: 8) {
-                    Text("Preparing strategy data for offline use.")
+                    Text("Preparing compressed strategy data for use.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
 
-                    Text("Manage storage in Settings → Offline Data")
+                    Text("Change storage options in Settings → Offline Data")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
