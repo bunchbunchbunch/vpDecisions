@@ -392,7 +392,15 @@ actor HandEvaluator {
 
     /// Check for straight flush in Deuces Wild where 2s are wild cards
     private func isStraightFlushWithWilds(hand: Hand, numDeuces: Int) -> Bool {
-        return isFlush(hand: hand) && isStraightWithWilds(hand: hand, numDeuces: numDeuces)
+        // Check if non-deuce cards are all same suit (deuces are wild for suit)
+        let nonDeuceCards = hand.cards.filter { $0.rank.rawValue != 2 }
+        if !nonDeuceCards.isEmpty {
+            let firstSuit = nonDeuceCards[0].suit
+            if !nonDeuceCards.allSatisfy({ $0.suit == firstSuit }) {
+                return false
+            }
+        }
+        return isStraightWithWilds(hand: hand, numDeuces: numDeuces)
     }
 
     private func isRoyalFlush(hand: Hand) -> Bool {
@@ -403,10 +411,18 @@ actor HandEvaluator {
 
     private func isWildRoyalFlush(hand: Hand, numDeuces: Int) -> Bool {
         if numDeuces == 0 { return false }
-        if !isFlush(hand: hand) { return false }
+
+        // Check if non-deuce cards are all same suit (deuces are wild for suit)
+        let nonDeuceCards = hand.cards.filter { $0.rank.rawValue != 2 }
+        if !nonDeuceCards.isEmpty {
+            let firstSuit = nonDeuceCards[0].suit
+            if !nonDeuceCards.allSatisfy({ $0.suit == firstSuit }) {
+                return false
+            }
+        }
 
         // Check if we can make T-J-Q-K-A with deuces
-        let nonDeuceRanks = hand.cards.filter { $0.rank.rawValue != 2 }.map { $0.rank.rawValue }
+        let nonDeuceRanks = nonDeuceCards.map { $0.rank.rawValue }
         let royalRanks: Set<Int> = [10, 11, 12, 13, 14]
 
         // Check if non-deuce cards are subset of royal ranks

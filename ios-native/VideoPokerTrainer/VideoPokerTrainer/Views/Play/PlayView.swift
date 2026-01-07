@@ -184,14 +184,14 @@ struct PlayView: View {
 
                         Spacer()
 
-                        // Paytable button
+                        // Game name button (opens paytable)
                         Button {
                             showPaytable = true
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: "list.bullet.rectangle")
                                     .font(.caption)
-                                Text("Paytable")
+                                Text(viewModel.currentPaytable?.name ?? "Paytable")
                                     .font(.caption)
                             }
                             .foregroundColor(.white)

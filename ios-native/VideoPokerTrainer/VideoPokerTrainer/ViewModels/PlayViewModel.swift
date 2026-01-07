@@ -678,9 +678,17 @@ class PlayViewModel: ObservableObject {
 
     private func isWildRoyalFlush(_ cards: [Card], numDeuces: Int) -> Bool {
         if numDeuces == 0 { return false }
-        if !isFlush(cards) { return false }
 
-        let nonDeuceRanks = cards.filter { $0.rank.rawValue != 2 }.map { $0.rank.rawValue }
+        // Check if non-deuce cards are all same suit (deuces are wild for suit)
+        let nonDeuceCards = cards.filter { $0.rank.rawValue != 2 }
+        if !nonDeuceCards.isEmpty {
+            let firstSuit = nonDeuceCards[0].suit
+            if !nonDeuceCards.allSatisfy({ $0.suit == firstSuit }) {
+                return false
+            }
+        }
+
+        let nonDeuceRanks = nonDeuceCards.map { $0.rank.rawValue }
         let royalRanks: Set<Int> = [10, 11, 12, 13, 14]
 
         if !Set(nonDeuceRanks).isSubset(of: royalRanks) { return false }
@@ -730,7 +738,14 @@ class PlayViewModel: ObservableObject {
     }
 
     private func canMakeStraightFlushWithWilds(_ cards: [Card], numDeuces: Int) -> Bool {
-        if !isFlush(cards) { return false }
+        // Check if non-deuce cards are all same suit (deuces are wild for suit)
+        let nonDeuceCards = cards.filter { $0.rank.rawValue != 2 }
+        if !nonDeuceCards.isEmpty {
+            let firstSuit = nonDeuceCards[0].suit
+            if !nonDeuceCards.allSatisfy({ $0.suit == firstSuit }) {
+                return false
+            }
+        }
         return canMakeStraightWithWilds(cards, numDeuces: numDeuces)
     }
 
