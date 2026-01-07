@@ -682,6 +682,73 @@ fn test_hands() {
     println!();
 }
 
+/// Fetch existing hand_keys from Supabase to skip already-calculated hands
+fn fetch_existing_hand_keys(client: &reqwest::blocking::Client, supabase_url: &str, service_key: &str, paytable_id: &str) -> std::collections::HashSet<String> {
+    let mut existing_keys = std::collections::HashSet::new();
+    let mut offset = 0;
+    let page_size = 1000;
+
+    println!("\nFetching existing hand_keys from Supabase...");
+
+    loop {
+        let url = format!(
+            "{}/rest/v1/strategy?paytable_id=eq.{}&select=hand_key&order=hand_key&limit={}&offset={}",
+            supabase_url, paytable_id, page_size, offset
+        );
+
+        let response = match client
+            .get(&url)
+            .header("apikey", service_key)
+            .header("Authorization", format!("Bearer {}", service_key))
+            .header("Content-Type", "application/json")
+            .send() {
+                Ok(r) => r,
+                Err(e) => {
+                    eprintln!("Error fetching existing keys: {}", e);
+                    break;
+                }
+            };
+
+        if !response.status().is_success() {
+            eprintln!("Failed to fetch existing keys: {}", response.status());
+            break;
+        }
+
+        let body = response.text().unwrap_or_default();
+        let rows: Vec<serde_json::Value> = match serde_json::from_str(&body) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("Error parsing response: {}", e);
+                break;
+            }
+        };
+
+        if rows.is_empty() {
+            break;
+        }
+
+        for row in &rows {
+            if let Some(key) = row.get("hand_key").and_then(|v| v.as_str()) {
+                existing_keys.insert(key.to_string());
+            }
+        }
+
+        if rows.len() < page_size {
+            break;
+        }
+
+        offset += page_size;
+
+        if offset % 10000 == 0 {
+            print!("  {} existing keys found...\r", existing_keys.len());
+            io::stdout().flush().unwrap();
+        }
+    }
+
+    println!("  Found {} existing hand_keys", existing_keys.len());
+    existing_keys
+}
+
 fn main() {
     // Check for test mode
     if std::env::args().nth(1).as_deref() == Some("test") {
@@ -728,26 +795,44 @@ fn main() {
 
     let start = Instant::now();
 
-    // Generate canonical hands
-    let hands = generate_canonical_hands();
-    let total = hands.len();
-
-    println!("\nCalculating EVs using {} threads...", rayon::current_num_threads());
-    io::stdout().flush().unwrap();
-
-    let processed = Arc::new(AtomicUsize::new(0));
-    let uploaded = Arc::new(AtomicUsize::new(0));
-    let errors = Arc::new(AtomicUsize::new(0));
-
     // Create HTTP client once - it's thread-safe
     let client = reqwest::blocking::Client::builder()
         .timeout(std::time::Duration::from_secs(60))
         .build()
         .expect("Failed to create HTTP client");
 
+    // Fetch existing hand_keys to skip already-calculated hands
+    let existing_keys = fetch_existing_hand_keys(&client, &supabase_url, &service_key, &paytable_id);
+
+    // Generate canonical hands
+    let all_hands = generate_canonical_hands();
+    let total_canonical = all_hands.len();
+
+    // Filter out already-calculated hands
+    let hands: Vec<(String, Hand)> = all_hands
+        .into_iter()
+        .filter(|(key, _)| !existing_keys.contains(key))
+        .collect();
+
+    let total = hands.len();
+    let skipped = total_canonical - total;
+
+    if total == 0 {
+        println!("\nAll {} hands already calculated! Nothing to do.", total_canonical);
+        return;
+    }
+
+    println!("\nSkipping {} already-calculated hands", skipped);
+    println!("Calculating {} remaining hands using {} threads...", total, rayon::current_num_threads());
+    io::stdout().flush().unwrap();
+
+    let processed = Arc::new(AtomicUsize::new(0));
+    let uploaded = Arc::new(AtomicUsize::new(0));
+    let errors = Arc::new(AtomicUsize::new(0));
+
     // Process in chunks for batch uploading
     let chunk_size = 500;
-    let print_every = 5000; // Print progress every N hands
+    let _print_every = 5000; // Print progress every N hands
 
     // Process chunks sequentially (upload) but analyze in parallel within each chunk
     let mut batch_num = 0;

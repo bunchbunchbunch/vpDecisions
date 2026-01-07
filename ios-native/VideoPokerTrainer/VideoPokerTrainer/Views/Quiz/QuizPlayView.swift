@@ -34,16 +34,45 @@ struct QuizPlayView: View {
     // MARK: - Loading View
 
     private var loadingView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             ProgressView()
                 .scaleEffect(1.5)
+                .tint(Color(hex: "667eea"))
 
-            Text("Loading hands...")
-                .font(.headline)
+            if viewModel.isPreparingPaytable {
+                // Paytable preparation phase
+                Text(viewModel.preparationMessage)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
 
-            Text("Found \(viewModel.loadingProgress)/\(viewModel.quizSize)")
-                .foregroundColor(.secondary)
+                VStack(spacing: 8) {
+                    Text("Preparing strategy data for offline use.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    Text("Manage storage in Settings → Offline Data")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            } else {
+                // Finding hands phase
+                Text("Loading hands...")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+
+                Text("Found \(viewModel.loadingProgress)/\(viewModel.quizSize)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
         }
+        .padding(32)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        )
     }
 
     // MARK: - Quiz View

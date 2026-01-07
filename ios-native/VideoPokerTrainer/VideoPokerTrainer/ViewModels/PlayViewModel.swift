@@ -10,6 +10,10 @@ class PlayViewModel: ObservableObject {
     @Published var balance: PlayerBalance
     @Published var currentStats: PlaySessionStats = PlaySessionStats()
 
+    // Loading state for paytable preparation
+    @Published var isPreparingPaytable = false
+    @Published var preparationMessage = "Loading strategy data..."
+
     // Current hand state
     @Published var dealtCards: [Card] = []
     @Published var selectedIndices: Set<Int> = []
@@ -83,6 +87,30 @@ class PlayViewModel: ObservableObject {
         self.settings = await PlayPersistence.shared.loadSettings()
         self.balance = await PlayPersistence.shared.loadBalance()
         self.allTimeStats = await PlayPersistence.shared.loadStats(for: settings.selectedPaytableId)
+
+        // Prepare the paytable if needed
+        await prepareCurrentPaytable()
+    }
+
+    /// Prepares the current paytable for use (decompresses if needed)
+    func prepareCurrentPaytable() async {
+        let paytableId = settings.selectedPaytableId
+
+        // Check if we need to load
+        let needsLoading = await StrategyService.shared.paytableNeedsLoading(paytableId: paytableId)
+        if !needsLoading {
+            return  // Already loaded or not bundled
+        }
+
+        // Show loading state
+        isPreparingPaytable = true
+        preparationMessage = "Loading \(currentPaytable?.name ?? "strategy data")..."
+
+        // Load it
+        _ = await StrategyService.shared.preparePaytable(paytableId: paytableId)
+
+        // Hide loading state
+        isPreparingPaytable = false
     }
 
     // MARK: - Game Actions
@@ -319,13 +347,16 @@ class PlayViewModel: ObservableObject {
     // MARK: - Settings Management
 
     func updateSettings(_ newSettings: PlaySettings) async {
-        // If paytable changed, load new stats
+        // If paytable changed, load new stats and prepare paytable
         if newSettings.selectedPaytableId != settings.selectedPaytableId {
             allTimeStats = await PlayPersistence.shared.loadStats(for: newSettings.selectedPaytableId)
         }
 
         settings = newSettings
         await PlayPersistence.shared.saveSettings(settings)
+
+        // Prepare the new paytable if needed
+        await prepareCurrentPaytable()
     }
 
     func addFunds(_ amount: Double) async {

@@ -17,9 +17,10 @@
 		PLAY007A2B3C4D5E6F7A8B9C /* MultiHandGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY007A2B3C4D5E6F7A8B9D /* MultiHandGrid.swift */; };
 		PLAY008A2B3C4D5E6F7A8B9C /* HundredPlayTallyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY008A2B3C4D5E6F7A8B9D /* HundredPlayTallyView.swift */; };
 		0F16C32059109F21E351814D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */; };
+		OFFLN002A2B3C4D5E6F7A8B9C /* OfflineDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OFFLN001A2B3C4D5E6F7A8B9C /* OfflineDataView.swift */; };
 		0FDBAFBF64162DEDFD208EAD /* submit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BA6C1E385E108694180D1EBE /* submit.mp3 */; };
 		0FE869B3D3FA170517561BD1 /* PayTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */; };
-		212AADE9C95CA00DE1FF9B59 /* strategy_double_double_bonus_9_6.json in Resources */ = {isa = PBXBuildFile; fileRef = 8A0A9C948D9D9086824FA72D /* strategy_double_double_bonus_9_6.json */; };
+		212AADE9C95CA00DE1FF9B59 /* strategy_double_double_bonus_9_6.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 8A0A9C948D9D9086824FA72D /* strategy_double_double_bonus_9_6.json.gz */; };
 		2723E123A48A2FFB91BA72C0 /* HapticService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */; };
 		2D12B9D50B6BE8EFFB32868D /* button-tap.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = DCE574B6713DC27CBB847898 /* button-tap.mp3 */; };
 		38D2B5DC081395DAE5D3B0FB /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CDFD929FF8F295FDC95267 /* ForgotPasswordView.swift */; };
@@ -30,7 +31,7 @@
 		5D20F966F1DDA1E06819F3A2 /* QuizPlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6A631F3E90A1B2FCFA8934 /* QuizPlayView.swift */; };
 		611CF46743CA88B71B485BCD /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A372C2B67ECD0E057210D57 /* Card.swift */; };
 		71A602043D2B35B4789E7D57 /* incorrect.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A938B302053EBA1843CDBDD8 /* incorrect.mp3 */; };
-		7351CB9F3269192F4EF9CC71 /* strategy_jacks_or_better_9_6.json in Resources */ = {isa = PBXBuildFile; fileRef = 05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json */; };
+		7351CB9F3269192F4EF9CC71 /* strategy_jacks_or_better_9_6.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json.gz */; };
 		7DD564D08C78F917E261534E /* MasteryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */; };
 		7F19D2CB801A784CD2487F3A /* VideoPokerTrainerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */; };
 		7F91767A20F844B17A466A75 /* Hand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03FD663D9F07AEE4E1829685 /* Hand.swift */; };
@@ -44,6 +45,8 @@
 		9B4B7A366425E722369EE9D1 /* next-hand.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D90A1B2C22F69A4059A0AF90 /* next-hand.mp3 */; };
 		A6AFCD3472AC36B416F46E5E /* QuizViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6EA254B114941319176353 /* QuizViewModel.swift */; };
 		ACFD07FBC574DF302C8702B5 /* strategy_bonus_poker_8_5.json in Resources */ = {isa = PBXBuildFile; fileRef = F7392AA987E6BD3BAFBABE48 /* strategy_bonus_poker_8_5.json */; };
+		TDB001A2B3C4D5E6F7A8B9C /* strategy_triple_double_bonus_9_6.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = TDB001A2B3C4D5E6F7A8B9D /* strategy_triple_double_bonus_9_6.json.gz */; };
+		NSUD001A2B3C4D5E6F7A8B9C /* strategy_deuces_wild_nsud.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = NSUD001A2B3C4D5E6F7A8B9D /* strategy_deuces_wild_nsud.json.gz */; };
 		B51629FBBA7A29969D895CBB /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F1393C11511534CE0AA9C5 /* HomeView.swift */; };
 		BA434B4D8AC3FBDEB0229B26 /* MasteryScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C10505BC1A5BB00B74307D /* MasteryScore.swift */; };
 		BBA7D3A4A818EF4046841A1E /* quiz-complete.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */; };
@@ -53,6 +56,8 @@
 		D353D33B14246C03446A1BFF /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C4FD2CF0865B3C43DC64102E /* Supabase */; };
 		D377E7F8A6EA6B272F609CC3 /* SpacedRepetitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */; };
 		D7B782D6C22D584CF543D895 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8717FB49A524CDA76F3D730A /* SupabaseService.swift */; };
+		LSS001A2B3C4D5E6F7A8B9C /* LocalStrategyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = LSS001A2B3C4D5E6F7A8B9D /* LocalStrategyStore.swift */; };
+		PTP001A2B3C4D5E6F7A8B9C /* PaytablePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = PTP001A2B3C4D5E6F7A8B9D /* PaytablePreferences.swift */; };
 		D7F21D806CD72B4FBBE789EE /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FCBC58743A80FDACE84FB39 /* CardView.swift */; };
 		EB31AC2671CF70D41545F0FC /* QuizResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6B33083F0FB3889082928E6 /* QuizResultsView.swift */; };
 		EE6CCDF2456A20BA420ACF8D /* AnalyzerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C33530EF32164D02A03169 /* AnalyzerViewModel.swift */; };
@@ -72,7 +77,7 @@
 		PLAY007A2B3C4D5E6F7A8B9D /* MultiHandGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiHandGrid.swift; sourceTree = "<group>"; };
 		PLAY008A2B3C4D5E6F7A8B9D /* HundredPlayTallyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HundredPlayTallyView.swift; sourceTree = "<group>"; };
 		0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticService.swift; sourceTree = "<group>"; };
-		05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = strategy_jacks_or_better_9_6.json; sourceTree = "<group>"; };
+		05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_jacks_or_better_9_6.json.gz; sourceTree = "<group>"; };
 		07C10505BC1A5BB00B74307D /* MasteryScore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryScore.swift; sourceTree = "<group>"; };
 		0D6A631F3E90A1B2FCFA8934 /* QuizPlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizPlayView.swift; sourceTree = "<group>"; };
 		12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryViewModel.swift; sourceTree = "<group>"; };
@@ -87,13 +92,16 @@
 		3BD0AFFC99AFF87B9DEFC49E /* CompactPayTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompactPayTableView.swift; sourceTree = "<group>"; };
 		52626371C1AE90FB294E4C82 /* card-select.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "card-select.mp3"; sourceTree = "<group>"; };
 		5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		OFFLN001A2B3C4D5E6F7A8B9C /* OfflineDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineDataView.swift; sourceTree = "<group>"; };
 		6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandCategory.swift; sourceTree = "<group>"; };
 		6FCBC58743A80FDACE84FB39 /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
 		79CDFD929FF8F295FDC95267 /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
 		7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayTable.swift; sourceTree = "<group>"; };
 		7C7B891E2E0E0C3A4CE8293E /* correct.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = correct.mp3; sourceTree = "<group>"; };
 		8717FB49A524CDA76F3D730A /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
-		8A0A9C948D9D9086824FA72D /* strategy_double_double_bonus_9_6.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = strategy_double_double_bonus_9_6.json; sourceTree = "<group>"; };
+		LSS001A2B3C4D5E6F7A8B9D /* LocalStrategyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStrategyStore.swift; sourceTree = "<group>"; };
+		PTP001A2B3C4D5E6F7A8B9D /* PaytablePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaytablePreferences.swift; sourceTree = "<group>"; };
+		8A0A9C948D9D9086824FA72D /* strategy_double_double_bonus_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_double_double_bonus_9_6.json.gz; sourceTree = "<group>"; };
 		8E6EA254B114941319176353 /* QuizViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizViewModel.swift; sourceTree = "<group>"; };
 		99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DealtWinnerBanner.swift; sourceTree = "<group>"; };
 		A6B33083F0FB3889082928E6 /* QuizResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultsView.swift; sourceTree = "<group>"; };
@@ -114,6 +122,8 @@
 		EEFE93106067A8CC6C7D44E0 /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
 		EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpacedRepetitionService.swift; sourceTree = "<group>"; };
 		F7392AA987E6BD3BAFBABE48 /* strategy_bonus_poker_8_5.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = strategy_bonus_poker_8_5.json; sourceTree = "<group>"; };
+		TDB001A2B3C4D5E6F7A8B9D /* strategy_triple_double_bonus_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_triple_double_bonus_9_6.json.gz; sourceTree = "<group>"; };
+		NSUD001A2B3C4D5E6F7A8B9D /* strategy_deuces_wild_nsud.json.gz */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_deuces_wild_nsud.json.gz; sourceTree = "<group>"; };
 		F8BB591ADA1CB751A89760BF /* MasteryDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryDashboardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -218,6 +228,7 @@
 		6FC640280B3760399F4A8BCC /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				OFFLN001A2B3C4D5E6F7A8B9C /* OfflineDataView.swift */,
 				5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */,
 			);
 			path = Settings;
@@ -289,8 +300,10 @@
 			isa = PBXGroup;
 			children = (
 				F7392AA987E6BD3BAFBABE48 /* strategy_bonus_poker_8_5.json */,
-				8A0A9C948D9D9086824FA72D /* strategy_double_double_bonus_9_6.json */,
-				05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json */,
+				8A0A9C948D9D9086824FA72D /* strategy_double_double_bonus_9_6.json.gz */,
+				05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json.gz */,
+				TDB001A2B3C4D5E6F7A8B9D /* strategy_triple_double_bonus_9_6.json.gz */,
+				NSUD001A2B3C4D5E6F7A8B9D /* strategy_deuces_wild_nsud.json.gz */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -302,6 +315,8 @@
 				D25485E3CB6182634F963032 /* HandEvaluator.swift */,
 				0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */,
 				EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */,
+				LSS001A2B3C4D5E6F7A8B9D /* LocalStrategyStore.swift */,
+				PTP001A2B3C4D5E6F7A8B9D /* PaytablePreferences.swift */,
 				2B14813ABEB1C877847870FF /* StrategyService.swift */,
 				8717FB49A524CDA76F3D730A /* SupabaseService.swift */,
 			);
@@ -396,8 +411,10 @@
 				9B4B7A366425E722369EE9D1 /* next-hand.mp3 in Resources */,
 				BBA7D3A4A818EF4046841A1E /* quiz-complete.mp3 in Resources */,
 				ACFD07FBC574DF302C8702B5 /* strategy_bonus_poker_8_5.json in Resources */,
-				212AADE9C95CA00DE1FF9B59 /* strategy_double_double_bonus_9_6.json in Resources */,
-				7351CB9F3269192F4EF9CC71 /* strategy_jacks_or_better_9_6.json in Resources */,
+				212AADE9C95CA00DE1FF9B59 /* strategy_double_double_bonus_9_6.json.gz in Resources */,
+				7351CB9F3269192F4EF9CC71 /* strategy_jacks_or_better_9_6.json.gz in Resources */,
+				TDB001A2B3C4D5E6F7A8B9C /* strategy_triple_double_bonus_9_6.json.gz in Resources */,
+				NSUD001A2B3C4D5E6F7A8B9C /* strategy_deuces_wild_nsud.json.gz in Resources */,
 				0FDBAFBF64162DEDFD208EAD /* submit.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -444,7 +461,10 @@
 				A6AFCD3472AC36B416F46E5E /* QuizViewModel.swift in Sources */,
 				880BF76C2AAB5FA877AEFF8A /* ResetPasswordView.swift in Sources */,
 				0F16C32059109F21E351814D /* SettingsView.swift in Sources */,
+				OFFLN002A2B3C4D5E6F7A8B9C /* OfflineDataView.swift in Sources */,
 				D377E7F8A6EA6B272F609CC3 /* SpacedRepetitionService.swift in Sources */,
+				LSS001A2B3C4D5E6F7A8B9C /* LocalStrategyStore.swift in Sources */,
+				PTP001A2B3C4D5E6F7A8B9C /* PaytablePreferences.swift in Sources */,
 				9AD6A559445353450025DD68 /* StrategyService.swift in Sources */,
 				D7B782D6C22D584CF543D895 /* SupabaseService.swift in Sources */,
 				7F19D2CB801A784CD2487F3A /* VideoPokerTrainerApp.swift in Sources */,

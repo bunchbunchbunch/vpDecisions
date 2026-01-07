@@ -19,6 +19,8 @@ class QuizViewModel: ObservableObject {
     @Published var isCorrect = false
     @Published var isLoading = false
     @Published var loadingProgress = 0
+    @Published var isPreparingPaytable = false
+    @Published var preparationMessage = "Loading strategy data..."
     @Published var isQuizComplete = false
     @Published var correctCount = 0
     @Published var evLost: Double = 0
@@ -62,6 +64,18 @@ class QuizViewModel: ObservableObject {
         isLoading = true
         loadingProgress = 0
         hands = []
+
+        // First, prepare the paytable (decompress if needed)
+        let needsLoading = await StrategyService.shared.paytableNeedsLoading(paytableId: paytableId)
+        if needsLoading {
+            isPreparingPaytable = true
+            let paytableName = PayTable.allPayTables.first { $0.id == paytableId }?.name ?? "strategy data"
+            preparationMessage = "Loading \(paytableName)..."
+
+            _ = await StrategyService.shared.preparePaytable(paytableId: paytableId)
+
+            isPreparingPaytable = false
+        }
 
         var foundHands: [QuizHand] = []
         var attempts = 0

@@ -22,6 +22,8 @@ struct HomeView: View {
     }
     @State private var weakSpotsMode = false
     @State private var showInDevelopment = false
+    @State private var showClearStrategyAlert = false
+    @State private var strategyCleared = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -204,22 +206,58 @@ struct HomeView: View {
 
             // Expandable content
             if showInDevelopment {
-                HStack(spacing: 12) {
-                    ActionButton(
-                        title: "Weak Spots",
-                        icon: "flame.fill",
-                        color: Color(hex: "e74c3c")
-                    ) {
-                        weakSpotsMode = true
-                        navigationPath.append(AppScreen.weakSpots)
+                VStack(spacing: 12) {
+                    HStack(spacing: 12) {
+                        ActionButton(
+                            title: "Weak Spots",
+                            icon: "flame.fill",
+                            color: Color(hex: "e74c3c")
+                        ) {
+                            weakSpotsMode = true
+                            navigationPath.append(AppScreen.weakSpots)
+                        }
+
+                        ActionButton(
+                            title: "Progress",
+                            icon: "chart.bar.fill",
+                            color: Color(hex: "27ae60")
+                        ) {
+                            navigationPath.append(AppScreen.mastery)
+                        }
                     }
 
-                    ActionButton(
-                        title: "Progress",
-                        icon: "chart.bar.fill",
-                        color: Color(hex: "27ae60")
-                    ) {
-                        navigationPath.append(AppScreen.mastery)
+                    // Clear Strategy Cache button
+                    Button {
+                        showClearStrategyAlert = true
+                    } label: {
+                        HStack {
+                            Image(systemName: strategyCleared ? "checkmark.circle.fill" : "arrow.counterclockwise")
+                                .foregroundColor(strategyCleared ? .green : .orange)
+                            Text(strategyCleared ? "Strategy Cache Cleared" : "Clear Strategy Cache")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(strategyCleared ? .green : .primary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                    }
+                    .buttonStyle(.plain)
+                    .alert("Clear Strategy Cache?", isPresented: $showClearStrategyAlert) {
+                        Button("Cancel", role: .cancel) { }
+                        Button("Clear", role: .destructive) {
+                            Task {
+                                await LocalStrategyStore.shared.deleteAllData()
+                                strategyCleared = true
+                                // Reset after 3 seconds
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                    strategyCleared = false
+                                }
+                            }
+                        }
+                    } message: {
+                        Text("This will delete all decompressed strategy data. The bundled strategies will be re-decompressed on next use.")
                     }
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))

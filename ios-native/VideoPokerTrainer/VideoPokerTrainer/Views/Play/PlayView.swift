@@ -18,48 +18,12 @@ struct PlayView: View {
     @State private var dragStartLocation: CGPoint?
 
     var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 0) {
-                // Top bar with balance and settings
-                topBar
+        ZStack {
+            mainContent
 
-                // Multi-hand grid (for 5/10 line modes) - fixed
-                // For 100-play, show tally view in result phase instead
-                if viewModel.settings.lineCount == .oneHundred {
-                    // 100-play tally view - same position as 10-play grid
-                    // Fixed height container with internal scrolling
-                    HundredPlayTallyView(
-                        tallyResults: viewModel.phase == .result ? viewModel.hundredPlayTally : [],
-                        denomination: viewModel.settings.denomination.rawValue
-                    )
-                    .frame(height: 180) // Match approximate height of 10-play grid
-                    .padding(.horizontal)
-                } else if viewModel.settings.lineCount != .one {
-                    MultiHandGrid(
-                        lineCount: viewModel.settings.lineCount,
-                        results: gridResults,
-                        phase: viewModel.phase,
-                        denomination: viewModel.settings.denomination.rawValue
-                    )
-                }
-
-                // Cards area (main hand - last line) - fixed
-                cardsArea(geometry: geometry)
-                    .padding(.top, 12)
-
-                // EV Options Table (scrollable when visible)
-                if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
-                    ScrollView {
-                        evOptionsTable
-                            .padding(.horizontal)
-                            .padding(.top, 12)
-                    }
-                } else {
-                    Spacer()
-                }
-
-                // Bottom controls
-                bottomControls
+            // Loading overlay when preparing paytable
+            if viewModel.isPreparingPaytable {
+                preparingPaytableOverlay
             }
         }
         .navigationTitle("Play")
@@ -115,6 +79,91 @@ struct PlayView: View {
             }
         } message: {
             Text("Enter amount to add to your balance")
+        }
+    }
+
+    // MARK: - Preparing Paytable Overlay
+
+    private var preparingPaytableOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.7)
+                .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(Color(hex: "667eea"))
+
+                Text(viewModel.preparationMessage)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+
+                VStack(spacing: 8) {
+                    Text("Preparing strategy data for offline use.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    Text("Manage storage in Settings → Offline Data")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(32)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+            )
+        }
+    }
+
+    // MARK: - Main Content
+
+    private var mainContent: some View {
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                // Top bar with balance and settings
+                topBar
+
+                // Multi-hand grid (for 5/10 line modes) - fixed
+                // For 100-play, show tally view in result phase instead
+                if viewModel.settings.lineCount == .oneHundred {
+                    // 100-play tally view - same position as 10-play grid
+                    // Fixed height container with internal scrolling
+                    HundredPlayTallyView(
+                        tallyResults: viewModel.phase == .result ? viewModel.hundredPlayTally : [],
+                        denomination: viewModel.settings.denomination.rawValue
+                    )
+                    .frame(height: 180) // Match approximate height of 10-play grid
+                    .padding(.horizontal)
+                } else if viewModel.settings.lineCount != .one {
+                    MultiHandGrid(
+                        lineCount: viewModel.settings.lineCount,
+                        results: gridResults,
+                        phase: viewModel.phase,
+                        denomination: viewModel.settings.denomination.rawValue
+                    )
+                }
+
+                // Cards area (main hand - last line) - fixed
+                cardsArea(geometry: geometry)
+                    .padding(.top, 12)
+
+                // EV Options Table (scrollable when visible)
+                if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
+                    ScrollView {
+                        evOptionsTable
+                            .padding(.horizontal)
+                            .padding(.top, 12)
+                    }
+                } else {
+                    Spacer()
+                }
+
+                // Bottom controls
+                bottomControls
+            }
         }
     }
 

@@ -55,6 +55,19 @@ struct SettingsView: View {
                 Text("Sound & Haptics")
             }
 
+            // Data & Storage Section
+            Section {
+                NavigationLink {
+                    OfflineDataView()
+                } label: {
+                    Label("Offline Data", systemImage: "internaldrive")
+                }
+            } header: {
+                Text("Data & Storage")
+            } footer: {
+                Text("Manage downloaded strategy data and storage preferences.")
+            }
+
             // Reset Section
             Section {
                 Button(role: .destructive) {
