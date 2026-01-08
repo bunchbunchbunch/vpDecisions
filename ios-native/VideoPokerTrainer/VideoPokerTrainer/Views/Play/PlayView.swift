@@ -143,7 +143,8 @@ struct PlayView: View {
                         lineCount: viewModel.settings.lineCount,
                         results: gridResults,
                         phase: viewModel.phase,
-                        denomination: viewModel.settings.denomination.rawValue
+                        denomination: viewModel.settings.denomination.rawValue,
+                        showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
                     )
                 }
 
@@ -274,7 +275,8 @@ struct PlayView: View {
                                     let displayCard = displayCardForIndex(index)
                                     CardView(
                                         card: displayCard,
-                                        isSelected: viewModel.selectedIndices.contains(index)
+                                        isSelected: viewModel.selectedIndices.contains(index),
+                                        showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
                                     ) {
                                         if viewModel.phase == .dealt {
                                             viewModel.toggleCard(index)
@@ -500,9 +502,9 @@ struct PlayView: View {
         Group {
             if let result = viewModel.strategyResult {
                 let hand = Hand(cards: viewModel.dealtCards)
-                let options = result.sortedHoldOptions
                 let userHold = Array(viewModel.selectedIndices).sorted()
                 let userCanonicalHold = hand.originalIndicesToCanonical(userHold)
+                let options = result.sortedHoldOptionsPrioritizingUser(userCanonicalHold)
 
                 VStack(spacing: 8) {
                     // Table header
@@ -532,12 +534,13 @@ struct PlayView: View {
                         ForEach(Array(options.enumerated()), id: \.offset) { index, option in
                             let optionOriginalIndices = hand.canonicalIndicesToOriginal(option.indices)
                             let optionCards = optionOriginalIndices.map { viewModel.dealtCards[$0] }
-                            let isBest = index == 0
+                            let rank = result.rankForOption(at: index, inUserPrioritizedList: options)
+                            let isBest = rank == 1
                             let isUserSelection = userCanonicalHold.sorted() == option.indices.sorted()
 
                             HStack(spacing: 8) {
-                                // Rank
-                                Text("\(index + 1)")
+                                // Rank (shows tied rank number)
+                                Text("\(rank)")
                                     .font(.subheadline)
                                     .fontWeight(isBest ? .bold : .regular)
                                     .frame(width: 40, alignment: .leading)

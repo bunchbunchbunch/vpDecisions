@@ -10,42 +10,85 @@ struct HandAnalyzerView: View {
     let allRanks: [Rank] = Rank.allCases
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Compact gradient header
-            analyzerHeader
+        ZStack {
+            VStack(spacing: 0) {
+                // Compact gradient header
+                analyzerHeader
 
-            // Paytable picker at top
-            paytablePickerBar
-                .tourTarget("analyzerGameSelector")
+                // Paytable picker at top
+                paytablePickerBar
+                    .tourTarget("analyzerGameSelector")
 
-            Divider()
-
-            // Selected cards display
-            selectedCardsBar
-                .tourTarget("selectedCardsBar")
-
-            Divider()
-
-            // Card grid
-            cardGrid
-                .tourTarget("cardGrid")
-
-            // Results table (inline, similar to quiz mode)
-            if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
                 Divider()
-                resultsTable(hand: hand, result: result)
-                    .tourTarget("resultsTable")
+
+                // Selected cards display
+                selectedCardsBar
+                    .tourTarget("selectedCardsBar")
+
+                Divider()
+
+                // Card grid
+                cardGrid
+                    .tourTarget("cardGrid")
+
+                // Results table (inline, similar to quiz mode)
+                if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
+                    Divider()
+                    resultsTable(hand: hand, result: result)
+                        .tourTarget("resultsTable")
+                }
+
+                // Bottom bar with just error message
+                if let error = viewModel.errorMessage {
+                    bottomErrorBar(error: error)
+                }
             }
 
-            // Bottom bar with just error message
-            if let error = viewModel.errorMessage {
-                bottomErrorBar(error: error)
+            // Loading overlay when preparing paytable
+            if viewModel.isPreparingPaytable {
+                preparingPaytableOverlay
             }
         }
         .withTour(.analyzer)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showPaytable) {
             AnalyzerPaytableSheet(paytable: viewModel.selectedPaytable, isPresented: $showPaytable)
+        }
+    }
+
+    // MARK: - Preparing Paytable Overlay
+
+    private var preparingPaytableOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.7)
+                .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(Color(hex: "667eea"))
+
+                Text(viewModel.preparationMessage)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+
+                VStack(spacing: 8) {
+                    Text("Preparing compressed strategy data for use.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    Text("To save the uncompressed file for quicker play, change storage options in Settings → Offline Data")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(32)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+            )
         }
     }
 
@@ -77,7 +120,7 @@ struct HandAnalyzerView: View {
                 ForEach(0..<5) { index in
                     if index < viewModel.selectedCards.count {
                         let card = viewModel.selectedCards[index]
-                        CardView(card: card, isSelected: false)
+                        CardView(card: card, isSelected: false, showAsWild: viewModel.selectedPaytable.isDeucesWild)
                             .frame(width: 60, height: 84)
                     } else {
                         // Card back placeholder - match CardView structure exactly
@@ -283,11 +326,12 @@ struct HandAnalyzerView: View {
                         ForEach(Array(result.sortedHoldOptions.enumerated()), id: \.offset) { index, option in
                             let optionOriginalIndices = hand.canonicalIndicesToOriginal(option.indices)
                             let optionCards = optionOriginalIndices.map { hand.cards[$0] }
-                            let isBest = index == 0
+                            let rank = result.rankForOption(at: index)
+                            let isBest = rank == 1
 
                             HStack(spacing: 8) {
-                                // Rank
-                                Text("\(index + 1)")
+                                // Rank (shows tied rank number)
+                                Text("\(rank)")
                                     .font(.subheadline)
                                     .fontWeight(isBest ? .bold : .regular)
                                     .frame(width: 40, alignment: .leading)

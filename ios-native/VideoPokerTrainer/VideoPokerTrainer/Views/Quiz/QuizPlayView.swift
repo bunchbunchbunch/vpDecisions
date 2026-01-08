@@ -105,12 +105,14 @@ struct QuizPlayView: View {
 
                             // Cards (fixed vertical position)
                             if let currentHand = viewModel.currentHand {
+                                let isDeucesWild = PayTable.allPayTables.first { $0.id == viewModel.paytableId }?.isDeucesWild ?? false
                                 GeometryReader { cardGeometry in
                                     HStack(spacing: 8) {
                                         ForEach(Array(currentHand.hand.cards.enumerated()), id: \.element.id) { index, card in
                                             CardView(
                                                 card: card,
-                                                isSelected: viewModel.selectedIndices.contains(index)
+                                                isSelected: viewModel.selectedIndices.contains(index),
+                                                showAsWild: isDeucesWild
                                             ) {
                                                 viewModel.toggleCard(index)
                                             }
@@ -285,7 +287,9 @@ struct QuizPlayView: View {
     // MARK: - EV Options Table
 
     private func evOptionsTable(for quizHand: QuizHand) -> some View {
-        let options = quizHand.strategyResult.sortedHoldOptions
+        // Get user's hold in canonical order for prioritization
+        let userCanonicalHold = quizHand.hand.originalIndicesToCanonical(quizHand.userHoldIndices)
+        let options = quizHand.strategyResult.sortedHoldOptionsPrioritizingUser(userCanonicalHold)
 
         return VStack(spacing: 8) {
             // Table header
@@ -315,12 +319,13 @@ struct QuizPlayView: View {
                 ForEach(Array(options.enumerated()), id: \.offset) { index, option in
                     let optionOriginalIndices = quizHand.hand.canonicalIndicesToOriginal(option.indices)
                     let optionCards = optionOriginalIndices.map { quizHand.hand.cards[$0] }
-                    let isBest = index == 0
+                    let rank = quizHand.strategyResult.rankForOption(at: index, inUserPrioritizedList: options)
+                    let isBest = rank == 1
                     let isUserSelection = viewModel.showFeedback && optionOriginalIndices.sorted() == quizHand.userHoldIndices.sorted()
 
                     HStack(spacing: 8) {
-                        // Rank
-                        Text("\(index + 1)")
+                        // Rank (shows tied rank number)
+                        Text("\(rank)")
                             .font(.subheadline)
                             .fontWeight(isBest ? .bold : .regular)
                             .frame(width: 40, alignment: .leading)

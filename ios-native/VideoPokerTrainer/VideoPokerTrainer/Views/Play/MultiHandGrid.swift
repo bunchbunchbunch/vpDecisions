@@ -6,6 +6,7 @@ struct MultiHandGrid: View {
     let results: [PlayHandResult]
     let phase: PlayPhase
     let denomination: Double
+    var showAsWild: Bool = false
 
     private var gridConfig: (columns: Int, rows: Int, handCount: Int) {
         switch lineCount {
@@ -83,7 +84,8 @@ struct MultiHandGrid: View {
                 winningIndices: [],
                 showAsCardBacks: true,
                 denomination: denomination,
-                cardWidth: cardWidth
+                cardWidth: cardWidth,
+                showAsWild: showAsWild
             )
         } else if index < results.count {
             // Post-draw: show actual result
@@ -96,7 +98,8 @@ struct MultiHandGrid: View {
                 winningIndices: result.winningIndices,
                 showAsCardBacks: false,
                 denomination: denomination,
-                cardWidth: cardWidth
+                cardWidth: cardWidth,
+                showAsWild: showAsWild
             )
         } else {
             // Fallback: show card backs
@@ -108,7 +111,8 @@ struct MultiHandGrid: View {
                 winningIndices: [],
                 showAsCardBacks: true,
                 denomination: denomination,
-                cardWidth: cardWidth
+                cardWidth: cardWidth,
+                showAsWild: showAsWild
             )
         }
     }

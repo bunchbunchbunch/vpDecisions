@@ -10,6 +10,10 @@ class AnalyzerViewModel: ObservableObject {
     @Published var showResults = false
     @Published var errorMessage: String?
 
+    // Loading state for paytable preparation
+    @Published var isPreparingPaytable = false
+    @Published var preparationMessage = "Loading strategy data..."
+
     var canAnalyze: Bool {
         selectedCards.count == 5
     }
@@ -51,6 +55,9 @@ class AnalyzerViewModel: ObservableObject {
         isAnalyzing = true
         errorMessage = nil
 
+        // Prepare paytable if needed (download/decompress)
+        await preparePaytableIfNeeded()
+
         do {
             strategyResult = try await StrategyService.shared.lookup(
                 hand: hand,
@@ -67,5 +74,41 @@ class AnalyzerViewModel: ObservableObject {
         }
 
         isAnalyzing = false
+    }
+
+    /// Prepares the current paytable for use (decompresses if needed)
+    private func preparePaytableIfNeeded() async {
+        let paytableId = selectedPaytable.id
+        let paytableName = selectedPaytable.name
+
+        // Check if we need to load
+        let needsLoading = await StrategyService.shared.paytableNeedsLoading(paytableId: paytableId)
+        if !needsLoading {
+            return  // Already loaded or not bundled/downloadable
+        }
+
+        // Show loading state with detailed status updates
+        isPreparingPaytable = true
+
+        let success = await StrategyService.shared.preparePaytable(paytableId: paytableId) { [weak self] status in
+            guard let self = self else { return }
+            switch status {
+            case .checking:
+                self.preparationMessage = "Checking \(paytableName)..."
+            case .downloading:
+                self.preparationMessage = "Downloading \(paytableName)..."
+            case .importing:
+                self.preparationMessage = "Importing \(paytableName)..."
+            case .ready:
+                self.preparationMessage = "Ready"
+            case .failed(let message):
+                self.preparationMessage = "Failed: \(message)"
+            }
+        }
+
+        // Hide loading state (keep showing if failed)
+        if success {
+            isPreparingPaytable = false
+        }
     }
 }

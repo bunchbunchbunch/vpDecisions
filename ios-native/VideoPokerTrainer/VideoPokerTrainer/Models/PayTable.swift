@@ -16,6 +16,11 @@ struct PayTable: Identifiable, Hashable {
         return .jacksOrBetter // fallback
     }
 
+    /// Returns true if this is a Deuces Wild variant (2s are wild)
+    var isDeucesWild: Bool {
+        family == .deucesWild
+    }
+
     // Short variant name for display (e.g., "9/6", "NSUD", "Full Pay")
     var variantName: String {
         // Strip the family prefix and format nicely

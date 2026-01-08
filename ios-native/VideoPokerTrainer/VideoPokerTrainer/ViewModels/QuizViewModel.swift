@@ -128,12 +128,35 @@ class QuizViewModel: ObservableObject {
         // User selection is in original deal order
         let userHold = Array(selectedIndices).sorted()
 
-        // Database stores best hold in canonical (sorted) order
-        // Convert to original order for comparison
+        // Convert user's hold from original to canonical order
+        let userCanonicalHold = currentHand.hand.originalIndicesToCanonical(userHold)
+
+        // Debug logging for tied ranks
+        let userBitmask = Hand.bitmaskFromHoldIndices(userCanonicalHold)
+        let tiedBitmasks = currentHand.strategyResult.tiedForBestBitmasks
+        let bestEv = currentHand.strategyResult.bestEv
+        NSLog("🎯 TIED RANKS DEBUG:")
+        NSLog("  Hand: %@", currentHand.hand.cards.map { "\($0.rank.display)\($0.suit.code)" }.joined(separator: " "))
+        NSLog("  User hold (original): %@", userHold.description)
+        NSLog("  User hold (canonical): %@", userCanonicalHold.description)
+        NSLog("  User bitmask: %d", userBitmask)
+        NSLog("  Best EV: %.6f", bestEv)
+        NSLog("  Tied bitmasks: %@", tiedBitmasks.description)
+        NSLog("  User bitmask in tied? %@", tiedBitmasks.contains(userBitmask) ? "YES" : "NO")
+
+        // Log all options with their EVs to see if there are tiny differences
+        let sortedOptions = currentHand.strategyResult.sortedHoldOptions.prefix(5)
+        for (i, opt) in sortedOptions.enumerated() {
+            let diff = abs(opt.ev - bestEv)
+            NSLog("  Option %d: bitmask=%d, EV=%.10f, diff=%.10f", i, opt.bitmask, opt.ev, diff)
+        }
+
+        // Check if user's hold is tied for best EV (not just exact match with bestHold)
+        let correct = currentHand.strategyResult.isHoldTiedForBest(userCanonicalHold)
+
+        // For category assignment, use the primary best hold
         let canonicalBestHold = currentHand.strategyResult.bestHoldIndices
         let correctHold = currentHand.hand.canonicalIndicesToOriginal(canonicalBestHold).sorted()
-
-        let correct = userHold == correctHold
 
         // Update the current hand
         hands[currentIndex].userHoldIndices = userHold

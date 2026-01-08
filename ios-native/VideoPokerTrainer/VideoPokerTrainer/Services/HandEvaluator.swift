@@ -273,8 +273,8 @@ actor HandEvaluator {
             )
         }
 
-        // Flush
-        if isFlush(hand: hand) {
+        // Flush (deuces are wild for suit)
+        if isFlushWithWilds(hand: hand) {
             return DealtWinnerResult(
                 isWinner: true,
                 handName: "Flush",
@@ -318,6 +318,21 @@ actor HandEvaluator {
     private func isFlush(hand: Hand) -> Bool {
         let firstSuit = hand.cards[0].suit
         return hand.cards.allSatisfy { $0.suit == firstSuit }
+    }
+
+    /// Check for flush in Deuces Wild where 2s are wild cards (can be any suit)
+    private func isFlushWithWilds(hand: Hand) -> Bool {
+        // Get non-deuce cards (deuces are wild for suit)
+        let nonDeuceCards = hand.cards.filter { $0.rank.rawValue != 2 }
+
+        // If all cards are deuces, any flush is possible
+        if nonDeuceCards.isEmpty {
+            return true
+        }
+
+        // Check if all non-deuce cards are the same suit
+        let firstSuit = nonDeuceCards[0].suit
+        return nonDeuceCards.allSatisfy { $0.suit == firstSuit }
     }
 
     private func isStraight(hand: Hand) -> Bool {

@@ -109,6 +109,101 @@ struct StrategyResult: Codable {
             return (bitmask: bitmask, ev: ev, indices: Hand.holdIndicesFromBitmask(bitmask))
         }.sorted { $0.ev > $1.ev }
     }
+
+    /// Get all bitmasks that are tied for best EV (within floating point tolerance)
+    /// Uses chain comparison (each consecutive pair) to match rankForOption behavior
+    var tiedForBestBitmasks: [Int] {
+        let sorted = sortedHoldOptions
+        guard !sorted.isEmpty else { return [] }
+
+        let tolerance = 0.0001
+        var tiedBitmasks: [Int] = [sorted[0].bitmask]
+        var previousEv = sorted[0].ev
+
+        // Use chain comparison: each option is tied if within tolerance of the previous
+        for i in 1..<sorted.count {
+            if abs(sorted[i].ev - previousEv) < tolerance {
+                tiedBitmasks.append(sorted[i].bitmask)
+                previousEv = sorted[i].ev
+            } else {
+                break  // Once we find a gap, stop adding to tied list
+            }
+        }
+
+        return tiedBitmasks
+    }
+
+    /// Check if a given hold (in canonical order) is tied for best
+    func isHoldTiedForBest(_ canonicalIndices: [Int]) -> Bool {
+        let userBitmask = Hand.bitmaskFromHoldIndices(canonicalIndices)
+        return tiedForBestBitmasks.contains(userBitmask)
+    }
+
+    /// Get the rank for a hold option at a given index, accounting for ties
+    /// Returns the rank number (1-based) where tied EVs share the same rank
+    func rankForOption(at index: Int) -> Int {
+        let sorted = sortedHoldOptions
+        guard index < sorted.count else { return index + 1 }
+
+        let tolerance = 0.0001
+        var rank = 1
+        var previousEv: Double? = nil
+
+        for i in 0...index {
+            if let prevEv = previousEv {
+                // Only increment rank if EV is meaningfully different
+                if abs(sorted[i].ev - prevEv) >= tolerance {
+                    rank = i + 1
+                }
+            }
+            previousEv = sorted[i].ev
+        }
+
+        return rank
+    }
+
+    /// Get hold options sorted by EV, with user's selection prioritized among ties
+    /// - Parameter userCanonicalIndices: The user's hold indices in canonical order
+    /// - Returns: Sorted options with user's selection first among any tied EVs
+    func sortedHoldOptionsPrioritizingUser(_ userCanonicalIndices: [Int]) -> [(bitmask: Int, ev: Double, indices: [Int])] {
+        let tolerance = 0.0001
+        let userIndicesSorted = userCanonicalIndices.sorted()
+
+        return sortedHoldOptions.sorted { a, b in
+            // First sort by EV (descending)
+            if abs(a.ev - b.ev) >= tolerance {
+                return a.ev > b.ev
+            }
+            // If EVs are tied, prioritize user's selection
+            let aIsUserSelection = a.indices.sorted() == userIndicesSorted
+            let bIsUserSelection = b.indices.sorted() == userIndicesSorted
+            if aIsUserSelection != bIsUserSelection {
+                return aIsUserSelection
+            }
+            // Otherwise maintain original order
+            return false
+        }
+    }
+
+    /// Get the rank for a hold option at a given index in a user-prioritized list
+    func rankForOption(at index: Int, inUserPrioritizedList options: [(bitmask: Int, ev: Double, indices: [Int])]) -> Int {
+        guard index < options.count else { return index + 1 }
+
+        let tolerance = 0.0001
+        var rank = 1
+        var previousEv: Double? = nil
+
+        for i in 0...index {
+            if let prevEv = previousEv {
+                if abs(options[i].ev - prevEv) >= tolerance {
+                    rank = i + 1
+                }
+            }
+            previousEv = options[i].ev
+        }
+
+        return rank
+    }
 }
 
 // MARK: - User Profile

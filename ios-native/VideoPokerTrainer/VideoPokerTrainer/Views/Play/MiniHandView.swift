@@ -10,6 +10,7 @@ struct MiniHandView: View {
     let showAsCardBacks: Bool
     let denomination: Double
     let cardWidth: CGFloat
+    var showAsWild: Bool = false
 
     // Overlap as percentage of card width (negative spacing)
     private var cardOverlap: CGFloat {
@@ -31,7 +32,8 @@ struct MiniHandView: View {
                         MiniCardView(
                             card: cards[index].toCard(),
                             isWinning: winningIndices.contains(index),
-                            cardWidth: cardWidth
+                            cardWidth: cardWidth,
+                            showAsWild: showAsWild
                         )
                     } else {
                         MiniCardView(card: nil, isWinning: false, cardWidth: cardWidth)

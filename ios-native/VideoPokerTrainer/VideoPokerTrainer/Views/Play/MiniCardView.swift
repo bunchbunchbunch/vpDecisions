@@ -5,14 +5,24 @@ struct MiniCardView: View {
     let card: Card?  // nil = show card back
     let isWinning: Bool
     let cardWidth: CGFloat
+    var showAsWild: Bool = false
 
     private let aspectRatio: CGFloat = 2.5 / 3.5
 
+    /// Returns the appropriate image name, using wild variant for 2s when showAsWild is true
+    private var cardImageName: String {
+        guard let card = card else { return "1B" }
+        if showAsWild && card.rank == .two {
+            return "\(card.rank.display)\(card.suit.code)_wild"
+        }
+        return card.imageName
+    }
+
     var body: some View {
         ZStack {
-            if let card = card {
+            if card != nil {
                 // Face-up card using actual card image
-                Image(card.imageName)
+                Image(cardImageName)
                     .resizable()
                     .aspectRatio(aspectRatio, contentMode: .fit)
                     .frame(width: cardWidth)

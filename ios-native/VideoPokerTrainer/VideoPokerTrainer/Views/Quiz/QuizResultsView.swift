@@ -177,12 +177,15 @@ struct QuizResultsView: View {
                     .foregroundColor(.secondary)
                     .font(.caption)
 
-                ForEach(Array(quizHand.strategyResult.sortedHoldOptions.prefix(5).enumerated()), id: \.offset) { i, option in
+                let userCanonicalHold = quizHand.hand.originalIndicesToCanonical(quizHand.userHoldIndices)
+                let allOptions = quizHand.strategyResult.sortedHoldOptionsPrioritizingUser(userCanonicalHold)
+                ForEach(Array(allOptions.prefix(5).enumerated()), id: \.offset) { i, option in
                     // Convert canonical indices to original for each option
                     let originalIndices = quizHand.hand.canonicalIndicesToOriginal(option.indices)
+                    let rank = quizHand.strategyResult.rankForOption(at: i, inUserPrioritizedList: allOptions)
 
                     HStack {
-                        Text("\(i + 1).")
+                        Text("\(rank).")
                             .foregroundColor(.secondary)
                             .frame(width: 20)
 

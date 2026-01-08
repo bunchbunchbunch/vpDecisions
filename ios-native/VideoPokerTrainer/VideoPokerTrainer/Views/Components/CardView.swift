@@ -3,13 +3,22 @@ import SwiftUI
 struct CardView: View {
     let card: Card
     var isSelected: Bool = false
+    var showAsWild: Bool = false
     var onTap: (() -> Void)? = nil
+
+    /// Returns the appropriate image name, using wild variant for 2s when showAsWild is true
+    private var cardImageName: String {
+        if showAsWild && card.rank == .two {
+            return "\(card.rank.display)\(card.suit.code)_wild"
+        }
+        return card.imageName
+    }
 
     var body: some View {
         VStack(spacing: 4) {
             ZStack {
                 // Card image
-                Image(card.imageName)
+                Image(cardImageName)
                     .resizable()
                     .aspectRatio(2.5/3.5, contentMode: .fit)
                     .cornerRadius(8)
