@@ -29,7 +29,7 @@ struct QuizPlayView: View {
         .task {
             await viewModel.loadQuiz()
         }
-        .withTour(.quizPlay)
+        .withTour(.quizPlay, isReady: !viewModel.isLoading)
     }
 
     // MARK: - Loading View

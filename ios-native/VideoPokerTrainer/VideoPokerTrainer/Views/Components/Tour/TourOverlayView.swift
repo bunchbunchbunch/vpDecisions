@@ -119,9 +119,11 @@ struct SpotlightShape: Shape {
 /// View modifier to add tour overlay to a view
 struct TourOverlayModifier: ViewModifier {
     let tourId: TourId
+    let isReady: Bool
     @ObservedObject private var tourManager = TourManager.shared
     @State private var viewId = UUID()
     @State private var registeredTargetIds: Set<String> = []
+    @State private var hasTriggeredTour = false
 
     func body(content: Content) -> some View {
         ZStack {
@@ -140,7 +142,23 @@ struct TourOverlayModifier: ViewModifier {
             // Wait for layout to complete
             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
             await MainActor.run {
-                tourManager.startTourIfNeeded(tourId)
+                // Only start if ready (or if no ready condition was provided, isReady defaults to true)
+                if isReady && !hasTriggeredTour {
+                    hasTriggeredTour = true
+                    tourManager.startTourIfNeeded(tourId)
+                }
+            }
+        }
+        .onChange(of: isReady) { _, newValue in
+            // When isReady becomes true, start the tour after a short delay for layout
+            if newValue && !hasTriggeredTour {
+                hasTriggeredTour = true
+                Task {
+                    try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+                    await MainActor.run {
+                        tourManager.startTourIfNeeded(tourId)
+                    }
+                }
             }
         }
         .onDisappear {
@@ -156,7 +174,12 @@ struct TourOverlayModifier: ViewModifier {
 extension View {
     /// Add tour overlay to this view with automatic tour triggering
     func withTour(_ tourId: TourId) -> some View {
-        modifier(TourOverlayModifier(tourId: tourId))
+        modifier(TourOverlayModifier(tourId: tourId, isReady: true))
+    }
+
+    /// Add tour overlay that waits for a ready condition before triggering
+    func withTour(_ tourId: TourId, isReady: Bool) -> some View {
+        modifier(TourOverlayModifier(tourId: tourId, isReady: isReady))
     }
 }
 
