@@ -26,6 +26,7 @@ struct PlayView: View {
                 preparingPaytableOverlay
             }
         }
+        .withTour(.playGame)
         .navigationTitle("Play")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
@@ -104,7 +105,7 @@ struct PlayView: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
 
-                    Text("Change storage options in Settings → Offline Data")
+                    Text("To save the uncompressed file for quicker play, change storage options in Settings → Offline Data")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -205,6 +206,7 @@ struct PlayView: View {
                     .fontWeight(.bold)
             }
         }
+        .tourTarget("balanceArea")
         .padding()
         .background(Color(.systemBackground))
     }
@@ -249,6 +251,7 @@ struct PlayView: View {
                             .background(Color.white.opacity(0.2))
                             .cornerRadius(6)
                         }
+                        .tourTarget("paytableButton")
 
                         Spacer()
 
@@ -342,6 +345,7 @@ struct PlayView: View {
                     .padding(.bottom, 8)
             }
         }
+        .tourTarget("cardsArea")
         .frame(height: 200)
         .padding(.horizontal)
     }
@@ -612,6 +616,7 @@ struct PlayView: View {
         .buttonStyle(.borderedProminent)
         .tint(actionButtonColor)
         .disabled(!viewModel.canDeal && (viewModel.phase == .betting || viewModel.phase == .result))
+        .tourTarget("actionButton")
     }
 
     private var actionButtonText: String {

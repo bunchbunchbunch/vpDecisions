@@ -33,23 +33,15 @@ struct PlayStartView: View {
 
             // Settings section
             VStack(spacing: 16) {
-                // Paytable picker
+                // Game selector
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Game Type")
+                    Text("Game")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
 
-                    Picker("Paytable", selection: $settings.selectedPaytableId) {
-                        ForEach(PayTable.allPayTables, id: \.id) { paytable in
-                            Text(paytable.name).tag(paytable.id)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .frame(maxWidth: .infinity)
-                    .padding(12)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
+                    GameSelectorView(selectedPaytableId: $settings.selectedPaytableId)
                 }
+                .tourTarget("gameSelector")
 
                 // Line count
                 VStack(alignment: .leading, spacing: 6) {
@@ -80,6 +72,7 @@ struct PlayStartView: View {
                         }
                     }
                 }
+                .tourTarget("linesSelector")
 
                 // Denomination
                 VStack(alignment: .leading, spacing: 6) {
@@ -109,12 +102,14 @@ struct PlayStartView: View {
                         }
                     }
                 }
+                .tourTarget("denominationSelector")
 
                 // Optimal feedback toggle
                 Toggle("Show Optimal Play Feedback", isOn: $settings.showOptimalFeedback)
                     .padding(12)
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
+                    .tourTarget("optimalFeedbackToggle")
             }
             .padding(.horizontal)
 
@@ -144,6 +139,7 @@ struct PlayStartView: View {
             .padding(.horizontal)
             .padding(.bottom, 24)
         }
+        .withTour(.playStart)
         .navigationTitle("Play")
         .navigationBarTitleDisplayMode(.inline)
         .task {

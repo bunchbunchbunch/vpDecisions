@@ -37,6 +37,7 @@ struct HomeView: View {
                 }
                 .padding()
             }
+            .withTour(.home)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     accountMenu
@@ -147,6 +148,7 @@ struct HomeView: View {
             ) {
                 navigationPath.append(AppScreen.playStart)
             }
+            .tourTarget("playModeButton")
 
             // Row 2: Quiz and Analyzer
             HStack(spacing: 12) {
@@ -158,6 +160,7 @@ struct HomeView: View {
                     weakSpotsMode = false
                     navigationPath.append(AppScreen.quizStart)
                 }
+                .tourTarget("quizModeButton")
 
                 ActionButton(
                     title: "Analyzer",
@@ -166,6 +169,7 @@ struct HomeView: View {
                 ) {
                     navigationPath.append(AppScreen.analyzer)
                 }
+                .tourTarget("analyzerButton")
             }
 
             // In Development Section
@@ -350,30 +354,20 @@ struct QuizStartView: View {
 
             // Settings
             VStack(spacing: 16) {
-                // Paytable picker
+                // Game selector
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Game Type")
+                    Text("Game")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
 
-                    Picker("Paytable", selection: $selectedPaytableId) {
-                        ForEach(PayTable.allPayTables, id: \.id) { paytable in
-                            Text(paytable.name).tag(paytable.id)
+                    GameSelectorView(selectedPaytableId: $selectedPaytableId)
+                        .onChange(of: selectedPaytableId) { _, newValue in
+                            if let paytable = PayTable.allPayTables.first(where: { $0.id == newValue }) {
+                                selectedPaytable = paytable
+                            }
                         }
-                    }
-                    .pickerStyle(.menu)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                    .onChange(of: selectedPaytableId) { _, newValue in
-                        NSLog("🎯 Picker changed to ID: %@", newValue)
-                        if let paytable = PayTable.allPayTables.first(where: { $0.id == newValue }) {
-                            selectedPaytable = paytable
-                            NSLog("🎯 Updated selectedPaytable to: %@ - %@", paytable.id, paytable.name)
-                        }
-                    }
                 }
+                .tourTarget("quizGameSelector")
                 .onAppear {
                     selectedPaytableId = selectedPaytable.id
                 }
@@ -441,6 +435,7 @@ struct QuizStartView: View {
                     .cornerRadius(10)
                 }
             }
+            .tourTarget("quizSizeSelector")
             .padding(.horizontal)
 
             Spacer()
@@ -461,6 +456,7 @@ struct QuizStartView: View {
             }
             .buttonStyle(.borderedProminent)
             .tint(weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea"))
+            .tourTarget("startQuizButton")
             .padding(.horizontal)
 
             Button("Back to Menu") {
@@ -470,6 +466,7 @@ struct QuizStartView: View {
 
             Spacer()
         }
+        .withTour(.quizStart)
         .navigationTitle(weakSpotsMode ? "Weak Spots" : "Quiz")
         .navigationBarTitleDisplayMode(.inline)
     }

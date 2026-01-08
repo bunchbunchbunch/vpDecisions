@@ -29,6 +29,7 @@ struct QuizPlayView: View {
         .task {
             await viewModel.loadQuiz()
         }
+        .withTour(.quizPlay)
     }
 
     // MARK: - Loading View
@@ -51,7 +52,7 @@ struct QuizPlayView: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
 
-                    Text("Change storage options in Settings → Offline Data")
+                    Text("To save the uncompressed file for quicker play, change storage options in Settings → Offline Data")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -82,6 +83,7 @@ struct QuizPlayView: View {
             VStack(spacing: 0) {
                 // Progress bar
                 progressBar
+                    .tourTarget("progressBar")
                     .padding(.bottom, 8)
 
                 // Scrollable content
@@ -187,18 +189,21 @@ struct QuizPlayView: View {
                         }
                         .frame(height: 220)
                         .padding(.horizontal)
+                        .tourTarget("quizCardsArea")
 
                         // EV Options Table (scrollable)
                         if viewModel.showFeedback, let currentHand = viewModel.currentHand {
                             evOptionsTable(for: currentHand)
                                 .padding(.horizontal)
                                 .padding(.top, 8)
+                                .tourTarget("evTable")
                         }
                     }
                 }
 
                 // Action button (fixed at bottom)
                 actionButton
+                    .tourTarget("submitButton")
                     .padding(.horizontal)
                     .padding(.bottom, 8)
             }

@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2B19AA5ACB41405085634134 /* Tour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB821BBCFF2446B84C60D16 /* Tour.swift */; };
+		299E8A3C233D4052A24FDD6E /* TourContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C5CB925C30C433EA95C4BF9 /* TourContent.swift */; };
+		2F5AAC791CF446B188ED310F /* TourManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD91FAD4A8F94C7BA15AD690 /* TourManager.swift */; };
+		1F5FB1D5BB86468195868530 /* TourTooltipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC871CE4CA3B4865B69CD986 /* TourTooltipView.swift */; };
+		9538F3E50B7C4E218C36C7C4 /* TourTargetModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707403D45CBB4CEA97A436F5 /* TourTargetModifier.swift */; };
+		93E5BFC872DC4ECC8B3963CA /* TourOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47F839743EB44C16937B47D6 /* TourOverlayView.swift */; };
+		0FB2B70321E24D9590F1D0D8 /* TourSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93776FFDC86460BB5CF0C65 /* TourSettingsView.swift */; };
 		07D564051B4CBB23DFDF41B2 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC11F57C339351683A7A945E /* AuthViewModel.swift */; };
 		PLAY001A2B3C4D5E6F7A8B9C /* PlayModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY001A2B3C4D5E6F7A8B9D /* PlayModels.swift */; };
 		PLAY002A2B3C4D5E6F7A8B9C /* PlayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY002A2B3C4D5E6F7A8B9D /* PlayViewModel.swift */; };
@@ -64,9 +71,19 @@
 		F302A693B13FFCB4A467F149 /* MasteryDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BB591ADA1CB751A89760BF /* MasteryDashboardView.swift */; };
 		FCD4460BC57F88E834DA6FAB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BA55DBC9DB3C3D1B66159FE2 /* Assets.xcassets */; };
 		FEB433C9189612043BBCEAF8 /* correct.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7C7B891E2E0E0C3A4CE8293E /* correct.mp3 */; };
+		GFAM001A2B3C4D5E6F7A8B9C /* GameFamily.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFAM001A2B3C4D5E6F7A8B9D /* GameFamily.swift */; };
+		POPB001A2B3C4D5E6F7A8B9C /* PopularGameButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = POPB001A2B3C4D5E6F7A8B9D /* PopularGameButton.swift */; };
+		GSEL001A2B3C4D5E6F7A8B9C /* GameSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GSEL001A2B3C4D5E6F7A8B9D /* GameSelectorView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0BB821BBCFF2446B84C60D16 /* Tour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tour.swift; sourceTree = "<group>"; };
+		0C5CB925C30C433EA95C4BF9 /* TourContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourContent.swift; sourceTree = "<group>"; };
+		DD91FAD4A8F94C7BA15AD690 /* TourManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourManager.swift; sourceTree = "<group>"; };
+		CC871CE4CA3B4865B69CD986 /* TourTooltipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourTooltipView.swift; sourceTree = "<group>"; };
+		707403D45CBB4CEA97A436F5 /* TourTargetModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourTargetModifier.swift; sourceTree = "<group>"; };
+		47F839743EB44C16937B47D6 /* TourOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourOverlayView.swift; sourceTree = "<group>"; };
+		F93776FFDC86460BB5CF0C65 /* TourSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourSettingsView.swift; sourceTree = "<group>"; };
 		03FD663D9F07AEE4E1829685 /* Hand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hand.swift; sourceTree = "<group>"; };
 		PLAY001A2B3C4D5E6F7A8B9D /* PlayModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayModels.swift; sourceTree = "<group>"; };
 		PLAY002A2B3C4D5E6F7A8B9D /* PlayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayViewModel.swift; sourceTree = "<group>"; };
@@ -125,6 +142,9 @@
 		TDB001A2B3C4D5E6F7A8B9D /* strategy_triple_double_bonus_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_triple_double_bonus_9_6.json.gz; sourceTree = "<group>"; };
 		NSUD001A2B3C4D5E6F7A8B9D /* strategy_deuces_wild_nsud.json.gz */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_deuces_wild_nsud.json.gz; sourceTree = "<group>"; };
 		F8BB591ADA1CB751A89760BF /* MasteryDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryDashboardView.swift; sourceTree = "<group>"; };
+		GFAM001A2B3C4D5E6F7A8B9D /* GameFamily.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameFamily.swift; sourceTree = "<group>"; };
+		POPB001A2B3C4D5E6F7A8B9D /* PopularGameButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopularGameButton.swift; sourceTree = "<group>"; };
+		GSEL001A2B3C4D5E6F7A8B9D /* GameSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSelectorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,11 +162,14 @@
 		0C30F74B7D0F644A2250C0A5 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				GSEL001A2B3C4D5E6F7A8B9D /* GameSelectorView.swift */,
+				POPB001A2B3C4D5E6F7A8B9D /* PopularGameButton.swift */,
 				THEME001A2B3C4D5E6F7A8B9D /* AppTheme.swift */,
 				E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */,
 				6FCBC58743A80FDACE84FB39 /* CardView.swift */,
 				3BD0AFFC99AFF87B9DEFC49E /* CompactPayTableView.swift */,
 				99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */,
+				ECD4983AE0F34EB4AE24C748 /* Tour */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -230,6 +253,7 @@
 			children = (
 				OFFLN001A2B3C4D5E6F7A8B9C /* OfflineDataView.swift */,
 				5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */,
+				F93776FFDC86460BB5CF0C65 /* TourSettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -277,6 +301,7 @@
 		B098BF53AA85868FDD597FA1 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				GFAM001A2B3C4D5E6F7A8B9D /* GameFamily.swift */,
 				3A372C2B67ECD0E057210D57 /* Card.swift */,
 				03FD663D9F07AEE4E1829685 /* Hand.swift */,
 				6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */,
@@ -284,6 +309,8 @@
 				7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */,
 				EEC6E4EE5E71F8D44366E1EF /* PayTableData.swift */,
 				PLAY001A2B3C4D5E6F7A8B9D /* PlayModels.swift */,
+				0BB821BBCFF2446B84C60D16 /* Tour.swift */,
+				0C5CB925C30C433EA95C4BF9 /* TourContent.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -319,6 +346,7 @@
 				PTP001A2B3C4D5E6F7A8B9D /* PaytablePreferences.swift */,
 				2B14813ABEB1C877847870FF /* StrategyService.swift */,
 				8717FB49A524CDA76F3D730A /* SupabaseService.swift */,
+				DD91FAD4A8F94C7BA15AD690 /* TourManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -337,6 +365,16 @@
 				DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		ECD4983AE0F34EB4AE24C748 /* Tour */ = {
+			isa = PBXGroup;
+			children = (
+				CC871CE4CA3B4865B69CD986 /* TourTooltipView.swift */,
+				707403D45CBB4CEA97A436F5 /* TourTargetModifier.swift */,
+				47F839743EB44C16937B47D6 /* TourOverlayView.swift */,
+			);
+			path = Tour;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -435,6 +473,9 @@
 				8A9A3CE99246EFF4C4EF47AF /* CardGlowEffect.swift in Sources */,
 				D7F21D806CD72B4FBBE789EE /* CardView.swift in Sources */,
 				CA02749FA8C7CEE2A99CAA8A /* CompactPayTableView.swift in Sources */,
+				GFAM001A2B3C4D5E6F7A8B9C /* GameFamily.swift in Sources */,
+				GSEL001A2B3C4D5E6F7A8B9C /* GameSelectorView.swift in Sources */,
+				POPB001A2B3C4D5E6F7A8B9C /* PopularGameButton.swift in Sources */,
 				4B04B4CD4470F1A26E6022E8 /* DealtWinnerBanner.swift in Sources */,
 				38D2B5DC081395DAE5D3B0FB /* ForgotPasswordView.swift in Sources */,
 				7F91767A20F844B17A466A75 /* Hand.swift in Sources */,
@@ -468,6 +509,13 @@
 				9AD6A559445353450025DD68 /* StrategyService.swift in Sources */,
 				D7B782D6C22D584CF543D895 /* SupabaseService.swift in Sources */,
 				7F19D2CB801A784CD2487F3A /* VideoPokerTrainerApp.swift in Sources */,
+				2B19AA5ACB41405085634134 /* Tour.swift in Sources */,
+				299E8A3C233D4052A24FDD6E /* TourContent.swift in Sources */,
+				2F5AAC791CF446B188ED310F /* TourManager.swift in Sources */,
+				1F5FB1D5BB86468195868530 /* TourTooltipView.swift in Sources */,
+				9538F3E50B7C4E218C36C7C4 /* TourTargetModifier.swift in Sources */,
+				93E5BFC872DC4ECC8B3963CA /* TourOverlayView.swift in Sources */,
+				0FB2B70321E24D9590F1D0D8 /* TourSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

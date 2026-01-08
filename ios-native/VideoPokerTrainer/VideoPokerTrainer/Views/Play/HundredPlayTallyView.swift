@@ -5,11 +5,6 @@ struct HundredPlayTallyView: View {
     let tallyResults: [HundredPlayTallyResult]
     let denomination: Double
 
-    // Use two columns when more than 3 results (fits up to 8 in 4 rows)
-    private var useTwoColumns: Bool {
-        tallyResults.count > 3
-    }
-
     var body: some View {
         if tallyResults.isEmpty {
             // Pre-draw or no wins - empty placeholder (maintains layout)
@@ -17,48 +12,15 @@ struct HundredPlayTallyView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ScrollView {
-                if useTwoColumns {
-                    twoColumnLayout
-                } else {
-                    singleColumnLayout
-                }
-            }
-        }
-    }
-
-    private var singleColumnLayout: some View {
-        VStack(spacing: 6) {
-            ForEach(tallyResults) { result in
-                compactTallyRow(result: result)
-            }
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-    }
-
-    private var twoColumnLayout: some View {
-        // Column-first order: top-to-bottom, then left-to-right
-        let rowCount = (tallyResults.count + 1) / 2
-
-        return VStack(spacing: 6) {
-            ForEach(0..<rowCount, id: \.self) { rowIndex in
-                let leftIndex = rowIndex
-                let rightIndex = rowIndex + rowCount
-
-                HStack(spacing: 8) {
-                    compactTallyRow(result: tallyResults[leftIndex])
-
-                    if rightIndex < tallyResults.count {
-                        compactTallyRow(result: tallyResults[rightIndex])
-                    } else {
-                        Spacer()
-                            .frame(maxWidth: .infinity)
+                VStack(spacing: 6) {
+                    ForEach(tallyResults) { result in
+                        compactTallyRow(result: result)
                     }
                 }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
             }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
     }
 
     @ViewBuilder

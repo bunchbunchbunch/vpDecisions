@@ -68,6 +68,19 @@ struct SettingsView: View {
                 Text("Manage downloaded strategy data and storage preferences.")
             }
 
+            // Help & Tours Section
+            Section {
+                NavigationLink {
+                    TourSettingsView()
+                } label: {
+                    Label("Product Tours", systemImage: "questionmark.circle")
+                }
+            } header: {
+                Text("Help & Tours")
+            } footer: {
+                Text("Replay guided tours to learn app features.")
+            }
+
             // Reset Section
             Section {
                 Button(role: .destructive) {

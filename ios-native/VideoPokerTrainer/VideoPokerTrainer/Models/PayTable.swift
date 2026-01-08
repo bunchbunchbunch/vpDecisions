@@ -4,6 +4,39 @@ struct PayTable: Identifiable, Hashable {
     let id: String
     let name: String
 
+    // Computed property to determine game family from ID
+    var family: GameFamily {
+        // Order matters - check longer prefixes first
+        if id.hasPrefix("double-double-bonus") { return .doubleDoubleBonus }
+        if id.hasPrefix("triple-double-bonus") { return .tripleDoubleBonus }
+        if id.hasPrefix("double-bonus") { return .doubleBonus }
+        if id.hasPrefix("bonus-poker") { return .bonusPoker }
+        if id.hasPrefix("jacks-or-better") { return .jacksOrBetter }
+        if id.hasPrefix("deuces-wild") { return .deucesWild }
+        return .jacksOrBetter // fallback
+    }
+
+    // Short variant name for display (e.g., "9/6", "NSUD", "Full Pay")
+    var variantName: String {
+        // Strip the family prefix and format nicely
+        let prefix = family.rawValue + "-"
+        guard id.hasPrefix(prefix) else { return name }
+
+        let suffix = String(id.dropFirst(prefix.count))
+
+        // Handle special cases
+        switch suffix {
+        case "full-pay": return "Full Pay"
+        case "nsud": return "NSUD"
+        default:
+            // Convert "9-6" to "9/6", "9-6-90" to "9/6/90", etc.
+            return suffix.replacingOccurrences(of: "-", with: "/")
+                .uppercased()
+                .replacingOccurrences(of: "RF", with: " RF")
+                .trimmingCharacters(in: CharacterSet.whitespaces)
+        }
+    }
+
     // Jacks or Better variants
     static let jacksOrBetter96 = PayTable(id: "jacks-or-better-9-6", name: "Jacks or Better 9/6")
     static let jacksOrBetter95 = PayTable(id: "jacks-or-better-9-5", name: "Jacks or Better 9/5")
@@ -55,4 +88,22 @@ struct PayTable: Identifiable, Hashable {
     ]
 
     static let defaultPayTable = jacksOrBetter96
+
+    // Popular paytables for quick access
+    static let popularPaytableIds: [String] = [
+        "jacks-or-better-9-6",
+        "double-double-bonus-9-6",
+        "deuces-wild-nsud",
+        "double-bonus-10-7"
+    ]
+
+    static var popularPaytables: [PayTable] {
+        popularPaytableIds.compactMap { id in
+            allPayTables.first { $0.id == id }
+        }
+    }
+
+    static func paytables(for family: GameFamily) -> [PayTable] {
+        allPayTables.filter { $0.family == family }
+    }
 }

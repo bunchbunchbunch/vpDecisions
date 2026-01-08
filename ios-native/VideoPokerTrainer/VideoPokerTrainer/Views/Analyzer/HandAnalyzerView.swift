@@ -16,21 +16,25 @@ struct HandAnalyzerView: View {
 
             // Paytable picker at top
             paytablePickerBar
+                .tourTarget("analyzerGameSelector")
 
             Divider()
 
             // Selected cards display
             selectedCardsBar
+                .tourTarget("selectedCardsBar")
 
             Divider()
 
             // Card grid
             cardGrid
+                .tourTarget("cardGrid")
 
             // Results table (inline, similar to quiz mode)
             if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
                 Divider()
                 resultsTable(hand: hand, result: result)
+                    .tourTarget("resultsTable")
             }
 
             // Bottom bar with just error message
@@ -38,6 +42,7 @@ struct HandAnalyzerView: View {
                 bottomErrorBar(error: error)
             }
         }
+        .withTour(.analyzer)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showPaytable) {
             AnalyzerPaytableSheet(paytable: viewModel.selectedPaytable, isPresented: $showPaytable)
@@ -159,43 +164,40 @@ struct HandAnalyzerView: View {
     // MARK: - Paytable Picker Bar
 
     private var paytablePickerBar: some View {
-        HStack {
-            Text("Game Type")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+        VStack(spacing: 8) {
+            HStack {
+                Text("Game")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
 
-            Picker("Paytable", selection: $selectedPaytableId) {
-                ForEach(PayTable.allPayTables, id: \.id) { paytable in
-                    Text(paytable.name).tag(paytable.id)
+                Spacer()
+
+                Button {
+                    showPaytable = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "list.bullet.rectangle")
+                            .font(.caption)
+                        Text("Paytable")
+                            .font(.caption)
+                    }
+                    .foregroundColor(Color(hex: "3498db"))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color(hex: "3498db").opacity(0.15))
+                    .cornerRadius(6)
                 }
             }
-            .pickerStyle(.menu)
-            .onChange(of: selectedPaytableId) { _, newValue in
-                if let paytable = PayTable.allPayTables.first(where: { $0.id == newValue }) {
-                    viewModel.selectedPaytable = paytable
-                }
-            }
-            .onAppear {
-                selectedPaytableId = viewModel.selectedPaytable.id
-            }
 
-            Spacer()
-
-            Button {
-                showPaytable = true
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "list.bullet.rectangle")
-                        .font(.caption)
-                    Text("Paytable")
-                        .font(.caption)
+            GameSelectorView(selectedPaytableId: $selectedPaytableId)
+                .onChange(of: selectedPaytableId) { _, newValue in
+                    if let paytable = PayTable.allPayTables.first(where: { $0.id == newValue }) {
+                        viewModel.selectedPaytable = paytable
+                    }
                 }
-                .foregroundColor(Color(hex: "3498db"))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color(hex: "3498db").opacity(0.15))
-                .cornerRadius(6)
-            }
+                .onAppear {
+                    selectedPaytableId = viewModel.selectedPaytable.id
+                }
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
