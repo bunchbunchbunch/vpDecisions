@@ -3713,23 +3713,47 @@ fn generate_all_strategies(output_dir: &str) {
     let all_ids = get_all_paytable_ids();
     let total_paytables = all_ids.len();
 
-    println!("╔══════════════════════════════════════════════════════════════════╗");
-    println!("║          VIDEO POKER STRATEGY GENERATOR - BATCH MODE            ║");
-    println!("╠══════════════════════════════════════════════════════════════════╣");
-    println!("║  Paytables to process: {:<42} ║", total_paytables);
-    println!("║  Output directory: {:<46} ║", output_dir);
-    println!("║  Threads: {:<55} ║", rayon::current_num_threads());
-    println!("╚══════════════════════════════════════════════════════════════════╝");
-    println!();
-
     // Ensure output directory exists
     if let Err(e) = fs::create_dir_all(output_dir) {
         eprintln!("Failed to create output directory: {}", e);
         std::process::exit(1);
     }
 
+    // Check which paytables already have output files (for resume)
+    let mut already_done: Vec<&str> = Vec::new();
+    let mut to_process: Vec<&str> = Vec::new();
+
+    for id in &all_ids {
+        let filename = get_storage_filename(id);
+        let path = Path::new(output_dir).join(&filename);
+        if path.exists() {
+            already_done.push(id);
+        } else {
+            to_process.push(id);
+        }
+    }
+
+    let previously_completed = already_done.len();
+    let remaining = to_process.len();
+
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║          VIDEO POKER STRATEGY GENERATOR - BATCH MODE            ║");
+    println!("╠══════════════════════════════════════════════════════════════════╣");
+    println!("║  Total paytables: {:<47} ║", total_paytables);
+    println!("║  Already completed: {:<45} ║", previously_completed);
+    println!("║  To process this run: {:<43} ║", remaining);
+    println!("║  Output directory: {:<46} ║", output_dir);
+    println!("║  Threads: {:<55} ║", rayon::current_num_threads());
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+    println!();
+
+    if remaining == 0 {
+        println!("All paytables already generated! Nothing to do.");
+        return;
+    }
+
     let overall_start = Instant::now();
-    let mut completed = 0;
+    let mut completed_this_run = 0;
     let mut total_hands = 0usize;
     let mut total_bytes = 0u64;
     let mut failed_paytables: Vec<String> = Vec::new();
@@ -3737,7 +3761,7 @@ fn generate_all_strategies(output_dir: &str) {
     // Track timing for ETA calculation
     let mut paytable_times: Vec<f64> = Vec::new();
 
-    for (idx, paytable_id) in all_ids.iter().enumerate() {
+    for (idx, paytable_id) in to_process.iter().enumerate() {
         let paytable = match get_paytable(paytable_id) {
             Some(pt) => pt,
             None => {
@@ -3747,17 +3771,22 @@ fn generate_all_strategies(output_dir: &str) {
             }
         };
 
+        let overall_done = previously_completed + completed_this_run;
+
         // Calculate ETA based on average time per paytable
         let eta_str = if !paytable_times.is_empty() {
             let avg_time = paytable_times.iter().sum::<f64>() / paytable_times.len() as f64;
-            let remaining = (total_paytables - idx) as f64 * avg_time;
-            format!("ETA: {}", format_duration(remaining as u64))
+            let remaining_count = remaining - idx;
+            let remaining_secs = remaining_count as f64 * avg_time;
+            format!("ETA: {}", format_duration(remaining_secs as u64))
         } else {
             "ETA: calculating...".to_string()
         };
 
         println!("┌──────────────────────────────────────────────────────────────────┐");
-        println!("│ [{:>3}/{}] {:<52} │", idx + 1, total_paytables, paytable.name);
+        println!("│ Overall: {}/{}  |  This run: {}/{}                               │",
+            overall_done + 1, total_paytables, idx + 1, remaining);
+        println!("│ {:<65} │", paytable.name);
         println!("│ ID: {:<61} │", paytable_id);
         println!("│ {:<65} │", eta_str);
         println!("└──────────────────────────────────────────────────────────────────┘");
@@ -3765,7 +3794,11 @@ fn generate_all_strategies(output_dir: &str) {
         let paytable_start = Instant::now();
 
         // Generate strategy with progress
-        let (compressed, hand_count, _version) = generate_strategy_file_with_progress(&paytable, idx + 1, total_paytables);
+        let (compressed, hand_count, _version) = generate_strategy_file_with_progress(
+            &paytable,
+            overall_done + 1,
+            total_paytables
+        );
         let file_size = compressed.len() as u64;
 
         // Save locally
@@ -3773,7 +3806,7 @@ fn generate_all_strategies(output_dir: &str) {
             Ok(path) => {
                 let elapsed = paytable_start.elapsed().as_secs_f64();
                 paytable_times.push(elapsed);
-                completed += 1;
+                completed_this_run += 1;
                 total_hands += hand_count;
                 total_bytes += file_size;
                 println!("  ✓ Saved: {} ({:.2} MB) in {:.1}s",
@@ -3792,13 +3825,16 @@ fn generate_all_strategies(output_dir: &str) {
 
     // Final summary
     let total_elapsed = overall_start.elapsed();
+    let final_total = previously_completed + completed_this_run;
     println!("╔══════════════════════════════════════════════════════════════════╗");
     println!("║                        GENERATION COMPLETE                       ║");
     println!("╠══════════════════════════════════════════════════════════════════╣");
-    println!("║  Paytables processed: {:<43} ║", format!("{}/{}", completed, total_paytables));
-    println!("║  Total hands calculated: {:<40} ║", format!("{}", total_hands));
-    println!("║  Total output size: {:<45} ║", format!("{:.2} MB", total_bytes as f64 / 1024.0 / 1024.0));
-    println!("║  Total time: {:<52} ║", format_duration(total_elapsed.as_secs()));
+    println!("║  Overall progress: {:<46} ║", format!("{}/{}", final_total, total_paytables));
+    println!("║  Completed this run: {:<44} ║", completed_this_run);
+    println!("║  Previously completed: {:<42} ║", previously_completed);
+    println!("║  Hands calculated (this run): {:<35} ║", format!("{}", total_hands));
+    println!("║  Output size (this run): {:<40} ║", format!("{:.2} MB", total_bytes as f64 / 1024.0 / 1024.0));
+    println!("║  Time (this run): {:<47} ║", format_duration(total_elapsed.as_secs()));
     if !failed_paytables.is_empty() {
         println!("╠══════════════════════════════════════════════════════════════════╣");
         println!("║  Failed paytables:                                               ║");
