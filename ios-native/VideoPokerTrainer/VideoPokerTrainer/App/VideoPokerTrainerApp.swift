@@ -214,7 +214,7 @@ struct ContentView: View {
             do {
                 if let result = try await StrategyService.shared.lookup(
                     hand: hand,
-                    paytableId: PayTable.jacksOrBetter.id
+                    paytableId: PayTable.jacksOrBetter96.id
                 ) {
                     let holdCards = result.bestHoldIndices.map { hand.cards[$0].displayText }.joined(separator: " ")
                     await MainActor.run {

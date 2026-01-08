@@ -4,7 +4,7 @@ import SwiftUI
 @MainActor
 class AnalyzerViewModel: ObservableObject {
     @Published var selectedCards: [Card] = []
-    @Published var selectedPaytable = PayTable.jacksOrBetter
+    @Published var selectedPaytable = PayTable.jacksOrBetter96
     @Published var strategyResult: StrategyResult?
     @Published var isAnalyzing = false
     @Published var showResults = false

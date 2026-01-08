@@ -15,7 +15,7 @@ enum AppScreen: Hashable {
 struct HomeView: View {
     @ObservedObject var authViewModel: AuthViewModel
     @State private var navigationPath = NavigationPath()
-    @State private var selectedPaytable = PayTable.jacksOrBetter {
+    @State private var selectedPaytable = PayTable.jacksOrBetter96 {
         didSet {
             NSLog("🏠 HomeView selectedPaytable changed to: %@ - %@", selectedPaytable.id, selectedPaytable.name)
         }
@@ -316,7 +316,7 @@ struct QuizStartView: View {
     @Binding var selectedPaytable: PayTable
     @Binding var weakSpotsMode: Bool
 
-    @State private var selectedPaytableId: String = PayTable.jacksOrBetter.id
+    @State private var selectedPaytableId: String = PayTable.jacksOrBetter96.id
     @State private var selectedQuizSize: Int = 25
 
     var body: some View {

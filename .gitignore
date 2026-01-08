@@ -40,3 +40,4 @@ android/app/build/
 # Rust
 target/
 Cargo.lock
+scripts/rust_calculator/strategies/

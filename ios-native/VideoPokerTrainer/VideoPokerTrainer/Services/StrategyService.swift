@@ -1,5 +1,29 @@
 import Foundation
 
+/// Loading status for paytable preparation
+enum PaytableLoadingStatus: Equatable {
+    case checking
+    case downloading
+    case importing
+    case ready
+    case failed(String)
+
+    var displayMessage: String {
+        switch self {
+        case .checking:
+            return "Checking strategy data..."
+        case .downloading:
+            return "Downloading strategy..."
+        case .importing:
+            return "Importing strategy data..."
+        case .ready:
+            return "Ready"
+        case .failed(let message):
+            return "Failed: \(message)"
+        }
+    }
+}
+
 actor StrategyService {
     static let shared = StrategyService()
 
@@ -22,8 +46,19 @@ actor StrategyService {
 
     /// Downloadable paytables (available from Supabase Storage)
     private let downloadablePaytables: [String: (filename: String, displayName: String)] = [
+        // Jacks or Better variants
+        "jacks-or-better-9-5": ("strategy_jacks_or_better_9_5", "Jacks or Better 9/5"),
+        "jacks-or-better-8-6": ("strategy_jacks_or_better_8_6", "Jacks or Better 8/6"),
+        "jacks-or-better-8-5": ("strategy_jacks_or_better_8_5", "Jacks or Better 8/5"),
+        "jacks-or-better-7-5": ("strategy_jacks_or_better_7_5", "Jacks or Better 7/5"),
+        "jacks-or-better-6-5": ("strategy_jacks_or_better_6_5", "Jacks or Better 6/5"),
+        "jacks-or-better-9-6-90": ("strategy_jacks_or_better_9_6_90", "Jacks or Better 9/6/90 (100%)"),
+        "jacks-or-better-9-6-940": ("strategy_jacks_or_better_9_6_940", "Jacks or Better 9/6 RF940"),
+        // Bonus Poker
         "bonus-poker-8-5": ("strategy_bonus_poker_8_5", "Bonus Poker 8/5"),
+        // Double Bonus
         "double-bonus-10-7": ("strategy_double_bonus_10_7", "Double Bonus 10/7"),
+        // Deuces Wild
         "deuces-wild-full-pay": ("strategy_deuces_wild_full_pay", "Deuces Wild Full Pay"),
     ]
 
@@ -228,6 +263,100 @@ actor StrategyService {
 
         // Load/download it (this will wait for completion)
         return await ensurePaytableLoaded(paytableId: paytableId)
+    }
+
+    /// Prepare a paytable with status updates via callback
+    /// The callback is called on the main actor for UI updates
+    func preparePaytable(paytableId: String, onStatusChange: @escaping @MainActor (PaytableLoadingStatus) -> Void) async -> Bool {
+        // Report checking status
+        await MainActor.run { onStatusChange(.checking) }
+
+        // Check if already loaded
+        let existingCount = await LocalStrategyStore.shared.getHandCount(paytableId: paytableId)
+        if existingCount > 0 {
+            await MainActor.run { onStatusChange(.ready) }
+            return true
+        }
+
+        // Check if this paytable can be loaded
+        let isBundled = bundledPaytables[paytableId] != nil
+        let isDownloadable = downloadablePaytables[paytableId] != nil
+
+        guard isBundled || isDownloadable else {
+            await MainActor.run { onStatusChange(.failed("Strategy not available")) }
+            return false
+        }
+
+        // Check if another task is already loading
+        if let existingTask = loadingTasks[paytableId] {
+            await MainActor.run { onStatusChange(isBundled ? .importing : .downloading) }
+            let success = await existingTask.value
+            await MainActor.run { onStatusChange(success ? .ready : .failed("Loading failed")) }
+            return success
+        }
+
+        // Create a loading task
+        let loadTask = Task<Bool, Never> {
+            if isBundled {
+                await MainActor.run { onStatusChange(.importing) }
+                return await performBundledLoad(paytableId: paytableId)
+            } else {
+                await MainActor.run { onStatusChange(.downloading) }
+                let downloadSuccess = await performDownloadWithProgress(paytableId: paytableId, onStatusChange: onStatusChange)
+                return downloadSuccess
+            }
+        }
+
+        loadingTasks[paytableId] = loadTask
+        let success = await loadTask.value
+        loadingTasks.removeValue(forKey: paytableId)
+
+        await MainActor.run { onStatusChange(success ? .ready : .failed("Loading failed")) }
+        return success
+    }
+
+    /// Download with progress updates
+    private func performDownloadWithProgress(paytableId: String, onStatusChange: @escaping @MainActor (PaytableLoadingStatus) -> Void) async -> Bool {
+        guard let config = downloadablePaytables[paytableId] else { return false }
+
+        let urlString = "\(storageBaseURL)/\(config.filename).json.gz"
+        guard let url = URL(string: urlString) else {
+            NSLog("❌ Invalid download URL: \(urlString)")
+            return false
+        }
+
+        NSLog("⬇️ Downloading \(config.displayName) from Supabase Storage...")
+
+        do {
+            // Download the file
+            let (tempURL, response) = try await URLSession.shared.download(from: url)
+
+            // Check response
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+                NSLog("❌ Download failed with status \(httpResponse.statusCode)")
+                return false
+            }
+
+            // Update status to importing
+            await MainActor.run { onStatusChange(.importing) }
+
+            // Import from the downloaded file
+            let count = try await LocalStrategyStore.shared.importFromJSON(
+                url: tempURL,
+                paytableId: paytableId,
+                displayName: config.displayName,
+                isBundled: false
+            )
+
+            // Clean up temp file
+            try? FileManager.default.removeItem(at: tempURL)
+
+            NSLog("⬇️ Downloaded \(config.displayName): \(count) hands")
+            return count > 0
+        } catch {
+            NSLog("❌ Error downloading \(config.filename): \(error)")
+            return false
+        }
     }
 
     /// Check if a paytable needs to be loaded (not yet in SQLite but is available)

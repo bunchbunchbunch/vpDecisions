@@ -3,7 +3,7 @@ import SwiftUI
 struct HandAnalyzerView: View {
     @StateObject private var viewModel = AnalyzerViewModel()
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedPaytableId: String = PayTable.jacksOrBetter.id
+    @State private var selectedPaytableId: String = PayTable.jacksOrBetter96.id
     @State private var showPaytable = false
 
     let allSuits: [Suit] = [.hearts, .diamonds, .clubs, .spades]

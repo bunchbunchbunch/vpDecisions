@@ -95,22 +95,37 @@ class PlayViewModel: ObservableObject {
     /// Prepares the current paytable for use (decompresses if needed)
     func prepareCurrentPaytable() async {
         let paytableId = settings.selectedPaytableId
+        let paytableName = currentPaytable?.name ?? "strategy data"
 
         // Check if we need to load
         let needsLoading = await StrategyService.shared.paytableNeedsLoading(paytableId: paytableId)
         if !needsLoading {
-            return  // Already loaded or not bundled
+            return  // Already loaded or not bundled/downloadable
         }
 
-        // Show loading state
+        // Show loading state with detailed status updates
         isPreparingPaytable = true
-        preparationMessage = "Loading \(currentPaytable?.name ?? "strategy data")..."
 
-        // Load it
-        _ = await StrategyService.shared.preparePaytable(paytableId: paytableId)
+        let success = await StrategyService.shared.preparePaytable(paytableId: paytableId) { [weak self] status in
+            guard let self = self else { return }
+            switch status {
+            case .checking:
+                self.preparationMessage = "Checking \(paytableName)..."
+            case .downloading:
+                self.preparationMessage = "Downloading \(paytableName)..."
+            case .importing:
+                self.preparationMessage = "Importing \(paytableName)..."
+            case .ready:
+                self.preparationMessage = "Ready"
+            case .failed(let message):
+                self.preparationMessage = "Failed: \(message)"
+            }
+        }
 
-        // Hide loading state
-        isPreparingPaytable = false
+        // Hide loading state (keep showing if failed)
+        if success {
+            isPreparingPaytable = false
+        }
     }
 
     // MARK: - Game Actions

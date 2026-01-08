@@ -70,6 +70,6 @@ struct CompactPayTableView: View {
 }
 
 #Preview {
-    CompactPayTableView(paytable: .jacksOrBetter)
+    CompactPayTableView(paytable: .jacksOrBetter96)
         .padding()
 }

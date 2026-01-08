@@ -3017,14 +3017,14 @@ fn generate_canonical_hands(include_joker: bool) -> Vec<(String, Hand)> {
 // JSON OUTPUT STRUCTURES
 // ============================================================================
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct StrategyEntry {
     hold: u8,
     ev: f64,
     hold_evs: HashMap<String, f64>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct StrategyFile {
     game: String,
     paytable_id: String,
@@ -3849,6 +3849,127 @@ fn generate_all_strategies(output_dir: &str) {
     }
 }
 
+fn upload_existing_strategies(input_dir: &str) {
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║          UPLOAD EXISTING STRATEGY FILES TO SUPABASE             ║");
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+    println!();
+
+    // Load environment
+    dotenv::from_path("../../.env").ok();
+
+    let supabase_url = match std::env::var("SUPABASE_URL") {
+        Ok(url) => url,
+        Err(_) => {
+            eprintln!("SUPABASE_URL not set in .env");
+            std::process::exit(1);
+        }
+    };
+
+    let service_key = match std::env::var("SUPABASE_SERVICE_KEY") {
+        Ok(key) => key,
+        Err(_) => {
+            eprintln!("SUPABASE_SERVICE_KEY not set in .env");
+            std::process::exit(1);
+        }
+    };
+
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(120))
+        .build()
+        .expect("Failed to create HTTP client");
+
+    // Find all .json.gz files in the input directory
+    let entries = match fs::read_dir(input_dir) {
+        Ok(e) => e,
+        Err(e) => {
+            eprintln!("Failed to read directory {}: {}", input_dir, e);
+            std::process::exit(1);
+        }
+    };
+
+    let mut files: Vec<_> = entries
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().extension().map(|ext| ext == "gz").unwrap_or(false))
+        .collect();
+
+    files.sort_by_key(|e| e.path());
+
+    println!("Found {} strategy files in {}\n", files.len(), input_dir);
+
+    let mut uploaded = 0;
+    let mut failed = 0;
+
+    for (idx, entry) in files.iter().enumerate() {
+        let path = entry.path();
+        let filename = path.file_name().unwrap().to_string_lossy();
+
+        // Extract paytable_id from filename: strategy_xxx_yyy.json.gz -> xxx-yyy
+        let paytable_id = filename
+            .trim_start_matches("strategy_")
+            .trim_end_matches(".json.gz")
+            .replace('_', "-");
+
+        println!("[{}/{}] Uploading: {}", idx + 1, files.len(), filename);
+        println!("  Paytable ID: {}", paytable_id);
+
+        // Read file
+        let compressed = match fs::read(&path) {
+            Ok(data) => data,
+            Err(e) => {
+                println!("  ✗ Failed to read file: {}", e);
+                failed += 1;
+                continue;
+            }
+        };
+
+        let file_size = compressed.len() as u64;
+        println!("  Size: {:.2} MB", file_size as f64 / 1024.0 / 1024.0);
+
+        // Upload to storage
+        if let Err(e) = upload_to_storage(&client, &compressed, &paytable_id, &supabase_url, &service_key) {
+            println!("  ✗ Upload failed: {}", e);
+            failed += 1;
+            continue;
+        }
+
+        // Parse the file to get hand count for manifest
+        let hand_count = match flate2::read::GzDecoder::new(&compressed[..]) {
+            decoder => {
+                let mut json_str = String::new();
+                if std::io::Read::read_to_string(&mut std::io::BufReader::new(decoder), &mut json_str).is_ok() {
+                    if let Ok(strategy_file) = serde_json::from_str::<StrategyFile>(&json_str) {
+                        strategy_file.hand_count
+                    } else {
+                        0
+                    }
+                } else {
+                    0
+                }
+            }
+        };
+
+        // Update manifest
+        if let Err(e) = update_manifest(&client, &supabase_url, &service_key, &paytable_id, 1, file_size, hand_count) {
+            println!("  ⚠ Manifest update failed: {}", e);
+        }
+
+        uploaded += 1;
+        println!();
+    }
+
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║                         UPLOAD COMPLETE                          ║");
+    println!("╠══════════════════════════════════════════════════════════════════╣");
+    println!("║  Uploaded: {:<54} ║", uploaded);
+    println!("║  Failed: {:<56} ║", failed);
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+
+    if failed > 0 {
+        std::process::exit(1);
+    }
+}
+
 fn generate_strategy_file_with_progress(paytable: &Paytable, current_paytable: usize, total_paytables: usize) -> (Vec<u8>, usize, u32) {
     let include_joker = paytable.is_joker_poker();
     let all_hands = generate_canonical_hands(include_joker);
@@ -3939,6 +4060,7 @@ fn main() {
         println!("  vp_calculator <paytable-id>              Generate strategy, save locally, and upload");
         println!("  vp_calculator <paytable-id> --no-upload  Generate strategy and save locally only");
         println!("  vp_calculator generate-all [--output DIR] Generate all strategies (no upload)");
+        println!("  vp_calculator upload-existing [DIR]      Upload existing .json.gz files to Supabase");
         println!("  vp_calculator list                       List all available paytables");
         println!("  vp_calculator test [filter]              Run payout tests");
         println!("  vp_calculator manifest                   Show current manifest from Supabase");
@@ -3972,6 +4094,13 @@ fn main() {
             }
         }
         generate_all_strategies(&output_dir);
+        return;
+    }
+
+    // Check for upload-existing mode
+    if args.get(1).map(|s| s.as_str()) == Some("upload-existing") {
+        let input_dir = args.get(2).map(|s| s.as_str()).unwrap_or("../../supabase-uploads");
+        upload_existing_strategies(input_dir);
         return;
     }
 
