@@ -124,6 +124,15 @@ enum GameFamily {
     JokerPokerKings,
     JokerPokerTwoPair,
     DoubleJoker,
+    // Additional game families from comprehensive paytables
+    TripleTripleBonus,        // TTB
+    RoyalAcesBonus,           // RAB
+    AcesBonus,                // Ace$ (A-c-e-s Bonus)
+    BonusAcesAndFaces,        // BPAF
+    DDBonusAcesAndFaces,      // DDBAF
+    DoubleDoubleBonusPlus,    // DDB+
+    DeucesWild44,             // DW44 (different payouts)
+    DeucesJokerWild,          // DJW (deuces + joker wild)
 }
 
 impl Paytable {
@@ -132,13 +141,14 @@ impl Paytable {
             GameFamily::DeucesWild | GameFamily::LooseDeuces |
             GameFamily::DoubleDeuces | GameFamily::TripleDeuces |
             GameFamily::DeucesWildBonusPoker | GameFamily::DoubleBonusDeucesWild |
-            GameFamily::SuperBonusDeucesWild | GameFamily::DeluxeDeucesWild)
+            GameFamily::SuperBonusDeucesWild | GameFamily::DeluxeDeucesWild |
+            GameFamily::DeucesWild44 | GameFamily::DeucesJokerWild)
     }
 
     fn is_joker_poker(&self) -> bool {
         matches!(self.game_family,
             GameFamily::JokerPokerKings | GameFamily::JokerPokerTwoPair |
-            GameFamily::DoubleJoker)
+            GameFamily::DoubleJoker | GameFamily::DeucesJokerWild)
     }
 
     fn has_kicker_bonus(&self) -> bool {
@@ -242,6 +252,50 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             min_pair_rank: 9,
         }),
 
+        // Additional JoB variants from comprehensive paytable list
+        "jacks-or-better-9-6-90" => Some(Paytable {
+            id: id.to_string(),
+            name: "Jacks or Better 9/6/90 (100%)".to_string(),
+            game_family: GameFamily::JacksOrBetter,
+            royal_flush: 800.0, straight_flush: 90.0, four_of_a_kind: 25.0,
+            full_house: 9.0, flush: 6.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 2.0, high_pair: 1.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "jacks-or-better-9-6-940" => Some(Paytable {
+            id: id.to_string(),
+            name: "Jacks or Better 9/6 RF940 (99.90%)".to_string(),
+            game_family: GameFamily::JacksOrBetter,
+            royal_flush: 940.0, straight_flush: 50.0, four_of_a_kind: 25.0,
+            full_house: 9.0, flush: 6.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 2.0, high_pair: 1.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "jacks-or-better-8-5-35" => Some(Paytable {
+            id: id.to_string(),
+            name: "Jacks or Better 8/5 4K35 (99.66%)".to_string(),
+            game_family: GameFamily::JacksOrBetter,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 35.0,
+            full_house: 8.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 2.0, high_pair: 1.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+
         // ====== TENS OR BETTER ======
         "tens-or-better-6-5" => Some(Paytable {
             id: id.to_string(),
@@ -293,6 +347,22 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             game_family: GameFamily::BonusPoker,
             royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 25.0,
             full_house: 6.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 2.0, high_pair: 1.0,
+            four_aces: Some(80.0), four_2_4: Some(40.0), four_5_k: Some(25.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+
+        // Additional Bonus Poker variants
+        "bonus-poker-7-5-1200" => Some(Paytable {
+            id: id.to_string(),
+            name: "Bonus Poker 7/5 RF1200 (99.09%)".to_string(),
+            game_family: GameFamily::BonusPoker,
+            royal_flush: 1200.0, straight_flush: 50.0, four_of_a_kind: 25.0,
+            full_house: 7.0, flush: 5.0, straight: 4.0,
             three_of_a_kind: 3.0, two_pair: 2.0, high_pair: 1.0,
             four_aces: Some(80.0), four_2_4: Some(40.0), four_5_k: Some(25.0), four_jqk: None,
             four_8s: None, four_7s: None,
@@ -686,13 +756,99 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             min_pair_rank: 9,
         }),
 
+        // Additional Bonus Deluxe variants
+        "bonus-poker-deluxe-9-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "Bonus Poker Deluxe 9/5 (98.55%)".to_string(),
+            game_family: GameFamily::BonusPokerDeluxe,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 80.0,
+            full_house: 9.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "bonus-poker-deluxe-8-6-100" => Some(Paytable {
+            id: id.to_string(),
+            name: "Bonus Poker Deluxe 8/6 SF100 (99.07%)".to_string(),
+            game_family: GameFamily::BonusPokerDeluxe,
+            royal_flush: 800.0, straight_flush: 100.0, four_of_a_kind: 80.0,
+            full_house: 8.0, flush: 6.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+
         // ====== DOUBLE BONUS ======
         "double-bonus-10-7" => Some(Paytable {
             id: id.to_string(),
-            name: "Double Bonus 10/7".to_string(),
+            name: "Double Bonus 10/7 (100.17%)".to_string(),
             game_family: GameFamily::Doublebonus,
             royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
             full_house: 10.0, flush: 7.0, straight: 5.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "double-bonus-10-7-100" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Bonus 10/7 SF100 (100.77%)".to_string(),
+            game_family: GameFamily::Doublebonus,
+            royal_flush: 800.0, straight_flush: 100.0, four_of_a_kind: 50.0,
+            full_house: 10.0, flush: 7.0, straight: 5.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "double-bonus-10-7-80" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Bonus 10/7 SF80 (100.52%)".to_string(),
+            game_family: GameFamily::Doublebonus,
+            royal_flush: 800.0, straight_flush: 80.0, four_of_a_kind: 50.0,
+            full_house: 10.0, flush: 7.0, straight: 5.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "double-bonus-10-6" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Bonus 10/6 (98.88%)".to_string(),
+            game_family: GameFamily::Doublebonus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 10.0, flush: 6.0, straight: 5.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "double-bonus-10-7-4" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Bonus 10/7/4 (98.81%)".to_string(),
+            game_family: GameFamily::Doublebonus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 10.0, flush: 7.0, straight: 4.0,
             three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
             four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
             four_8s: None, four_7s: None,
@@ -803,12 +959,54 @@ fn get_paytable(id: &str) -> Option<Paytable> {
         }),
 
         // ====== DOUBLE DOUBLE BONUS ======
+        "double-double-bonus-10-6-100" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Double Bonus 10/6 SF100 (100.64%)".to_string(),
+            game_family: GameFamily::DoubleDoubleBonus,
+            royal_flush: 800.0, straight_flush: 100.0, four_of_a_kind: 50.0,
+            full_house: 10.0, flush: 6.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
         "double-double-bonus-10-6" => Some(Paytable {
             id: id.to_string(),
-            name: "Double Double Bonus 10/6".to_string(),
+            name: "Double Double Bonus 10/6 (100.07%)".to_string(),
             game_family: GameFamily::DoubleDoubleBonus,
             royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
             full_house: 10.0, flush: 6.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "double-double-bonus-7-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Double Bonus 7/5 (95.71%)".to_string(),
+            game_family: GameFamily::DoubleDoubleBonus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 7.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "double-double-bonus-6-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Double Bonus 6/5 (94.66%)".to_string(),
+            game_family: GameFamily::DoubleDoubleBonus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 6.0, flush: 5.0, straight: 4.0,
             three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
             four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
             four_8s: None, four_7s: None,
@@ -1078,6 +1276,64 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             min_pair_rank: 0,
         }),
 
+        // Additional Deuces Wild variants
+        "deuces-wild-25-15-8" => Some(Paytable {
+            id: id.to_string(),
+            name: "Deuces Wild 25/15/8 (100.36%)".to_string(),
+            game_family: GameFamily::DeucesWild,
+            royal_flush: 800.0, straight_flush: 8.0, four_of_a_kind: 5.0,
+            full_house: 3.0, flush: 2.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(15.0),
+            min_pair_rank: 0,
+        }),
+        "deuces-wild-20-15-9" => Some(Paytable {
+            id: id.to_string(),
+            name: "Deuces Wild 20/15/9 (99.89%)".to_string(),
+            game_family: GameFamily::DeucesWild,
+            royal_flush: 800.0, straight_flush: 9.0, four_of_a_kind: 5.0,
+            full_house: 3.0, flush: 2.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(200.0), wild_royal: Some(20.0), five_of_a_kind: Some(15.0),
+            min_pair_rank: 0,
+        }),
+        "deuces-wild-25-12-9" => Some(Paytable {
+            id: id.to_string(),
+            name: "Deuces Wild 25/12/9 (99.81%)".to_string(),
+            game_family: GameFamily::DeucesWild,
+            royal_flush: 800.0, straight_flush: 9.0, four_of_a_kind: 5.0,
+            full_house: 3.0, flush: 2.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(12.0),
+            min_pair_rank: 0,
+        }),
+        "deuces-wild-colorado" => Some(Paytable {
+            id: id.to_string(),
+            name: "Colorado Deuces (96.77%)".to_string(),
+            game_family: GameFamily::DeucesWild,
+            royal_flush: 800.0, straight_flush: 13.0, four_of_a_kind: 4.0,
+            full_house: 3.0, flush: 2.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(16.0),
+            min_pair_rank: 0,
+        }),
+
         // ====== LOOSE DEUCES ======
         "loose-deuces-500-17" => Some(Paytable {
             id: id.to_string(),
@@ -1166,7 +1422,80 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             min_pair_rank: 0,
         }),
 
+        // Additional Double Deuces Wild variants
+        "double-deuces-wild-samstown" => Some(Paytable {
+            id: id.to_string(),
+            name: "Sam's Town Deuces (100.95%)".to_string(),
+            game_family: GameFamily::DoubleDeuces,
+            royal_flush: 800.0, straight_flush: 10.0, four_of_a_kind: 4.0,
+            full_house: 4.0, flush: 3.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(400.0), wild_royal: Some(20.0), five_of_a_kind: Some(10.0),
+            min_pair_rank: 0,
+        }),
+        "double-deuces-wild-downtown" => Some(Paytable {
+            id: id.to_string(),
+            name: "Downtown Deuces (100.92%)".to_string(),
+            game_family: GameFamily::DoubleDeuces,
+            royal_flush: 940.0, straight_flush: 13.0, four_of_a_kind: 4.0,
+            full_house: 3.0, flush: 2.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(16.0),
+            min_pair_rank: 0,
+        }),
+        "double-deuces-wild-16-11" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Deuces Wild 16/11 (99.62%)".to_string(),
+            game_family: GameFamily::DoubleDeuces,
+            royal_flush: 800.0, straight_flush: 11.0, four_of_a_kind: 4.0,
+            full_house: 3.0, flush: 2.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(16.0),
+            min_pair_rank: 0,
+        }),
+        "double-deuces-wild-16-10" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Deuces Wild 16/10 (99.17%)".to_string(),
+            game_family: GameFamily::DoubleDeuces,
+            royal_flush: 800.0, straight_flush: 10.0, four_of_a_kind: 4.0,
+            full_house: 3.0, flush: 2.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(16.0),
+            min_pair_rank: 0,
+        }),
+
         // ====== TRIPLE DEUCES WILD ======
+        // Additional TDW variant
+        "triple-deuces-wild-9-6" => Some(Paytable {
+            id: id.to_string(),
+            name: "Triple Deuces Wild 9/6 (98.86%)".to_string(),
+            game_family: GameFamily::TripleDeuces,
+            royal_flush: 800.0, straight_flush: 6.0, four_of_a_kind: 4.0,
+            full_house: 3.0, flush: 2.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(600.0), wild_royal: Some(20.0), five_of_a_kind: Some(9.0),
+            min_pair_rank: 0,
+        }),
         "triple-deuces-wild-11-8" => Some(Paytable {
             id: id.to_string(),
             name: "Triple Deuces Wild 11/8".to_string(),
@@ -1332,6 +1661,640 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             min_pair_rank: 11, // Kings or Better
         }),
 
+        // ====== TRIPLE TRIPLE BONUS (TTB) ======
+        // Kicker bonuses: 4A+234 pays 800, 4(234)+A pays 800, 4(234)+234 pays 400
+        "triple-triple-bonus-9-6" => Some(Paytable {
+            id: id.to_string(),
+            name: "Triple Triple Bonus 9/6 (99.75%)".to_string(),
+            game_family: GameFamily::TripleTripleBonus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 9.0, flush: 6.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(800.0), four_2_4_with_kicker: Some(400.0),
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "triple-triple-bonus-9-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "Triple Triple Bonus 9/5 (98.61%)".to_string(),
+            game_family: GameFamily::TripleTripleBonus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 9.0, flush: 5.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(800.0), four_2_4_with_kicker: Some(400.0),
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "triple-triple-bonus-8-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "Triple Triple Bonus 8/5 (97.61%)".to_string(),
+            game_family: GameFamily::TripleTripleBonus,
+            royal_flush: 800.0, straight_flush: 55.0, four_of_a_kind: 50.0,
+            full_house: 8.0, flush: 5.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(800.0), four_2_4_with_kicker: Some(400.0),
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "triple-triple-bonus-7-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "Triple Triple Bonus 7/5 (96.55%)".to_string(),
+            game_family: GameFamily::TripleTripleBonus,
+            royal_flush: 800.0, straight_flush: 55.0, four_of_a_kind: 50.0,
+            full_house: 7.0, flush: 5.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(800.0), four_2_4_with_kicker: Some(400.0),
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+
+        // ====== ROYAL ACES BONUS (RAB) ======
+        // Four Aces pays 800 (royal treatment for aces)
+        "royal-aces-bonus-9-6" => Some(Paytable {
+            id: id.to_string(),
+            name: "Royal Aces Bonus 9/6 (99.58%)".to_string(),
+            game_family: GameFamily::RoyalAcesBonus,
+            royal_flush: 800.0, straight_flush: 100.0, four_of_a_kind: 50.0,
+            full_house: 9.0, flush: 6.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(800.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 12, // Aces or better
+        }),
+        "royal-aces-bonus-10-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "Royal Aces Bonus 10/5 (99.20%)".to_string(),
+            game_family: GameFamily::RoyalAcesBonus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 10.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(800.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 12,
+        }),
+        "royal-aces-bonus-8-6" => Some(Paytable {
+            id: id.to_string(),
+            name: "Royal Aces Bonus 8/6 (98.51%)".to_string(),
+            game_family: GameFamily::RoyalAcesBonus,
+            royal_flush: 800.0, straight_flush: 100.0, four_of_a_kind: 50.0,
+            full_house: 8.0, flush: 6.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(800.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 12,
+        }),
+        "royal-aces-bonus-9-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "Royal Aces Bonus 9/5 (98.13%)".to_string(),
+            game_family: GameFamily::RoyalAcesBonus,
+            royal_flush: 800.0, straight_flush: 100.0, four_of_a_kind: 50.0,
+            full_house: 9.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(800.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 12,
+        }),
+
+        // ====== A-C-E-S BONUS (Ace$) ======
+        // Four Aces (all same suit = A-C-E-$) pays 800
+        "aces-bonus-8-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "A-c-e-s Bonus 8/5 (99.40%)".to_string(),
+            game_family: GameFamily::AcesBonus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 25.0,
+            full_house: 8.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 2.0, high_pair: 1.0,
+            four_aces: Some(800.0), four_2_4: Some(40.0), four_5_k: Some(25.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "aces-bonus-7-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "A-c-e-s Bonus 7/5 (98.25%)".to_string(),
+            game_family: GameFamily::AcesBonus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 25.0,
+            full_house: 7.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 2.0, high_pair: 1.0,
+            four_aces: Some(800.0), four_2_4: Some(40.0), four_5_k: Some(25.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "aces-bonus-6-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "A-c-e-s Bonus 6/5 (97.11%)".to_string(),
+            game_family: GameFamily::AcesBonus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 25.0,
+            full_house: 6.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 2.0, high_pair: 1.0,
+            four_aces: Some(800.0), four_2_4: Some(40.0), four_5_k: Some(25.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+
+        // ====== BONUS ACES AND FACES (BPAF) ======
+        "bonus-aces-faces-8-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "Bonus Aces and Faces 8/5 (99.26%)".to_string(),
+            game_family: GameFamily::BonusAcesAndFaces,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 25.0,
+            full_house: 8.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 2.0, high_pair: 1.0,
+            four_aces: Some(80.0), four_2_4: None, four_5_k: None, four_jqk: Some(40.0),
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "bonus-aces-faces-7-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "Bonus Aces and Faces 7/5 (98.10%)".to_string(),
+            game_family: GameFamily::BonusAcesAndFaces,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 25.0,
+            full_house: 7.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 2.0, high_pair: 1.0,
+            four_aces: Some(80.0), four_2_4: None, four_5_k: None, four_jqk: Some(40.0),
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "bonus-aces-faces-6-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "Bonus Aces and Faces 6/5 (96.96%)".to_string(),
+            game_family: GameFamily::BonusAcesAndFaces,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 25.0,
+            full_house: 6.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 2.0, high_pair: 1.0,
+            four_aces: Some(80.0), four_2_4: None, four_5_k: None, four_jqk: Some(40.0),
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+
+        // ====== DOUBLE DOUBLE BONUS ACES AND FACES (DDBAF) ======
+        "ddb-aces-faces-9-6" => Some(Paytable {
+            id: id.to_string(),
+            name: "DDB Aces and Faces 9/6 (99.46%)".to_string(),
+            game_family: GameFamily::DDBonusAcesAndFaces,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 9.0, flush: 6.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: Some(80.0),
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
+            four_aces_with_face: None, four_jqk_with_face: Some(160.0),
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "ddb-aces-faces-9-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "DDB Aces and Faces 9/5 (98.37%)".to_string(),
+            game_family: GameFamily::DDBonusAcesAndFaces,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 9.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: Some(80.0),
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
+            four_aces_with_face: None, four_jqk_with_face: Some(160.0),
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+
+        // ====== DOUBLE DOUBLE BONUS PLUS (DDB+) ======
+        // Additional kicker: 4K+A pays 80
+        "ddb-plus-9-6" => Some(Paytable {
+            id: id.to_string(),
+            name: "DDB Plus 9/6 (99.44%)".to_string(),
+            game_family: GameFamily::DoubleDoubleBonusPlus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 9.0, flush: 6.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(80.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "ddb-plus-9-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "DDB Plus 9/5 (98.33%)".to_string(),
+            game_family: GameFamily::DoubleDoubleBonusPlus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 9.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(80.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+        "ddb-plus-8-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "DDB Plus 8/5 (97.25%)".to_string(),
+            game_family: GameFamily::DoubleDoubleBonusPlus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 8.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(80.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            min_pair_rank: 9,
+        }),
+
+        // ====== DEUCES WILD 44 (DW44) ======
+        // 4K pays 4 instead of 5, different 5K/SF payouts
+        "deuces-wild-44-apdw" => Some(Paytable {
+            id: id.to_string(),
+            name: "APDW Deuces Wild 44 (99.96%)".to_string(),
+            game_family: GameFamily::DeucesWild44,
+            royal_flush: 800.0, straight_flush: 11.0, four_of_a_kind: 4.0,
+            full_house: 4.0, flush: 3.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(15.0),
+            min_pair_rank: 0,
+        }),
+        "deuces-wild-44-nsud" => Some(Paytable {
+            id: id.to_string(),
+            name: "NSUD Deuces Wild 44 (99.73%)".to_string(),
+            game_family: GameFamily::DeucesWild44,
+            royal_flush: 800.0, straight_flush: 10.0, four_of_a_kind: 4.0,
+            full_house: 4.0, flush: 3.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(16.0),
+            min_pair_rank: 0,
+        }),
+        "deuces-wild-44-illinois" => Some(Paytable {
+            id: id.to_string(),
+            name: "Illinois Deuces Wild 44 (98.91%)".to_string(),
+            game_family: GameFamily::DeucesWild44,
+            royal_flush: 800.0, straight_flush: 9.0, four_of_a_kind: 4.0,
+            full_house: 4.0, flush: 3.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(15.0),
+            min_pair_rank: 0,
+        }),
+
+        // ====== DEUCES JOKER WILD (DJW) ======
+        // Deuces AND Joker are wild (53-card deck)
+        "deuces-joker-wild-12-9" => Some(Paytable {
+            id: id.to_string(),
+            name: "Deuces Joker Wild 12/9 (99.07%)".to_string(),
+            game_family: GameFamily::DeucesJokerWild,
+            royal_flush: 800.0, straight_flush: 6.0, four_of_a_kind: 3.0,
+            full_house: 3.0, flush: 3.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(25.0), wild_royal: Some(12.0), five_of_a_kind: Some(9.0),
+            min_pair_rank: 0,
+        }),
+        "deuces-joker-wild-10-8" => Some(Paytable {
+            id: id.to_string(),
+            name: "Deuces Joker Wild 10/8 (97.25%)".to_string(),
+            game_family: GameFamily::DeucesJokerWild,
+            royal_flush: 800.0, straight_flush: 5.0, four_of_a_kind: 3.0,
+            full_house: 3.0, flush: 3.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(25.0), wild_royal: Some(10.0), five_of_a_kind: Some(8.0),
+            min_pair_rank: 0,
+        }),
+
+        // ====== DOUBLE BONUS DEUCES WILD (DBDW) ======
+        "double-bonus-deuces-12" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Bonus Deuces 12 (99.81%)".to_string(),
+            game_family: GameFamily::DoubleBonusDeucesWild,
+            royal_flush: 800.0, straight_flush: 12.0, four_of_a_kind: 4.0,
+            full_house: 3.0, flush: 2.0, straight: 1.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(160.0),
+            min_pair_rank: 0,
+        }),
+        "double-bonus-deuces-9" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Bonus Deuces 9 (98.61%)".to_string(),
+            game_family: GameFamily::DoubleBonusDeucesWild,
+            royal_flush: 800.0, straight_flush: 9.0, four_of_a_kind: 4.0,
+            full_house: 3.0, flush: 2.0, straight: 1.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(160.0),
+            min_pair_rank: 0,
+        }),
+
+        // ====== SUPER BONUS DEUCES WILD (SBDW) ======
+        "super-bonus-deuces-10" => Some(Paytable {
+            id: id.to_string(),
+            name: "Super Bonus Deuces 10 (100.13%)".to_string(),
+            game_family: GameFamily::SuperBonusDeucesWild,
+            royal_flush: 800.0, straight_flush: 10.0, four_of_a_kind: 4.0,
+            full_house: 3.0, flush: 2.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(160.0),
+            min_pair_rank: 0,
+        }),
+        "super-bonus-deuces-9" => Some(Paytable {
+            id: id.to_string(),
+            name: "Super Bonus Deuces 9 (99.67%)".to_string(),
+            game_family: GameFamily::SuperBonusDeucesWild,
+            royal_flush: 800.0, straight_flush: 9.0, four_of_a_kind: 4.0,
+            full_house: 3.0, flush: 2.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(160.0),
+            min_pair_rank: 0,
+        }),
+        "super-bonus-deuces-8" => Some(Paytable {
+            id: id.to_string(),
+            name: "Super Bonus Deuces 8 (97.87%)".to_string(),
+            game_family: GameFamily::SuperBonusDeucesWild,
+            royal_flush: 800.0, straight_flush: 8.0, four_of_a_kind: 4.0,
+            full_house: 3.0, flush: 2.0, straight: 2.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(160.0),
+            min_pair_rank: 0,
+        }),
+
+        // ====== ADDITIONAL JOKER POKER KINGS VARIANTS ======
+        "joker-poker-kings-20-7" => Some(Paytable {
+            id: id.to_string(),
+            name: "Joker Poker Kings 20/7 (100.65%)".to_string(),
+            game_family: GameFamily::JokerPokerKings,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 20.0,
+            full_house: 7.0, flush: 5.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            min_pair_rank: 11,
+        }),
+        "joker-poker-kings-940-20" => Some(Paytable {
+            id: id.to_string(),
+            name: "Joker Poker Kings 940/20 (101.00%)".to_string(),
+            game_family: GameFamily::JokerPokerKings,
+            royal_flush: 940.0, straight_flush: 50.0, four_of_a_kind: 20.0,
+            full_house: 7.0, flush: 5.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            min_pair_rank: 11,
+        }),
+        "joker-poker-kings-20-6" => Some(Paytable {
+            id: id.to_string(),
+            name: "Joker Poker Kings 20/6 (99.08%)".to_string(),
+            game_family: GameFamily::JokerPokerKings,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 20.0,
+            full_house: 6.0, flush: 5.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            min_pair_rank: 11,
+        }),
+        "joker-poker-kings-18-7" => Some(Paytable {
+            id: id.to_string(),
+            name: "Joker Poker Kings 18/7 (98.94%)".to_string(),
+            game_family: GameFamily::JokerPokerKings,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 18.0,
+            full_house: 7.0, flush: 5.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            min_pair_rank: 11,
+        }),
+        "joker-poker-kings-17-7" => Some(Paytable {
+            id: id.to_string(),
+            name: "Joker Poker Kings 17/7 (98.09%)".to_string(),
+            game_family: GameFamily::JokerPokerKings,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 17.0,
+            full_house: 7.0, flush: 5.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            min_pair_rank: 11,
+        }),
+        "joker-poker-kings-15-7" => Some(Paytable {
+            id: id.to_string(),
+            name: "Joker Poker Kings 15/7 (96.38%)".to_string(),
+            game_family: GameFamily::JokerPokerKings,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 15.0,
+            full_house: 7.0, flush: 5.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            min_pair_rank: 11,
+        }),
+
+        // ====== ADDITIONAL JOKER POKER TWO PAIR VARIANTS ======
+        "joker-poker-two-pair-20-10" => Some(Paytable {
+            id: id.to_string(),
+            name: "Joker Poker Two Pair 20/10 (99.49%)".to_string(),
+            game_family: GameFamily::JokerPokerTwoPair,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 20.0,
+            full_house: 10.0, flush: 6.0, straight: 5.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(50.0), five_of_a_kind: Some(100.0),
+            min_pair_rank: 0,
+        }),
+        "joker-poker-two-pair-20-8" => Some(Paytable {
+            id: id.to_string(),
+            name: "Joker Poker Two Pair 20/8 (99.08%)".to_string(),
+            game_family: GameFamily::JokerPokerTwoPair,
+            royal_flush: 1000.0, straight_flush: 50.0, four_of_a_kind: 20.0,
+            full_house: 8.0, flush: 7.0, straight: 5.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(50.0), five_of_a_kind: Some(100.0),
+            min_pair_rank: 0,
+        }),
+        "joker-poker-two-pair-20-9" => Some(Paytable {
+            id: id.to_string(),
+            name: "Joker Poker Two Pair 20/9 (97.99%)".to_string(),
+            game_family: GameFamily::JokerPokerTwoPair,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 20.0,
+            full_house: 9.0, flush: 6.0, straight: 5.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(50.0), five_of_a_kind: Some(100.0),
+            min_pair_rank: 0,
+        }),
+
+        // ====== ADDITIONAL DOUBLE JOKER VARIANTS ======
+        "double-joker-9-6-940" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Joker 9/6 940 (100.65%)".to_string(),
+            game_family: GameFamily::DoubleJoker,
+            royal_flush: 940.0, straight_flush: 25.0, four_of_a_kind: 10.0,
+            full_house: 9.0, flush: 6.0, straight: 4.0,
+            three_of_a_kind: 1.0, two_pair: 1.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(50.0),
+            min_pair_rank: 0,
+        }),
+        "double-joker-9-6-800" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Joker 9/6 800 (100.37%)".to_string(),
+            game_family: GameFamily::DoubleJoker,
+            royal_flush: 800.0, straight_flush: 25.0, four_of_a_kind: 10.0,
+            full_house: 9.0, flush: 6.0, straight: 4.0,
+            three_of_a_kind: 1.0, two_pair: 1.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(50.0),
+            min_pair_rank: 0,
+        }),
+        "double-joker-9-5-4" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Joker 9/5/4 (99.97%)".to_string(),
+            game_family: GameFamily::DoubleJoker,
+            royal_flush: 800.0, straight_flush: 25.0, four_of_a_kind: 9.0,
+            full_house: 5.0, flush: 4.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(50.0),
+            min_pair_rank: 0,
+        }),
+        "double-joker-8-6-4" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Joker 8/6/4 (99.94%)".to_string(),
+            game_family: GameFamily::DoubleJoker,
+            royal_flush: 800.0, straight_flush: 25.0, four_of_a_kind: 8.0,
+            full_house: 6.0, flush: 4.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(50.0),
+            min_pair_rank: 0,
+        }),
+        "double-joker-8-5-4" => Some(Paytable {
+            id: id.to_string(),
+            name: "Double Joker 8/5/4 (98.10%)".to_string(),
+            game_family: GameFamily::DoubleJoker,
+            royal_flush: 800.0, straight_flush: 25.0, four_of_a_kind: 8.0,
+            full_house: 5.0, flush: 4.0, straight: 3.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(50.0),
+            min_pair_rank: 0,
+        }),
+
         _ => None,
     }
 }
@@ -1341,13 +2304,14 @@ fn get_all_paytable_ids() -> Vec<&'static str> {
         // Jacks or Better
         "jacks-or-better-9-6", "jacks-or-better-9-5", "jacks-or-better-8-6",
         "jacks-or-better-8-5", "jacks-or-better-7-5", "jacks-or-better-6-5",
+        "jacks-or-better-9-6-90", "jacks-or-better-9-6-940", "jacks-or-better-8-5-35",
         // Tens or Better
         "tens-or-better-6-5",
         // Bonus Poker
-        "bonus-poker-8-5", "bonus-poker-7-5", "bonus-poker-6-5",
+        "bonus-poker-8-5", "bonus-poker-7-5", "bonus-poker-6-5", "bonus-poker-7-5-1200",
         // Bonus Poker Deluxe
         "bonus-poker-deluxe-9-6", "bonus-poker-deluxe-8-6", "bonus-poker-deluxe-8-5",
-        "bonus-poker-deluxe-7-5", "bonus-poker-deluxe-6-5",
+        "bonus-poker-deluxe-7-5", "bonus-poker-deluxe-6-5", "bonus-poker-deluxe-9-5", "bonus-poker-deluxe-8-6-100",
         // Aces and Faces
         "aces-and-faces-8-5", "aces-and-faces-7-6", "aces-and-faces-7-5", "aces-and-faces-6-5",
         // Aces and Eights
@@ -1363,34 +2327,63 @@ fn get_all_paytable_ids() -> Vec<&'static str> {
         // Double Double Jackpot
         "double-double-jackpot-10-6", "double-double-jackpot-9-6",
         // Double Bonus
-        "double-bonus-10-7", "double-bonus-9-7-5", "double-bonus-9-6-5", "double-bonus-9-6-4",
+        "double-bonus-10-7", "double-bonus-10-7-100", "double-bonus-10-7-80", "double-bonus-10-6",
+        "double-bonus-10-7-4", "double-bonus-9-7-5", "double-bonus-9-6-5", "double-bonus-9-6-4",
         // Super Double Bonus
         "super-double-bonus-9-5", "super-double-bonus-8-5", "super-double-bonus-7-5", "super-double-bonus-6-5",
         // Double Double Bonus
-        "double-double-bonus-10-6", "double-double-bonus-9-6", "double-double-bonus-9-5", "double-double-bonus-8-5",
+        "double-double-bonus-10-6-100", "double-double-bonus-10-6", "double-double-bonus-9-6",
+        "double-double-bonus-9-5", "double-double-bonus-8-5", "double-double-bonus-7-5", "double-double-bonus-6-5",
         // White Hot Aces
         "white-hot-aces-9-5", "white-hot-aces-8-5", "white-hot-aces-7-5", "white-hot-aces-6-5",
         // Triple Double Bonus
         "triple-double-bonus-9-7", "triple-double-bonus-9-6", "triple-double-bonus-8-5",
+        // Triple Triple Bonus
+        "triple-triple-bonus-9-6", "triple-triple-bonus-9-5", "triple-triple-bonus-8-5", "triple-triple-bonus-7-5",
+        // Royal Aces Bonus
+        "royal-aces-bonus-9-6", "royal-aces-bonus-10-5", "royal-aces-bonus-8-6", "royal-aces-bonus-9-5",
+        // A-c-e-s Bonus
+        "aces-bonus-8-5", "aces-bonus-7-5", "aces-bonus-6-5",
+        // Bonus Aces and Faces
+        "bonus-aces-faces-8-5", "bonus-aces-faces-7-5", "bonus-aces-faces-6-5",
+        // DDB Aces and Faces
+        "ddb-aces-faces-9-6", "ddb-aces-faces-9-5",
+        // DDB Plus
+        "ddb-plus-9-6", "ddb-plus-9-5", "ddb-plus-8-5",
         // All American
         "all-american-35-8", "all-american-30-8", "all-american-25-8", "all-american-40-7",
         // Deuces Wild
         "deuces-wild-full-pay", "deuces-wild-nsud", "deuces-wild-illinois", "deuces-wild-20-12-9",
+        "deuces-wild-25-15-8", "deuces-wild-20-15-9", "deuces-wild-25-12-9", "deuces-wild-colorado",
+        // Deuces Wild 44
+        "deuces-wild-44-apdw", "deuces-wild-44-nsud", "deuces-wild-44-illinois",
         // Loose Deuces
         "loose-deuces-500-17", "loose-deuces-500-15", "loose-deuces-500-12", "loose-deuces-400-12",
         // Bonus Poker Plus
         "bonus-poker-plus-10-7", "bonus-poker-plus-9-6",
         // Double Deuces Wild
-        "double-deuces-wild-10-10", "double-deuces-wild-16-13",
+        "double-deuces-wild-10-10", "double-deuces-wild-16-13", "double-deuces-wild-samstown",
+        "double-deuces-wild-downtown", "double-deuces-wild-16-11", "double-deuces-wild-16-10",
         // Triple Deuces Wild
-        "triple-deuces-wild-11-8", "triple-deuces-wild-10-8",
+        "triple-deuces-wild-9-6", "triple-deuces-wild-11-8", "triple-deuces-wild-10-8",
         // Deluxe Deuces Wild
         "deluxe-deuces-wild-940", "deluxe-deuces-wild-800",
-        // Joker Poker
+        // Double Bonus Deuces Wild
+        "double-bonus-deuces-12", "double-bonus-deuces-9",
+        // Super Bonus Deuces Wild
+        "super-bonus-deuces-10", "super-bonus-deuces-9", "super-bonus-deuces-8",
+        // Deuces Joker Wild
+        "deuces-joker-wild-12-9", "deuces-joker-wild-10-8",
+        // Joker Poker Kings
         "joker-poker-kings-100-64", "joker-poker-kings-98-60", "joker-poker-kings-97-58",
+        "joker-poker-kings-20-7", "joker-poker-kings-940-20", "joker-poker-kings-20-6",
+        "joker-poker-kings-18-7", "joker-poker-kings-17-7", "joker-poker-kings-15-7",
+        // Joker Poker Two Pair
         "joker-poker-two-pair-99-92", "joker-poker-two-pair-98-59",
+        "joker-poker-two-pair-20-10", "joker-poker-two-pair-20-8", "joker-poker-two-pair-20-9",
         // Double Joker
-        "double-joker-9-6", "double-joker-5-4",
+        "double-joker-9-6", "double-joker-5-4", "double-joker-9-6-940", "double-joker-9-6-800",
+        "double-joker-9-5-4", "double-joker-8-6-4", "double-joker-8-5-4",
     ]
 }
 
@@ -2706,6 +3699,200 @@ fn run_tests(filter: Option<&str>) {
     }
 }
 
+fn format_duration(secs: u64) -> String {
+    if secs < 60 {
+        format!("{}s", secs)
+    } else if secs < 3600 {
+        format!("{}m {}s", secs / 60, secs % 60)
+    } else {
+        format!("{}h {}m {}s", secs / 3600, (secs % 3600) / 60, secs % 60)
+    }
+}
+
+fn generate_all_strategies(output_dir: &str) {
+    let all_ids = get_all_paytable_ids();
+    let total_paytables = all_ids.len();
+
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║          VIDEO POKER STRATEGY GENERATOR - BATCH MODE            ║");
+    println!("╠══════════════════════════════════════════════════════════════════╣");
+    println!("║  Paytables to process: {:<42} ║", total_paytables);
+    println!("║  Output directory: {:<46} ║", output_dir);
+    println!("║  Threads: {:<55} ║", rayon::current_num_threads());
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+    println!();
+
+    // Ensure output directory exists
+    if let Err(e) = fs::create_dir_all(output_dir) {
+        eprintln!("Failed to create output directory: {}", e);
+        std::process::exit(1);
+    }
+
+    let overall_start = Instant::now();
+    let mut completed = 0;
+    let mut total_hands = 0usize;
+    let mut total_bytes = 0u64;
+    let mut failed_paytables: Vec<String> = Vec::new();
+
+    // Track timing for ETA calculation
+    let mut paytable_times: Vec<f64> = Vec::new();
+
+    for (idx, paytable_id) in all_ids.iter().enumerate() {
+        let paytable = match get_paytable(paytable_id) {
+            Some(pt) => pt,
+            None => {
+                println!("  ⚠ Paytable not found: {}", paytable_id);
+                failed_paytables.push(paytable_id.to_string());
+                continue;
+            }
+        };
+
+        // Calculate ETA based on average time per paytable
+        let eta_str = if !paytable_times.is_empty() {
+            let avg_time = paytable_times.iter().sum::<f64>() / paytable_times.len() as f64;
+            let remaining = (total_paytables - idx) as f64 * avg_time;
+            format!("ETA: {}", format_duration(remaining as u64))
+        } else {
+            "ETA: calculating...".to_string()
+        };
+
+        println!("┌──────────────────────────────────────────────────────────────────┐");
+        println!("│ [{:>3}/{}] {:<52} │", idx + 1, total_paytables, paytable.name);
+        println!("│ ID: {:<61} │", paytable_id);
+        println!("│ {:<65} │", eta_str);
+        println!("└──────────────────────────────────────────────────────────────────┘");
+
+        let paytable_start = Instant::now();
+
+        // Generate strategy with progress
+        let (compressed, hand_count, _version) = generate_strategy_file_with_progress(&paytable, idx + 1, total_paytables);
+        let file_size = compressed.len() as u64;
+
+        // Save locally
+        match save_locally(&compressed, paytable_id, output_dir) {
+            Ok(path) => {
+                let elapsed = paytable_start.elapsed().as_secs_f64();
+                paytable_times.push(elapsed);
+                completed += 1;
+                total_hands += hand_count;
+                total_bytes += file_size;
+                println!("  ✓ Saved: {} ({:.2} MB) in {:.1}s",
+                    path.split('/').last().unwrap_or(&path),
+                    file_size as f64 / 1024.0 / 1024.0,
+                    elapsed
+                );
+            }
+            Err(e) => {
+                println!("  ✗ Failed to save: {}", e);
+                failed_paytables.push(paytable_id.to_string());
+            }
+        }
+        println!();
+    }
+
+    // Final summary
+    let total_elapsed = overall_start.elapsed();
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║                        GENERATION COMPLETE                       ║");
+    println!("╠══════════════════════════════════════════════════════════════════╣");
+    println!("║  Paytables processed: {:<43} ║", format!("{}/{}", completed, total_paytables));
+    println!("║  Total hands calculated: {:<40} ║", format!("{}", total_hands));
+    println!("║  Total output size: {:<45} ║", format!("{:.2} MB", total_bytes as f64 / 1024.0 / 1024.0));
+    println!("║  Total time: {:<52} ║", format_duration(total_elapsed.as_secs()));
+    if !failed_paytables.is_empty() {
+        println!("╠══════════════════════════════════════════════════════════════════╣");
+        println!("║  Failed paytables:                                               ║");
+        for failed in &failed_paytables {
+            println!("║    - {:<59} ║", failed);
+        }
+    }
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+
+    if !failed_paytables.is_empty() {
+        std::process::exit(1);
+    }
+}
+
+fn generate_strategy_file_with_progress(paytable: &Paytable, current_paytable: usize, total_paytables: usize) -> (Vec<u8>, usize, u32) {
+    let include_joker = paytable.is_joker_poker();
+    let all_hands = generate_canonical_hands(include_joker);
+    let total = all_hands.len();
+
+    println!("  Calculating {} hands...", total);
+    io::stdout().flush().unwrap();
+
+    let processed = Arc::new(AtomicUsize::new(0));
+    let total_for_progress = total;
+    let start = Instant::now();
+
+    // Calculate all strategies in parallel
+    let strategies: HashMap<String, StrategyEntry> = all_hands
+        .par_iter()
+        .map(|(key, hand)| {
+            let (best_hold, best_ev, hold_evs) = analyze_hand(hand, paytable);
+
+            let count = processed.fetch_add(1, Ordering::Relaxed) + 1;
+            if count % 5000 == 0 || count == total_for_progress {
+                let pct = (count as f64 / total_for_progress as f64 * 100.0) as u32;
+                let elapsed = start.elapsed().as_secs_f64();
+                let rate = count as f64 / elapsed;
+                let remaining = (total_for_progress - count) as f64 / rate;
+                print!("  [{}/{}] Progress: {:>6}/{} ({:>3}%) | {:.0} hands/s | ~{}s remaining\r",
+                    current_paytable, total_paytables,
+                    count, total_for_progress, pct,
+                    rate,
+                    remaining as u64
+                );
+                io::stdout().flush().unwrap();
+            }
+
+            (key.clone(), StrategyEntry {
+                hold: best_hold,
+                ev: best_ev,
+                hold_evs,
+            })
+        })
+        .collect();
+
+    println!("  Calculated {} hands                                                      ", strategies.len());
+
+    // Determine version
+    let version = 1u32;
+
+    // Build the output structure
+    let output = StrategyFile {
+        game: paytable.name.clone(),
+        paytable_id: paytable.id.clone(),
+        version,
+        generated: Utc::now().to_rfc3339(),
+        hand_count: strategies.len(),
+        strategies,
+    };
+
+    // Serialize to JSON
+    print!("  Serializing...");
+    io::stdout().flush().unwrap();
+    let json_string = serde_json::to_string(&output).expect("Failed to serialize");
+    let json_size = json_string.len();
+
+    // Compress with gzip
+    print!(" Compressing...");
+    io::stdout().flush().unwrap();
+    let mut encoder = GzEncoder::new(Vec::new(), Compression::best());
+    encoder.write_all(json_string.as_bytes()).expect("Failed to compress");
+    let compressed = encoder.finish().expect("Failed to finish compression");
+
+    let compressed_size = compressed.len();
+    let ratio = (1.0 - compressed_size as f64 / json_size as f64) * 100.0;
+    println!(" Done! ({:.2} MB → {:.2} MB, {:.0}% reduction)",
+        json_size as f64 / 1024.0 / 1024.0,
+        compressed_size as f64 / 1024.0 / 1024.0,
+        ratio
+    );
+
+    (compressed, total, version)
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
@@ -2715,6 +3902,7 @@ fn main() {
         println!("Usage:");
         println!("  vp_calculator <paytable-id>              Generate strategy, save locally, and upload");
         println!("  vp_calculator <paytable-id> --no-upload  Generate strategy and save locally only");
+        println!("  vp_calculator generate-all [--output DIR] Generate all strategies (no upload)");
         println!("  vp_calculator list                       List all available paytables");
         println!("  vp_calculator test [filter]              Run payout tests");
         println!("  vp_calculator manifest                   Show current manifest from Supabase");
@@ -2732,6 +3920,22 @@ fn main() {
                 println!("  {} - {}", id, pt.name);
             }
         }
+        return;
+    }
+
+    // Check for generate-all mode
+    if args.get(1).map(|s| s.as_str()) == Some("generate-all") {
+        let mut output_dir = "./strategies".to_string();
+        let mut i = 2;
+        while i < args.len() {
+            if args[i] == "--output" && i + 1 < args.len() {
+                output_dir = args[i + 1].clone();
+                i += 2;
+            } else {
+                i += 1;
+            }
+        }
+        generate_all_strategies(&output_dir);
         return;
     }
 
