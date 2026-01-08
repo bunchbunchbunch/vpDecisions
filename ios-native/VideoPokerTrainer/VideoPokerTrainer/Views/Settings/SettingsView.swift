@@ -100,7 +100,7 @@ struct SettingsView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("VP Trainer")
+                    Text("VP Academy")
                         .font(.headline)
                     Text("Master optimal video poker strategy through practice and spaced repetition.")
                         .font(.caption)

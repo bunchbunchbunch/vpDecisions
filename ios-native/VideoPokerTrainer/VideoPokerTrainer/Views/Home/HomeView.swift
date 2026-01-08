@@ -91,7 +91,7 @@ struct HomeView: View {
     private var brandedHeader: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("VP Trainer")
+                Text("VP Academy")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundStyle(AppTheme.Gradients.primary)

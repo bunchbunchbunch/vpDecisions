@@ -18,7 +18,7 @@ struct AuthView: View {
                     .font(.system(size: 60))
                     .foregroundColor(Color(hex: "667eea"))
 
-                Text("VP Trainer")
+                Text("VP Academy")
                     .font(.largeTitle)
                     .fontWeight(.bold)
 

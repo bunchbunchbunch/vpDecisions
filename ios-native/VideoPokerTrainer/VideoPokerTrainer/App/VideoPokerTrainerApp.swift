@@ -100,7 +100,7 @@ struct ContentView: View {
                     .font(.caption)
                 }
 
-                Text("Video Poker Trainer")
+                Text("Video Poker Academy")
                     .font(.title)
                     .fontWeight(.bold)
 
