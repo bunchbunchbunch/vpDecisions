@@ -297,11 +297,8 @@ class QuizViewModel: ObservableObject {
             responseTimeMs: responseTime
         )
 
-        do {
-            try await SupabaseService.shared.saveHandAttempt(attempt)
-        } catch {
-            print("Failed to save attempt: \(error)")
-        }
+        // Use SyncService for offline-first saving
+        await SyncService.shared.saveAttempt(attempt)
     }
 
     func reset() {

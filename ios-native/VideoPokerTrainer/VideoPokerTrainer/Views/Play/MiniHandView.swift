@@ -147,7 +147,8 @@ struct MiniHandView: View {
 
     private func formatPayout(_ credits: Int) -> String {
         let dollars = Double(credits) * denomination
-        if dollars >= 1 {
+        // Show cents only if the amount is not a whole dollar
+        if dollars.truncatingRemainder(dividingBy: 1) == 0 {
             return "+$\(Int(dollars))"
         } else {
             return String(format: "+$%.2f", dollars)

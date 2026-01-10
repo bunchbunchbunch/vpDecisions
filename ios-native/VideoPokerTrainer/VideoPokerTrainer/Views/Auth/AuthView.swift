@@ -6,6 +6,7 @@ struct AuthView: View {
     @State private var password = ""
     @State private var isSignUp = false
     @State private var showForgotPassword = false
+    @State private var networkMonitor = NetworkMonitor.shared
 
     var body: some View {
         NavigationStack {
@@ -63,6 +64,13 @@ struct AuthView: View {
                         .multilineTextAlignment(.center)
                 }
 
+                // Offline indicator
+                if !networkMonitor.isOnline {
+                    Label("Sign in requires internet connection", systemImage: "wifi.slash")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                }
+
                 // Main action button
                 Button {
                     Task {
@@ -83,7 +91,8 @@ struct AuthView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(Color(hex: "667eea"))
-                .disabled(viewModel.isLoading)
+                .disabled(viewModel.isLoading || !networkMonitor.isOnline)
+                .opacity(networkMonitor.isOnline ? 1.0 : 0.5)
 
                 // Toggle sign up/sign in
                 Button {
@@ -112,7 +121,8 @@ struct AuthView: View {
             }
             .buttonStyle(.bordered)
             .tint(Color(hex: "3498db"))
-            .disabled(email.isEmpty || viewModel.isLoading)
+            .disabled(email.isEmpty || viewModel.isLoading || !networkMonitor.isOnline)
+            .opacity(networkMonitor.isOnline ? 1.0 : 0.5)
 
             // Google Sign-In
             Button {
@@ -128,7 +138,8 @@ struct AuthView: View {
             }
             .buttonStyle(.bordered)
             .tint(.primary)
-            .disabled(viewModel.isLoading)
+            .disabled(viewModel.isLoading || !networkMonitor.isOnline)
+            .opacity(networkMonitor.isOnline ? 1.0 : 0.5)
 
             #if DEBUG
             Divider()
@@ -146,7 +157,8 @@ struct AuthView: View {
                 }
             }
             .buttonStyle(.bordered)
-            .disabled(viewModel.isLoading)
+            .disabled(viewModel.isLoading || !networkMonitor.isOnline)
+            .opacity(networkMonitor.isOnline ? 1.0 : 0.5)
             #endif
 
                 Spacer()

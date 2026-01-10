@@ -55,6 +55,17 @@ class AnalyzerViewModel: ObservableObject {
         isAnalyzing = true
         errorMessage = nil
 
+        // Check if offline and game not available
+        let isOnline = await MainActor.run { NetworkMonitor.shared.isOnline }
+        if !isOnline {
+            let hasOfflineData = await StrategyService.shared.hasOfflineData(paytableId: selectedPaytable.id)
+            if !hasOfflineData {
+                errorMessage = "This game isn't available offline. Please go online or select a downloaded game."
+                isAnalyzing = false
+                return
+            }
+        }
+
         // Prepare paytable if needed (download/decompress)
         await preparePaytableIfNeeded()
 

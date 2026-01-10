@@ -3,6 +3,8 @@ import SwiftUI
 struct PlayStartView: View {
     @Binding var navigationPath: NavigationPath
     @State private var settings = PlaySettings()
+    @State private var networkMonitor = NetworkMonitor.shared
+    @State private var showOfflineAlert = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -119,9 +121,18 @@ struct PlayStartView: View {
             VStack(spacing: 12) {
                 Button {
                     Task {
+                        // Check if offline and game not available
+                        if !networkMonitor.isOnline {
+                            let isAvailable = await StrategyService.shared.hasOfflineData(paytableId: settings.selectedPaytableId)
+                            if !isAvailable {
+                                showOfflineAlert = true
+                                return
+                            }
+                        }
+
                         await PlayPersistence.shared.saveSettings(settings)
+                        navigationPath.append(AppScreen.playGame)
                     }
-                    navigationPath.append(AppScreen.playGame)
                 } label: {
                     Text("Start Playing")
                         .font(.headline)
@@ -144,6 +155,11 @@ struct PlayStartView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {
             settings = await PlayPersistence.shared.loadSettings()
+        }
+        .alert("Game Not Available Offline", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("This game hasn't been downloaded yet. Please connect to the internet to download it, or choose a different game.")
         }
     }
 }

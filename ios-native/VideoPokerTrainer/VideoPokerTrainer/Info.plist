@@ -30,9 +30,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>5</string>
-	<key>CFBundleIconName</key>
-	<string>AppIcon</string>
+	<string>1</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

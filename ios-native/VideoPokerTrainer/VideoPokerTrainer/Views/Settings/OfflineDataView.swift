@@ -19,9 +19,18 @@ struct OfflineDataView: View {
     @State private var totalStorageUsed: Int64 = 0
     @State private var downloadError: String?
     @State private var showDownloadError = false
+    @State private var networkMonitor = NetworkMonitor.shared
 
     var body: some View {
         List {
+            // Offline indicator
+            if !networkMonitor.isOnline {
+                Section {
+                    Label("Downloads require internet connection", systemImage: "wifi.slash")
+                        .foregroundColor(.orange)
+                }
+            }
+
             // Storage overview section
             Section {
                 HStack {
@@ -61,6 +70,7 @@ struct OfflineDataView: View {
                     ForEach($paytables) { $paytable in
                         PaytableRow(
                             paytable: $paytable,
+                            isOnline: networkMonitor.isOnline,
                             onToggleMode: { toggleStorageMode(for: paytable) },
                             onDelete: { confirmDelete(paytable) },
                             onDownload: { downloadPaytable(paytable) }
@@ -201,6 +211,7 @@ struct OfflineDataView: View {
 
 struct PaytableRow: View {
     @Binding var paytable: PaytableListItem
+    let isOnline: Bool
     let onToggleMode: () -> Void
     let onDelete: () -> Void
     let onDownload: () -> Void
@@ -227,7 +238,8 @@ struct PaytableRow: View {
                         .font(.caption)
                 }
                 .buttonStyle(.bordered)
-                .tint(.blue)
+                .tint(isOnline ? .blue : .gray)
+                .disabled(!isOnline)
             } else {
                 // Mode toggle for bundled or downloaded paytables
                 Menu {

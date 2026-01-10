@@ -13,6 +13,7 @@ class PlayViewModel: ObservableObject {
     // Loading state for paytable preparation
     @Published var isPreparingPaytable = false
     @Published var preparationMessage = "Loading strategy data..."
+    @Published var preparationFailed = false
 
     // Current hand state
     @Published var dealtCards: [Card] = []
@@ -97,10 +98,25 @@ class PlayViewModel: ObservableObject {
         let paytableId = settings.selectedPaytableId
         let paytableName = currentPaytable?.name ?? "strategy data"
 
+        // Reset failure state
+        preparationFailed = false
+
         // Check if we need to load
         let needsLoading = await StrategyService.shared.paytableNeedsLoading(paytableId: paytableId)
         if !needsLoading {
             return  // Already loaded or not bundled/downloadable
+        }
+
+        // Check if offline and game not available
+        let isOnline = NetworkMonitor.shared.isOnline
+        if !isOnline {
+            let hasOfflineData = await StrategyService.shared.hasOfflineData(paytableId: paytableId)
+            if !hasOfflineData {
+                preparationMessage = "This game isn't available offline. Please go online or select a different game."
+                preparationFailed = true
+                isPreparingPaytable = true
+                return
+            }
         }
 
         // Show loading state with detailed status updates
@@ -119,12 +135,15 @@ class PlayViewModel: ObservableObject {
                 self.preparationMessage = "Ready"
             case .failed(let message):
                 self.preparationMessage = "Failed: \(message)"
+                self.preparationFailed = true
             }
         }
 
         // Hide loading state (keep showing if failed)
         if success {
             isPreparingPaytable = false
+        } else {
+            preparationFailed = true
         }
     }
 
@@ -477,6 +496,50 @@ class PlayViewModel: ObservableObject {
                 await calculateEvLoss()
             }
         }
+
+        // Save hand attempt (for all hands, not just mistakes)
+        Task {
+            await saveHandAttempt(isCorrect: userHold == optimal)
+        }
+    }
+
+    private func saveHandAttempt(isCorrect: Bool) async {
+        guard let user = SupabaseService.shared.currentUser,
+              let result = strategyResult else { return }
+
+        let hand = Hand(cards: dealtCards)
+        let userHold = Array(selectedIndices).sorted()
+
+        // Convert canonical best hold to original order
+        let canonicalBestHold = result.bestHoldIndices
+        let correctHold = hand.canonicalIndicesToOriginal(canonicalBestHold)
+
+        // Calculate EV difference
+        var evDifference: Double = 0
+        if !isCorrect {
+            let userCanonicalHold = hand.originalIndicesToCanonical(userHold)
+            let userBitmask = Hand.bitmaskFromHoldIndices(userCanonicalHold)
+            if let userEv = result.holdEvs[String(userBitmask)] {
+                evDifference = result.bestEv - userEv
+            }
+        }
+
+        // Determine hand category
+        let category = HandCategory.categorize(hand: hand, holdIndices: correctHold)
+
+        let attempt = HandAttempt(
+            userId: user.id,
+            handKey: hand.canonicalKey,
+            handCategory: category.rawValue,
+            paytableId: settings.selectedPaytableId,
+            userHold: userHold,
+            optimalHold: correctHold,
+            isCorrect: isCorrect,
+            evDifference: evDifference,
+            responseTimeMs: nil  // Play mode doesn't track response time
+        )
+
+        await SyncService.shared.saveAttempt(attempt)
     }
 
     private func calculateEvLoss() async {

@@ -91,23 +91,64 @@ struct PlayView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 16) {
-                ProgressView()
-                    .scaleEffect(1.5)
-                    .tint(Color(hex: "667eea"))
+                if viewModel.preparationFailed {
+                    // Failure state
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 44))
+                        .foregroundColor(.orange)
 
-                Text(viewModel.preparationMessage)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                    Text("Game Unavailable")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
 
-                VStack(spacing: 8) {
-                    Text("Preparing compressed strategy data for use.")
+                    Text(viewModel.preparationMessage)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
 
-                    Text("To save the uncompressed file for quicker play, change storage options in Settings → Offline Data")
-                        .font(.caption)
+                    VStack(spacing: 12) {
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Text("Change Game")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Color(hex: "667eea"))
+
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text("Go Back")
+                                .font(.subheadline)
+                        }
                         .foregroundColor(.secondary)
+                    }
+                    .padding(.top, 8)
+                } else {
+                    // Loading state
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(Color(hex: "667eea"))
+
+                    Text(viewModel.preparationMessage)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+
+                    VStack(spacing: 8) {
+                        Text("Preparing compressed strategy data for use.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                        Text("To save the uncompressed file for quicker play, change storage options in Settings → Offline Data")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
             .padding(32)

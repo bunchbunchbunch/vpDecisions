@@ -38,6 +38,10 @@ struct HomeView: View {
                 .padding()
             }
             .withTour(.home)
+            .task {
+                // Sync any pending hand attempts from previous offline sessions
+                await SyncService.shared.syncPendingAttempts()
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     accountMenu
@@ -322,6 +326,8 @@ struct QuizStartView: View {
 
     @State private var selectedPaytableId: String = PayTable.jacksOrBetter96.id
     @State private var selectedQuizSize: Int = 25
+    @State private var networkMonitor = NetworkMonitor.shared
+    @State private var showOfflineAlert = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -442,12 +448,23 @@ struct QuizStartView: View {
 
             // Start Quiz button
             Button {
-                NSLog("🚀 QuizStartView: Starting %d-hand quiz with paytable: %@ - %@", selectedQuizSize, selectedPaytable.id, selectedPaytable.name)
-                navigationPath.append(AppScreen.quizPlay(
-                    paytableId: selectedPaytable.id,
-                    weakSpotsMode: weakSpotsMode,
-                    quizSize: selectedQuizSize
-                ))
+                Task {
+                    // Check if offline and game not available
+                    if !networkMonitor.isOnline {
+                        let isAvailable = await StrategyService.shared.hasOfflineData(paytableId: selectedPaytable.id)
+                        if !isAvailable {
+                            showOfflineAlert = true
+                            return
+                        }
+                    }
+
+                    NSLog("🚀 QuizStartView: Starting %d-hand quiz with paytable: %@ - %@", selectedQuizSize, selectedPaytable.id, selectedPaytable.name)
+                    navigationPath.append(AppScreen.quizPlay(
+                        paytableId: selectedPaytable.id,
+                        weakSpotsMode: weakSpotsMode,
+                        quizSize: selectedQuizSize
+                    ))
+                }
             } label: {
                 Text("Start Quiz")
                     .font(.headline)
@@ -469,6 +486,11 @@ struct QuizStartView: View {
         .withTour(.quizStart)
         .navigationTitle(weakSpotsMode ? "Weak Spots" : "Quiz")
         .navigationBarTitleDisplayMode(.inline)
+        .alert("Game Not Available Offline", isPresented: $showOfflineAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("This game hasn't been downloaded yet. Please connect to the internet to download it, or choose a different game.")
+        }
     }
 }
 

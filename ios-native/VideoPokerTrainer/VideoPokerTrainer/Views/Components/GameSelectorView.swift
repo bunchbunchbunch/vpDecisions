@@ -4,10 +4,18 @@ struct GameSelectorView: View {
     @Binding var selectedPaytableId: String
     @State private var selectedTab: SelectorTab = .popular
     @State private var selectedFamily: GameFamily = .jacksOrBetter
+    @State private var networkMonitor = NetworkMonitor.shared
+    @State private var availablePaytableIds: Set<String> = []
+    @State private var isCheckingAvailability = false
 
     enum SelectorTab: String, CaseIterable {
         case popular = "Popular"
         case allGames = "All Games"
+    }
+
+    /// Whether the currently selected game is available (online or has offline data)
+    private var isSelectedGameAvailable: Bool {
+        networkMonitor.isOnline || availablePaytableIds.contains(selectedPaytableId)
     }
 
     var body: some View {
@@ -26,9 +34,26 @@ struct GameSelectorView: View {
             } else {
                 allGamesView
             }
+
+            // Offline warning for unavailable game
+            if !networkMonitor.isOnline && !isSelectedGameAvailable {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text("This game requires download. Choose a different game or go online.")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                }
+                .padding(10)
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(8)
+            }
         }
         .onAppear {
             initializeSelectedFamily()
+        }
+        .task {
+            await loadAvailablePaytables()
         }
         .onChange(of: selectedPaytableId) { _, newId in
             // Sync family when paytable changes (e.g., from Popular tab)
@@ -36,6 +61,27 @@ struct GameSelectorView: View {
                 selectedFamily = paytable.family
             }
         }
+        .onChange(of: networkMonitor.isOnline) { _, _ in
+            // Refresh availability when network status changes
+            Task {
+                await loadAvailablePaytables()
+            }
+        }
+    }
+
+    private func loadAvailablePaytables() async {
+        isCheckingAvailability = true
+        var available: Set<String> = []
+
+        // Check each paytable for offline availability
+        for paytable in PayTable.allPayTables {
+            if await StrategyService.shared.hasOfflineData(paytableId: paytable.id) {
+                available.insert(paytable.id)
+            }
+        }
+
+        availablePaytableIds = available
+        isCheckingAvailability = false
     }
 
     private func initializeSelectedFamily() {

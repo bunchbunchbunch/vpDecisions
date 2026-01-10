@@ -6,6 +6,7 @@ struct ForgotPasswordView: View {
 
     @State private var email = ""
     @State private var emailSent = false
+    @State private var networkMonitor = NetworkMonitor.shared
 
     var body: some View {
         VStack(spacing: 24) {
@@ -50,6 +51,14 @@ struct ForgotPasswordView: View {
                             .padding(.horizontal)
                     }
 
+                    // Offline indicator
+                    if !networkMonitor.isOnline {
+                        Label("Password reset requires internet connection", systemImage: "wifi.slash")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                            .padding(.horizontal)
+                    }
+
                     // Send reset button
                     Button {
                         Task {
@@ -73,7 +82,8 @@ struct ForgotPasswordView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(Color(hex: "667eea"))
-                    .disabled(email.isEmpty || viewModel.isLoading)
+                    .disabled(email.isEmpty || viewModel.isLoading || !networkMonitor.isOnline)
+                    .opacity(networkMonitor.isOnline ? 1.0 : 0.5)
                     .padding(.horizontal)
                 }
             } else {

@@ -7,144 +7,148 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2B19AA5ACB41405085634134 /* Tour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB821BBCFF2446B84C60D16 /* Tour.swift */; };
-		299E8A3C233D4052A24FDD6E /* TourContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C5CB925C30C433EA95C4BF9 /* TourContent.swift */; };
-		2F5AAC791CF446B188ED310F /* TourManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD91FAD4A8F94C7BA15AD690 /* TourManager.swift */; };
-		1F5FB1D5BB86468195868530 /* TourTooltipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC871CE4CA3B4865B69CD986 /* TourTooltipView.swift */; };
-		9538F3E50B7C4E218C36C7C4 /* TourTargetModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707403D45CBB4CEA97A436F5 /* TourTargetModifier.swift */; };
-		93E5BFC872DC4ECC8B3963CA /* TourOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47F839743EB44C16937B47D6 /* TourOverlayView.swift */; };
-		0FB2B70321E24D9590F1D0D8 /* TourSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93776FFDC86460BB5CF0C65 /* TourSettingsView.swift */; };
+		01FF69BDF3EBD9C0AD445DD9 /* TourTooltipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1905AE0390569A95AE29470 /* TourTooltipView.swift */; };
 		07D564051B4CBB23DFDF41B2 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC11F57C339351683A7A945E /* AuthViewModel.swift */; };
-		PLAY001A2B3C4D5E6F7A8B9C /* PlayModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY001A2B3C4D5E6F7A8B9D /* PlayModels.swift */; };
-		PLAY002A2B3C4D5E6F7A8B9C /* PlayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY002A2B3C4D5E6F7A8B9D /* PlayViewModel.swift */; };
-		PLAY003A2B3C4D5E6F7A8B9C /* PlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY003A2B3C4D5E6F7A8B9D /* PlayView.swift */; };
-		PLAY004A2B3C4D5E6F7A8B9C /* PlayStartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY004A2B3C4D5E6F7A8B9D /* PlayStartView.swift */; };
-		PLAY005A2B3C4D5E6F7A8B9C /* MiniCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY005A2B3C4D5E6F7A8B9D /* MiniCardView.swift */; };
-		PLAY006A2B3C4D5E6F7A8B9C /* MiniHandView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY006A2B3C4D5E6F7A8B9D /* MiniHandView.swift */; };
-		PLAY007A2B3C4D5E6F7A8B9C /* MultiHandGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY007A2B3C4D5E6F7A8B9D /* MultiHandGrid.swift */; };
-		PLAY008A2B3C4D5E6F7A8B9C /* HundredPlayTallyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PLAY008A2B3C4D5E6F7A8B9D /* HundredPlayTallyView.swift */; };
+		0D124A6548091FBE3020534B /* OfflineDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04493682371D6C684F390870 /* OfflineDataView.swift */; };
 		0F16C32059109F21E351814D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */; };
-		OFFLN002A2B3C4D5E6F7A8B9C /* OfflineDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OFFLN001A2B3C4D5E6F7A8B9C /* OfflineDataView.swift */; };
 		0FDBAFBF64162DEDFD208EAD /* submit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BA6C1E385E108694180D1EBE /* submit.mp3 */; };
 		0FE869B3D3FA170517561BD1 /* PayTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */; };
-		212AADE9C95CA00DE1FF9B59 /* strategy_double_double_bonus_9_6.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 8A0A9C948D9D9086824FA72D /* strategy_double_double_bonus_9_6.json.gz */; };
+		11989A1E33EA6BD7ECD145F9 /* GameFamily.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14019151E66CF2BF3B17ED5 /* GameFamily.swift */; };
 		2723E123A48A2FFB91BA72C0 /* HapticService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */; };
+		2BEA45B24958B72F324FEDF6 /* HundredPlayTallyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEA82F5544A546A1CABF096A /* HundredPlayTallyView.swift */; };
+		2BF603E576C1A1F5E79C963C /* LocalStrategyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E560AB52F7E5B747FD13A265 /* LocalStrategyStore.swift */; };
 		2D12B9D50B6BE8EFFB32868D /* button-tap.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = DCE574B6713DC27CBB847898 /* button-tap.mp3 */; };
+		2F898C6396F16449E756C9DA /* strategy_double_double_bonus_9_6.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 88C5D0E830CC969E79751853 /* strategy_double_double_bonus_9_6.json.gz */; };
+		32B4C6420492BE9393FF05AD /* Tour.swift in Sources */ = {isa = PBXBuildFile; fileRef = 905E81F11D7B495798FC7FC2 /* Tour.swift */; };
 		38D2B5DC081395DAE5D3B0FB /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CDFD929FF8F295FDC95267 /* ForgotPasswordView.swift */; };
 		3B02824BED9C868617E34C34 /* PayTableData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEC6E4EE5E71F8D44366E1EF /* PayTableData.swift */; };
 		4B04B4CD4470F1A26E6022E8 /* DealtWinnerBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */; };
 		536F632E405D093299FE5B59 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E42FBAD025A5534A6E4850 /* AuthView.swift */; };
 		5438E7F43028F95D65AACEED /* HandCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */; };
+		587F6DA42B2DFF1E02E1F056 /* TourManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF39FAEB04F197691FDE1F60 /* TourManager.swift */; };
+		5CB8AA7DF512C4549C32397A /* strategy_jacks_or_better_9_6.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = B188A14203D26FE1B65F0C49 /* strategy_jacks_or_better_9_6.json.gz */; };
 		5D20F966F1DDA1E06819F3A2 /* QuizPlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6A631F3E90A1B2FCFA8934 /* QuizPlayView.swift */; };
 		611CF46743CA88B71B485BCD /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A372C2B67ECD0E057210D57 /* Card.swift */; };
 		71A602043D2B35B4789E7D57 /* incorrect.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A938B302053EBA1843CDBDD8 /* incorrect.mp3 */; };
-		7351CB9F3269192F4EF9CC71 /* strategy_jacks_or_better_9_6.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json.gz */; };
+		72D9066727B69AD0C98ED387 /* PlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C872879EF7A70D6EA2251AC /* PlayView.swift */; };
+		7422A3C4C0203BF0538EB6D4 /* TourContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE00888343D5020721ED5FB /* TourContent.swift */; };
+		783B823EA2A0DC67835FA6CE /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B175B2E82D2658E469108B19 /* SyncService.swift */; };
+		79C00D3104A899CC50934E18 /* MiniCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 734A74A6F165B997A891B862 /* MiniCardView.swift */; };
+		7A39E6ADD94F463904666AB6 /* PopularGameButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B363E6B6126A534580B197 /* PopularGameButton.swift */; };
 		7DD564D08C78F917E261534E /* MasteryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */; };
+		7EBBC36E240C376904F9CAD9 /* MiniHandView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DB525FA34D6A73A05422D0 /* MiniHandView.swift */; };
 		7F19D2CB801A784CD2487F3A /* VideoPokerTrainerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */; };
 		7F91767A20F844B17A466A75 /* Hand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03FD663D9F07AEE4E1829685 /* Hand.swift */; };
 		880BF76C2AAB5FA877AEFF8A /* ResetPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D795BF36AA1D7A6ED28A80 /* ResetPasswordView.swift */; };
 		8A9A3CE99246EFF4C4EF47AF /* CardGlowEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */; };
-		THEME001A2B3C4D5E6F7A8B9C /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = THEME001A2B3C4D5E6F7A8B9D /* AppTheme.swift */; };
+		8B377030300F98231AE78C26 /* PaytablePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB01B07160050A6DA474D05 /* PaytablePreferences.swift */; };
 		8E430B3CF10EA07783EAC4E5 /* dealt-winner.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 192AEE07411E5DBD2F6F8F0D /* dealt-winner.mp3 */; };
+		931ED751472C3783CD0E325B /* PlayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6BAE4D0D4D65308264FAF5 /* PlayViewModel.swift */; };
 		973BBB083DDAACDE2DD8DBBB /* card-select.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 52626371C1AE90FB294E4C82 /* card-select.mp3 */; };
 		99CB3FBBAF8F43A1B2761404 /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEFE93106067A8CC6C7D44E0 /* AudioService.swift */; };
 		9AD6A559445353450025DD68 /* StrategyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B14813ABEB1C877847870FF /* StrategyService.swift */; };
 		9B4B7A366425E722369EE9D1 /* next-hand.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D90A1B2C22F69A4059A0AF90 /* next-hand.mp3 */; };
 		A6AFCD3472AC36B416F46E5E /* QuizViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6EA254B114941319176353 /* QuizViewModel.swift */; };
+		A99EFDED735E76112FCE9ADC /* MultiHandGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D4A7A0F8DA5B0669F61B8D4 /* MultiHandGrid.swift */; };
 		ACFD07FBC574DF302C8702B5 /* strategy_bonus_poker_8_5.json in Resources */ = {isa = PBXBuildFile; fileRef = F7392AA987E6BD3BAFBABE48 /* strategy_bonus_poker_8_5.json */; };
-		TDB001A2B3C4D5E6F7A8B9C /* strategy_triple_double_bonus_9_6.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = TDB001A2B3C4D5E6F7A8B9D /* strategy_triple_double_bonus_9_6.json.gz */; };
-		NSUD001A2B3C4D5E6F7A8B9C /* strategy_deuces_wild_nsud.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = NSUD001A2B3C4D5E6F7A8B9D /* strategy_deuces_wild_nsud.json.gz */; };
+		B4EB03298026637E9FE9C9D5 /* PlayStartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2101886A4326D1DE68AF6E /* PlayStartView.swift */; };
 		B51629FBBA7A29969D895CBB /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F1393C11511534CE0AA9C5 /* HomeView.swift */; };
 		BA434B4D8AC3FBDEB0229B26 /* MasteryScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07C10505BC1A5BB00B74307D /* MasteryScore.swift */; };
+		BAF65527A121DC7BC473AB21 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80B8C88DA2821C6D4DB5D4BF /* AppTheme.swift */; };
 		BBA7D3A4A818EF4046841A1E /* quiz-complete.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */; };
+		BD4AFE9A3D602E1EF2430835 /* strategy_triple_double_bonus_9_6.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 0B78D1117963BDB61DC82046 /* strategy_triple_double_bonus_9_6.json.gz */; };
 		BE125462B9396E73249C962A /* HandAnalyzerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EBF4D48AC1D577D0A2CC087 /* HandAnalyzerView.swift */; };
+		C573405812E2ED626257699C /* TourOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40BDFE03F7266AC44D0A7BF /* TourOverlayView.swift */; };
+		C993B98BD185888EA1D144C2 /* strategy_deuces_wild_nsud.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = E7E27F5232A98032965AC5E2 /* strategy_deuces_wild_nsud.json.gz */; };
 		CA02749FA8C7CEE2A99CAA8A /* CompactPayTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BD0AFFC99AFF87B9DEFC49E /* CompactPayTableView.swift */; };
+		CBA80920BC8A52F947A63487 /* TourSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 250DEBA11D9EBDA598790FDF /* TourSettingsView.swift */; };
+		CD1029C1738234BD6B2BC114 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356502E16A4F89728A7313D6 /* NetworkMonitor.swift */; };
 		D0C135BCFDBFCCEA4C74A6DA /* HandEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D25485E3CB6182634F963032 /* HandEvaluator.swift */; };
 		D353D33B14246C03446A1BFF /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C4FD2CF0865B3C43DC64102E /* Supabase */; };
 		D377E7F8A6EA6B272F609CC3 /* SpacedRepetitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */; };
+		D4BA6C371A5385669ACCFE94 /* GameSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69F5B95B214AAE723EE83BC4 /* GameSelectorView.swift */; };
 		D7B782D6C22D584CF543D895 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8717FB49A524CDA76F3D730A /* SupabaseService.swift */; };
-		LSS001A2B3C4D5E6F7A8B9C /* LocalStrategyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = LSS001A2B3C4D5E6F7A8B9D /* LocalStrategyStore.swift */; };
-		PTP001A2B3C4D5E6F7A8B9C /* PaytablePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = PTP001A2B3C4D5E6F7A8B9D /* PaytablePreferences.swift */; };
 		D7F21D806CD72B4FBBE789EE /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FCBC58743A80FDACE84FB39 /* CardView.swift */; };
 		EB31AC2671CF70D41545F0FC /* QuizResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6B33083F0FB3889082928E6 /* QuizResultsView.swift */; };
 		EE6CCDF2456A20BA420ACF8D /* AnalyzerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C33530EF32164D02A03169 /* AnalyzerViewModel.swift */; };
+		F1F76948D675FB45EF74BD11 /* TourTargetModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C6BFC5F8422806903EC72C4 /* TourTargetModifier.swift */; };
 		F302A693B13FFCB4A467F149 /* MasteryDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8BB591ADA1CB751A89760BF /* MasteryDashboardView.swift */; };
 		FCD4460BC57F88E834DA6FAB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BA55DBC9DB3C3D1B66159FE2 /* Assets.xcassets */; };
 		FEB433C9189612043BBCEAF8 /* correct.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7C7B891E2E0E0C3A4CE8293E /* correct.mp3 */; };
-		GFAM001A2B3C4D5E6F7A8B9C /* GameFamily.swift in Sources */ = {isa = PBXBuildFile; fileRef = GFAM001A2B3C4D5E6F7A8B9D /* GameFamily.swift */; };
-		POPB001A2B3C4D5E6F7A8B9C /* PopularGameButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = POPB001A2B3C4D5E6F7A8B9D /* PopularGameButton.swift */; };
-		GSEL001A2B3C4D5E6F7A8B9C /* GameSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GSEL001A2B3C4D5E6F7A8B9D /* GameSelectorView.swift */; };
+		FFD1BB1C035EDBE1AAF557B8 /* PlayModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2AA77874E6B4185196D7BBC /* PlayModels.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0BB821BBCFF2446B84C60D16 /* Tour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tour.swift; sourceTree = "<group>"; };
-		0C5CB925C30C433EA95C4BF9 /* TourContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourContent.swift; sourceTree = "<group>"; };
-		DD91FAD4A8F94C7BA15AD690 /* TourManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourManager.swift; sourceTree = "<group>"; };
-		CC871CE4CA3B4865B69CD986 /* TourTooltipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourTooltipView.swift; sourceTree = "<group>"; };
-		707403D45CBB4CEA97A436F5 /* TourTargetModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourTargetModifier.swift; sourceTree = "<group>"; };
-		47F839743EB44C16937B47D6 /* TourOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourOverlayView.swift; sourceTree = "<group>"; };
-		F93776FFDC86460BB5CF0C65 /* TourSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourSettingsView.swift; sourceTree = "<group>"; };
 		03FD663D9F07AEE4E1829685 /* Hand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hand.swift; sourceTree = "<group>"; };
-		PLAY001A2B3C4D5E6F7A8B9D /* PlayModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayModels.swift; sourceTree = "<group>"; };
-		PLAY002A2B3C4D5E6F7A8B9D /* PlayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayViewModel.swift; sourceTree = "<group>"; };
-		PLAY003A2B3C4D5E6F7A8B9D /* PlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayView.swift; sourceTree = "<group>"; };
-		PLAY004A2B3C4D5E6F7A8B9D /* PlayStartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayStartView.swift; sourceTree = "<group>"; };
-		PLAY005A2B3C4D5E6F7A8B9D /* MiniCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniCardView.swift; sourceTree = "<group>"; };
-		PLAY006A2B3C4D5E6F7A8B9D /* MiniHandView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniHandView.swift; sourceTree = "<group>"; };
-		PLAY007A2B3C4D5E6F7A8B9D /* MultiHandGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiHandGrid.swift; sourceTree = "<group>"; };
-		PLAY008A2B3C4D5E6F7A8B9D /* HundredPlayTallyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HundredPlayTallyView.swift; sourceTree = "<group>"; };
+		04493682371D6C684F390870 /* OfflineDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineDataView.swift; sourceTree = "<group>"; };
 		0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticService.swift; sourceTree = "<group>"; };
-		05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_jacks_or_better_9_6.json.gz; sourceTree = "<group>"; };
 		07C10505BC1A5BB00B74307D /* MasteryScore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryScore.swift; sourceTree = "<group>"; };
+		0B78D1117963BDB61DC82046 /* strategy_triple_double_bonus_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = strategy_triple_double_bonus_9_6.json.gz; sourceTree = "<group>"; };
 		0D6A631F3E90A1B2FCFA8934 /* QuizPlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizPlayView.swift; sourceTree = "<group>"; };
 		12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryViewModel.swift; sourceTree = "<group>"; };
 		166952A2BDC1FD0345A5C569 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		17DB525FA34D6A73A05422D0 /* MiniHandView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniHandView.swift; sourceTree = "<group>"; };
 		192AEE07411E5DBD2F6F8F0D /* dealt-winner.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "dealt-winner.mp3"; sourceTree = "<group>"; };
 		1EBF4D48AC1D577D0A2CC087 /* HandAnalyzerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandAnalyzerView.swift; sourceTree = "<group>"; };
 		21C33530EF32164D02A03169 /* AnalyzerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyzerViewModel.swift; sourceTree = "<group>"; };
+		250DEBA11D9EBDA598790FDF /* TourSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourSettingsView.swift; sourceTree = "<group>"; };
+		2A6BAE4D0D4D65308264FAF5 /* PlayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayViewModel.swift; sourceTree = "<group>"; };
 		2B14813ABEB1C877847870FF /* StrategyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrategyService.swift; sourceTree = "<group>"; };
+		2C872879EF7A70D6EA2251AC /* PlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayView.swift; sourceTree = "<group>"; };
+		356502E16A4F89728A7313D6 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "quiz-complete.mp3"; sourceTree = "<group>"; };
 		38E42FBAD025A5534A6E4850 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		3A372C2B67ECD0E057210D57 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		3BD0AFFC99AFF87B9DEFC49E /* CompactPayTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompactPayTableView.swift; sourceTree = "<group>"; };
 		52626371C1AE90FB294E4C82 /* card-select.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "card-select.mp3"; sourceTree = "<group>"; };
 		5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		OFFLN001A2B3C4D5E6F7A8B9C /* OfflineDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineDataView.swift; sourceTree = "<group>"; };
+		5D4A7A0F8DA5B0669F61B8D4 /* MultiHandGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiHandGrid.swift; sourceTree = "<group>"; };
+		69F5B95B214AAE723EE83BC4 /* GameSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSelectorView.swift; sourceTree = "<group>"; };
+		6C6BFC5F8422806903EC72C4 /* TourTargetModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourTargetModifier.swift; sourceTree = "<group>"; };
 		6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandCategory.swift; sourceTree = "<group>"; };
 		6FCBC58743A80FDACE84FB39 /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
+		734A74A6F165B997A891B862 /* MiniCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniCardView.swift; sourceTree = "<group>"; };
 		79CDFD929FF8F295FDC95267 /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
 		7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayTable.swift; sourceTree = "<group>"; };
 		7C7B891E2E0E0C3A4CE8293E /* correct.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = correct.mp3; sourceTree = "<group>"; };
+		80B8C88DA2821C6D4DB5D4BF /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		8717FB49A524CDA76F3D730A /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
-		LSS001A2B3C4D5E6F7A8B9D /* LocalStrategyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStrategyStore.swift; sourceTree = "<group>"; };
-		PTP001A2B3C4D5E6F7A8B9D /* PaytablePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaytablePreferences.swift; sourceTree = "<group>"; };
-		8A0A9C948D9D9086824FA72D /* strategy_double_double_bonus_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_double_double_bonus_9_6.json.gz; sourceTree = "<group>"; };
+		88C5D0E830CC969E79751853 /* strategy_double_double_bonus_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = strategy_double_double_bonus_9_6.json.gz; sourceTree = "<group>"; };
 		8E6EA254B114941319176353 /* QuizViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizViewModel.swift; sourceTree = "<group>"; };
+		905E81F11D7B495798FC7FC2 /* Tour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tour.swift; sourceTree = "<group>"; };
 		99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DealtWinnerBanner.swift; sourceTree = "<group>"; };
+		A40BDFE03F7266AC44D0A7BF /* TourOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourOverlayView.swift; sourceTree = "<group>"; };
 		A6B33083F0FB3889082928E6 /* QuizResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultsView.swift; sourceTree = "<group>"; };
 		A938B302053EBA1843CDBDD8 /* incorrect.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = incorrect.mp3; sourceTree = "<group>"; };
 		AC11F57C339351683A7A945E /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		AEA82F5544A546A1CABF096A /* HundredPlayTallyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HundredPlayTallyView.swift; sourceTree = "<group>"; };
 		B0D795BF36AA1D7A6ED28A80 /* ResetPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPasswordView.swift; sourceTree = "<group>"; };
+		B175B2E82D2658E469108B19 /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
+		B188A14203D26FE1B65F0C49 /* strategy_jacks_or_better_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = strategy_jacks_or_better_9_6.json.gz; sourceTree = "<group>"; };
+		B2AA77874E6B4185196D7BBC /* PlayModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayModels.swift; sourceTree = "<group>"; };
 		BA55DBC9DB3C3D1B66159FE2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BA6C1E385E108694180D1EBE /* submit.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = submit.mp3; sourceTree = "<group>"; };
+		BF39FAEB04F197691FDE1F60 /* TourManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourManager.swift; sourceTree = "<group>"; };
 		C0F1393C11511534CE0AA9C5 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		D14019151E66CF2BF3B17ED5 /* GameFamily.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameFamily.swift; sourceTree = "<group>"; };
 		D25485E3CB6182634F963032 /* HandEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandEvaluator.swift; sourceTree = "<group>"; };
 		D90A1B2C22F69A4059A0AF90 /* next-hand.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "next-hand.mp3"; sourceTree = "<group>"; };
 		DCE574B6713DC27CBB847898 /* button-tap.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "button-tap.mp3"; sourceTree = "<group>"; };
 		DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VideoPokerTrainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1905AE0390569A95AE29470 /* TourTooltipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourTooltipView.swift; sourceTree = "<group>"; };
+		E1B363E6B6126A534580B197 /* PopularGameButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopularGameButton.swift; sourceTree = "<group>"; };
+		E560AB52F7E5B747FD13A265 /* LocalStrategyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStrategyStore.swift; sourceTree = "<group>"; };
 		E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPokerTrainerApp.swift; sourceTree = "<group>"; };
 		E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardGlowEffect.swift; sourceTree = "<group>"; };
-		THEME001A2B3C4D5E6F7A8B9D /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		E7E27F5232A98032965AC5E2 /* strategy_deuces_wild_nsud.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = strategy_deuces_wild_nsud.json.gz; sourceTree = "<group>"; };
+		EE2101886A4326D1DE68AF6E /* PlayStartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayStartView.swift; sourceTree = "<group>"; };
 		EEC6E4EE5E71F8D44366E1EF /* PayTableData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayTableData.swift; sourceTree = "<group>"; };
 		EEFE93106067A8CC6C7D44E0 /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
 		EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpacedRepetitionService.swift; sourceTree = "<group>"; };
 		F7392AA987E6BD3BAFBABE48 /* strategy_bonus_poker_8_5.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = strategy_bonus_poker_8_5.json; sourceTree = "<group>"; };
-		TDB001A2B3C4D5E6F7A8B9D /* strategy_triple_double_bonus_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_triple_double_bonus_9_6.json.gz; sourceTree = "<group>"; };
-		NSUD001A2B3C4D5E6F7A8B9D /* strategy_deuces_wild_nsud.json.gz */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_deuces_wild_nsud.json.gz; sourceTree = "<group>"; };
 		F8BB591ADA1CB751A89760BF /* MasteryDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryDashboardView.swift; sourceTree = "<group>"; };
-		GFAM001A2B3C4D5E6F7A8B9D /* GameFamily.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameFamily.swift; sourceTree = "<group>"; };
-		POPB001A2B3C4D5E6F7A8B9D /* PopularGameButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopularGameButton.swift; sourceTree = "<group>"; };
-		GSEL001A2B3C4D5E6F7A8B9D /* GameSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSelectorView.swift; sourceTree = "<group>"; };
+		FAB01B07160050A6DA474D05 /* PaytablePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaytablePreferences.swift; sourceTree = "<group>"; };
+		FAE00888343D5020721ED5FB /* TourContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourContent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,14 +166,14 @@
 		0C30F74B7D0F644A2250C0A5 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				GSEL001A2B3C4D5E6F7A8B9D /* GameSelectorView.swift */,
-				POPB001A2B3C4D5E6F7A8B9D /* PopularGameButton.swift */,
-				THEME001A2B3C4D5E6F7A8B9D /* AppTheme.swift */,
+				80B8C88DA2821C6D4DB5D4BF /* AppTheme.swift */,
 				E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */,
 				6FCBC58743A80FDACE84FB39 /* CardView.swift */,
 				3BD0AFFC99AFF87B9DEFC49E /* CompactPayTableView.swift */,
 				99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */,
-				ECD4983AE0F34EB4AE24C748 /* Tour */,
+				69F5B95B214AAE723EE83BC4 /* GameSelectorView.swift */,
+				E1B363E6B6126A534580B197 /* PopularGameButton.swift */,
+				AD2FBEF6A4B06E9F3380EE23 /* Tour */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -251,9 +255,9 @@
 		6FC640280B3760399F4A8BCC /* Settings */ = {
 			isa = PBXGroup;
 			children = (
-				OFFLN001A2B3C4D5E6F7A8B9C /* OfflineDataView.swift */,
+				04493682371D6C684F390870 /* OfflineDataView.swift */,
 				5A6D2AF4CDD6DD5508846223 /* SettingsView.swift */,
-				F93776FFDC86460BB5CF0C65 /* TourSettingsView.swift */,
+				250DEBA11D9EBDA598790FDF /* TourSettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -264,7 +268,7 @@
 				21C33530EF32164D02A03169 /* AnalyzerViewModel.swift */,
 				AC11F57C339351683A7A945E /* AuthViewModel.swift */,
 				12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */,
-				PLAY002A2B3C4D5E6F7A8B9D /* PlayViewModel.swift */,
+				2A6BAE4D0D4D65308264FAF5 /* PlayViewModel.swift */,
 				8E6EA254B114941319176353 /* QuizViewModel.swift */,
 			);
 			path = ViewModels;
@@ -278,41 +282,51 @@
 				0C30F74B7D0F644A2250C0A5 /* Components */,
 				E81B72C9861D38C16DB52371 /* Home */,
 				1F927749606AFC7EF7480BE6 /* Mastery */,
-				PLAY005A2B3C4D5E6F7A8B9E /* Play */,
+				BE08DE53DA382200DFFDB51E /* Play */,
 				1823DBFE242CBA4C772FA17A /* Quiz */,
 				6FC640280B3760399F4A8BCC /* Settings */,
 			);
 			path = Views;
 			sourceTree = "<group>";
 		};
-		PLAY005A2B3C4D5E6F7A8B9E /* Play */ = {
+		AD2FBEF6A4B06E9F3380EE23 /* Tour */ = {
 			isa = PBXGroup;
 			children = (
-				PLAY008A2B3C4D5E6F7A8B9D /* HundredPlayTallyView.swift */,
-				PLAY005A2B3C4D5E6F7A8B9D /* MiniCardView.swift */,
-				PLAY006A2B3C4D5E6F7A8B9D /* MiniHandView.swift */,
-				PLAY007A2B3C4D5E6F7A8B9D /* MultiHandGrid.swift */,
-				PLAY003A2B3C4D5E6F7A8B9D /* PlayView.swift */,
-				PLAY004A2B3C4D5E6F7A8B9D /* PlayStartView.swift */,
+				A40BDFE03F7266AC44D0A7BF /* TourOverlayView.swift */,
+				6C6BFC5F8422806903EC72C4 /* TourTargetModifier.swift */,
+				E1905AE0390569A95AE29470 /* TourTooltipView.swift */,
 			);
-			path = Play;
+			path = Tour;
 			sourceTree = "<group>";
 		};
 		B098BF53AA85868FDD597FA1 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				GFAM001A2B3C4D5E6F7A8B9D /* GameFamily.swift */,
 				3A372C2B67ECD0E057210D57 /* Card.swift */,
+				D14019151E66CF2BF3B17ED5 /* GameFamily.swift */,
 				03FD663D9F07AEE4E1829685 /* Hand.swift */,
 				6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */,
 				07C10505BC1A5BB00B74307D /* MasteryScore.swift */,
 				7B2A19CFB34BC1890BBAFD4C /* PayTable.swift */,
 				EEC6E4EE5E71F8D44366E1EF /* PayTableData.swift */,
-				PLAY001A2B3C4D5E6F7A8B9D /* PlayModels.swift */,
-				0BB821BBCFF2446B84C60D16 /* Tour.swift */,
-				0C5CB925C30C433EA95C4BF9 /* TourContent.swift */,
+				B2AA77874E6B4185196D7BBC /* PlayModels.swift */,
+				905E81F11D7B495798FC7FC2 /* Tour.swift */,
+				FAE00888343D5020721ED5FB /* TourContent.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		BE08DE53DA382200DFFDB51E /* Play */ = {
+			isa = PBXGroup;
+			children = (
+				AEA82F5544A546A1CABF096A /* HundredPlayTallyView.swift */,
+				734A74A6F165B997A891B862 /* MiniCardView.swift */,
+				17DB525FA34D6A73A05422D0 /* MiniHandView.swift */,
+				5D4A7A0F8DA5B0669F61B8D4 /* MultiHandGrid.swift */,
+				EE2101886A4326D1DE68AF6E /* PlayStartView.swift */,
+				2C872879EF7A70D6EA2251AC /* PlayView.swift */,
+			);
+			path = Play;
 			sourceTree = "<group>";
 		};
 		C251C0B772EF56E0FD46E043 /* App */ = {
@@ -327,10 +341,10 @@
 			isa = PBXGroup;
 			children = (
 				F7392AA987E6BD3BAFBABE48 /* strategy_bonus_poker_8_5.json */,
-				8A0A9C948D9D9086824FA72D /* strategy_double_double_bonus_9_6.json.gz */,
-				05DF06C144A899D6CE3CFAA4 /* strategy_jacks_or_better_9_6.json.gz */,
-				TDB001A2B3C4D5E6F7A8B9D /* strategy_triple_double_bonus_9_6.json.gz */,
-				NSUD001A2B3C4D5E6F7A8B9D /* strategy_deuces_wild_nsud.json.gz */,
+				E7E27F5232A98032965AC5E2 /* strategy_deuces_wild_nsud.json.gz */,
+				88C5D0E830CC969E79751853 /* strategy_double_double_bonus_9_6.json.gz */,
+				B188A14203D26FE1B65F0C49 /* strategy_jacks_or_better_9_6.json.gz */,
+				0B78D1117963BDB61DC82046 /* strategy_triple_double_bonus_9_6.json.gz */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -341,12 +355,14 @@
 				EEFE93106067A8CC6C7D44E0 /* AudioService.swift */,
 				D25485E3CB6182634F963032 /* HandEvaluator.swift */,
 				0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */,
+				E560AB52F7E5B747FD13A265 /* LocalStrategyStore.swift */,
+				356502E16A4F89728A7313D6 /* NetworkMonitor.swift */,
+				FAB01B07160050A6DA474D05 /* PaytablePreferences.swift */,
 				EF823CE7C92F56282521A19B /* SpacedRepetitionService.swift */,
-				LSS001A2B3C4D5E6F7A8B9D /* LocalStrategyStore.swift */,
-				PTP001A2B3C4D5E6F7A8B9D /* PaytablePreferences.swift */,
 				2B14813ABEB1C877847870FF /* StrategyService.swift */,
 				8717FB49A524CDA76F3D730A /* SupabaseService.swift */,
-				DD91FAD4A8F94C7BA15AD690 /* TourManager.swift */,
+				B175B2E82D2658E469108B19 /* SyncService.swift */,
+				BF39FAEB04F197691FDE1F60 /* TourManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -365,16 +381,6 @@
 				DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		ECD4983AE0F34EB4AE24C748 /* Tour */ = {
-			isa = PBXGroup;
-			children = (
-				CC871CE4CA3B4865B69CD986 /* TourTooltipView.swift */,
-				707403D45CBB4CEA97A436F5 /* TourTargetModifier.swift */,
-				47F839743EB44C16937B47D6 /* TourOverlayView.swift */,
-			);
-			path = Tour;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -449,10 +455,10 @@
 				9B4B7A366425E722369EE9D1 /* next-hand.mp3 in Resources */,
 				BBA7D3A4A818EF4046841A1E /* quiz-complete.mp3 in Resources */,
 				ACFD07FBC574DF302C8702B5 /* strategy_bonus_poker_8_5.json in Resources */,
-				212AADE9C95CA00DE1FF9B59 /* strategy_double_double_bonus_9_6.json.gz in Resources */,
-				7351CB9F3269192F4EF9CC71 /* strategy_jacks_or_better_9_6.json.gz in Resources */,
-				TDB001A2B3C4D5E6F7A8B9C /* strategy_triple_double_bonus_9_6.json.gz in Resources */,
-				NSUD001A2B3C4D5E6F7A8B9C /* strategy_deuces_wild_nsud.json.gz in Resources */,
+				C993B98BD185888EA1D144C2 /* strategy_deuces_wild_nsud.json.gz in Resources */,
+				2F898C6396F16449E756C9DA /* strategy_double_double_bonus_9_6.json.gz in Resources */,
+				5CB8AA7DF512C4549C32397A /* strategy_jacks_or_better_9_6.json.gz in Resources */,
+				BD4AFE9A3D602E1EF2430835 /* strategy_triple_double_bonus_9_6.json.gz in Resources */,
 				0FDBAFBF64162DEDFD208EAD /* submit.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -465,7 +471,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EE6CCDF2456A20BA420ACF8D /* AnalyzerViewModel.swift in Sources */,
-				THEME001A2B3C4D5E6F7A8B9C /* AppTheme.swift in Sources */,
+				BAF65527A121DC7BC473AB21 /* AppTheme.swift in Sources */,
 				99CB3FBBAF8F43A1B2761404 /* AudioService.swift in Sources */,
 				536F632E405D093299FE5B59 /* AuthView.swift in Sources */,
 				07D564051B4CBB23DFDF41B2 /* AuthViewModel.swift in Sources */,
@@ -473,49 +479,51 @@
 				8A9A3CE99246EFF4C4EF47AF /* CardGlowEffect.swift in Sources */,
 				D7F21D806CD72B4FBBE789EE /* CardView.swift in Sources */,
 				CA02749FA8C7CEE2A99CAA8A /* CompactPayTableView.swift in Sources */,
-				GFAM001A2B3C4D5E6F7A8B9C /* GameFamily.swift in Sources */,
-				GSEL001A2B3C4D5E6F7A8B9C /* GameSelectorView.swift in Sources */,
-				POPB001A2B3C4D5E6F7A8B9C /* PopularGameButton.swift in Sources */,
 				4B04B4CD4470F1A26E6022E8 /* DealtWinnerBanner.swift in Sources */,
 				38D2B5DC081395DAE5D3B0FB /* ForgotPasswordView.swift in Sources */,
+				11989A1E33EA6BD7ECD145F9 /* GameFamily.swift in Sources */,
+				D4BA6C371A5385669ACCFE94 /* GameSelectorView.swift in Sources */,
 				7F91767A20F844B17A466A75 /* Hand.swift in Sources */,
 				BE125462B9396E73249C962A /* HandAnalyzerView.swift in Sources */,
 				5438E7F43028F95D65AACEED /* HandCategory.swift in Sources */,
 				D0C135BCFDBFCCEA4C74A6DA /* HandEvaluator.swift in Sources */,
 				2723E123A48A2FFB91BA72C0 /* HapticService.swift in Sources */,
 				B51629FBBA7A29969D895CBB /* HomeView.swift in Sources */,
+				2BEA45B24958B72F324FEDF6 /* HundredPlayTallyView.swift in Sources */,
+				2BF603E576C1A1F5E79C963C /* LocalStrategyStore.swift in Sources */,
 				F302A693B13FFCB4A467F149 /* MasteryDashboardView.swift in Sources */,
 				BA434B4D8AC3FBDEB0229B26 /* MasteryScore.swift in Sources */,
 				7DD564D08C78F917E261534E /* MasteryViewModel.swift in Sources */,
-				PLAY005A2B3C4D5E6F7A8B9C /* MiniCardView.swift in Sources */,
-				PLAY006A2B3C4D5E6F7A8B9C /* MiniHandView.swift in Sources */,
-				PLAY007A2B3C4D5E6F7A8B9C /* MultiHandGrid.swift in Sources */,
+				79C00D3104A899CC50934E18 /* MiniCardView.swift in Sources */,
+				7EBBC36E240C376904F9CAD9 /* MiniHandView.swift in Sources */,
+				A99EFDED735E76112FCE9ADC /* MultiHandGrid.swift in Sources */,
+				CD1029C1738234BD6B2BC114 /* NetworkMonitor.swift in Sources */,
+				0D124A6548091FBE3020534B /* OfflineDataView.swift in Sources */,
 				0FE869B3D3FA170517561BD1 /* PayTable.swift in Sources */,
 				3B02824BED9C868617E34C34 /* PayTableData.swift in Sources */,
-				PLAY001A2B3C4D5E6F7A8B9C /* PlayModels.swift in Sources */,
-				PLAY002A2B3C4D5E6F7A8B9C /* PlayViewModel.swift in Sources */,
-				PLAY003A2B3C4D5E6F7A8B9C /* PlayView.swift in Sources */,
-				PLAY004A2B3C4D5E6F7A8B9C /* PlayStartView.swift in Sources */,
-				PLAY008A2B3C4D5E6F7A8B9C /* HundredPlayTallyView.swift in Sources */,
+				8B377030300F98231AE78C26 /* PaytablePreferences.swift in Sources */,
+				FFD1BB1C035EDBE1AAF557B8 /* PlayModels.swift in Sources */,
+				B4EB03298026637E9FE9C9D5 /* PlayStartView.swift in Sources */,
+				72D9066727B69AD0C98ED387 /* PlayView.swift in Sources */,
+				931ED751472C3783CD0E325B /* PlayViewModel.swift in Sources */,
+				7A39E6ADD94F463904666AB6 /* PopularGameButton.swift in Sources */,
 				5D20F966F1DDA1E06819F3A2 /* QuizPlayView.swift in Sources */,
 				EB31AC2671CF70D41545F0FC /* QuizResultsView.swift in Sources */,
 				A6AFCD3472AC36B416F46E5E /* QuizViewModel.swift in Sources */,
 				880BF76C2AAB5FA877AEFF8A /* ResetPasswordView.swift in Sources */,
 				0F16C32059109F21E351814D /* SettingsView.swift in Sources */,
-				OFFLN002A2B3C4D5E6F7A8B9C /* OfflineDataView.swift in Sources */,
 				D377E7F8A6EA6B272F609CC3 /* SpacedRepetitionService.swift in Sources */,
-				LSS001A2B3C4D5E6F7A8B9C /* LocalStrategyStore.swift in Sources */,
-				PTP001A2B3C4D5E6F7A8B9C /* PaytablePreferences.swift in Sources */,
 				9AD6A559445353450025DD68 /* StrategyService.swift in Sources */,
 				D7B782D6C22D584CF543D895 /* SupabaseService.swift in Sources */,
+				783B823EA2A0DC67835FA6CE /* SyncService.swift in Sources */,
+				32B4C6420492BE9393FF05AD /* Tour.swift in Sources */,
+				7422A3C4C0203BF0538EB6D4 /* TourContent.swift in Sources */,
+				587F6DA42B2DFF1E02E1F056 /* TourManager.swift in Sources */,
+				C573405812E2ED626257699C /* TourOverlayView.swift in Sources */,
+				CBA80920BC8A52F947A63487 /* TourSettingsView.swift in Sources */,
+				F1F76948D675FB45EF74BD11 /* TourTargetModifier.swift in Sources */,
+				01FF69BDF3EBD9C0AD445DD9 /* TourTooltipView.swift in Sources */,
 				7F19D2CB801A784CD2487F3A /* VideoPokerTrainerApp.swift in Sources */,
-				2B19AA5ACB41405085634134 /* Tour.swift in Sources */,
-				299E8A3C233D4052A24FDD6E /* TourContent.swift in Sources */,
-				2F5AAC791CF446B188ED310F /* TourManager.swift in Sources */,
-				1F5FB1D5BB86468195868530 /* TourTooltipView.swift in Sources */,
-				9538F3E50B7C4E218C36C7C4 /* TourTargetModifier.swift in Sources */,
-				93E5BFC872DC4ECC8B3963CA /* TourOverlayView.swift in Sources */,
-				0FB2B70321E24D9590F1D0D8 /* TourSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -591,7 +599,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 7NDW5TK87N;
 				INFOPLIST_FILE = VideoPokerTrainer/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -668,7 +676,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 7NDW5TK87N;
 				INFOPLIST_FILE = VideoPokerTrainer/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (

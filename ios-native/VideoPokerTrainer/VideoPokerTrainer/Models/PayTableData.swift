@@ -9,13 +9,92 @@ struct PayTableRow: Identifiable {
 extension PayTable {
     var rows: [PayTableRow] {
         switch id {
-        case "jacks-or-better-9-6":
+        case "jacks-or-better-9-6", "jacks-or-better-9-6-90", "jacks-or-better-9-6-940":
             return [
                 PayTableRow(handName: "Royal Flush", payouts: [250, 500, 750, 1000, 4000]),
                 PayTableRow(handName: "Straight Flush", payouts: [50, 100, 150, 200, 250]),
                 PayTableRow(handName: "Four of a Kind", payouts: [25, 50, 75, 100, 125]),
                 PayTableRow(handName: "Full House", payouts: [9, 18, 27, 36, 45]),
                 PayTableRow(handName: "Flush", payouts: [6, 12, 18, 24, 30]),
+                PayTableRow(handName: "Straight", payouts: [4, 8, 12, 16, 20]),
+                PayTableRow(handName: "Three of a Kind", payouts: [3, 6, 9, 12, 15]),
+                PayTableRow(handName: "Two Pair", payouts: [2, 4, 6, 8, 10]),
+                PayTableRow(handName: "Jacks or Better", payouts: [1, 2, 3, 4, 5])
+            ]
+
+        case "jacks-or-better-9-5":
+            return [
+                PayTableRow(handName: "Royal Flush", payouts: [250, 500, 750, 1000, 4000]),
+                PayTableRow(handName: "Straight Flush", payouts: [50, 100, 150, 200, 250]),
+                PayTableRow(handName: "Four of a Kind", payouts: [25, 50, 75, 100, 125]),
+                PayTableRow(handName: "Full House", payouts: [9, 18, 27, 36, 45]),
+                PayTableRow(handName: "Flush", payouts: [5, 10, 15, 20, 25]),
+                PayTableRow(handName: "Straight", payouts: [4, 8, 12, 16, 20]),
+                PayTableRow(handName: "Three of a Kind", payouts: [3, 6, 9, 12, 15]),
+                PayTableRow(handName: "Two Pair", payouts: [2, 4, 6, 8, 10]),
+                PayTableRow(handName: "Jacks or Better", payouts: [1, 2, 3, 4, 5])
+            ]
+
+        case "jacks-or-better-8-6":
+            return [
+                PayTableRow(handName: "Royal Flush", payouts: [250, 500, 750, 1000, 4000]),
+                PayTableRow(handName: "Straight Flush", payouts: [50, 100, 150, 200, 250]),
+                PayTableRow(handName: "Four of a Kind", payouts: [25, 50, 75, 100, 125]),
+                PayTableRow(handName: "Full House", payouts: [8, 16, 24, 32, 40]),
+                PayTableRow(handName: "Flush", payouts: [6, 12, 18, 24, 30]),
+                PayTableRow(handName: "Straight", payouts: [4, 8, 12, 16, 20]),
+                PayTableRow(handName: "Three of a Kind", payouts: [3, 6, 9, 12, 15]),
+                PayTableRow(handName: "Two Pair", payouts: [2, 4, 6, 8, 10]),
+                PayTableRow(handName: "Jacks or Better", payouts: [1, 2, 3, 4, 5])
+            ]
+
+        case "jacks-or-better-8-5":
+            return [
+                PayTableRow(handName: "Royal Flush", payouts: [250, 500, 750, 1000, 4000]),
+                PayTableRow(handName: "Straight Flush", payouts: [50, 100, 150, 200, 250]),
+                PayTableRow(handName: "Four of a Kind", payouts: [25, 50, 75, 100, 125]),
+                PayTableRow(handName: "Full House", payouts: [8, 16, 24, 32, 40]),
+                PayTableRow(handName: "Flush", payouts: [5, 10, 15, 20, 25]),
+                PayTableRow(handName: "Straight", payouts: [4, 8, 12, 16, 20]),
+                PayTableRow(handName: "Three of a Kind", payouts: [3, 6, 9, 12, 15]),
+                PayTableRow(handName: "Two Pair", payouts: [2, 4, 6, 8, 10]),
+                PayTableRow(handName: "Jacks or Better", payouts: [1, 2, 3, 4, 5])
+            ]
+
+        case "jacks-or-better-7-5":
+            return [
+                PayTableRow(handName: "Royal Flush", payouts: [250, 500, 750, 1000, 4000]),
+                PayTableRow(handName: "Straight Flush", payouts: [50, 100, 150, 200, 250]),
+                PayTableRow(handName: "Four of a Kind", payouts: [25, 50, 75, 100, 125]),
+                PayTableRow(handName: "Full House", payouts: [7, 14, 21, 28, 35]),
+                PayTableRow(handName: "Flush", payouts: [5, 10, 15, 20, 25]),
+                PayTableRow(handName: "Straight", payouts: [4, 8, 12, 16, 20]),
+                PayTableRow(handName: "Three of a Kind", payouts: [3, 6, 9, 12, 15]),
+                PayTableRow(handName: "Two Pair", payouts: [2, 4, 6, 8, 10]),
+                PayTableRow(handName: "Jacks or Better", payouts: [1, 2, 3, 4, 5])
+            ]
+
+        case "jacks-or-better-6-5":
+            return [
+                PayTableRow(handName: "Royal Flush", payouts: [250, 500, 750, 1000, 4000]),
+                PayTableRow(handName: "Straight Flush", payouts: [50, 100, 150, 200, 250]),
+                PayTableRow(handName: "Four of a Kind", payouts: [25, 50, 75, 100, 125]),
+                PayTableRow(handName: "Full House", payouts: [6, 12, 18, 24, 30]),
+                PayTableRow(handName: "Flush", payouts: [5, 10, 15, 20, 25]),
+                PayTableRow(handName: "Straight", payouts: [4, 8, 12, 16, 20]),
+                PayTableRow(handName: "Three of a Kind", payouts: [3, 6, 9, 12, 15]),
+                PayTableRow(handName: "Two Pair", payouts: [2, 4, 6, 8, 10]),
+                PayTableRow(handName: "Jacks or Better", payouts: [1, 2, 3, 4, 5])
+            ]
+
+        case "jacks-or-better-8-5-35":
+            // 8/5/35: FH=8, Flush=5, Straight=4, 4K=35
+            return [
+                PayTableRow(handName: "Royal Flush", payouts: [250, 500, 750, 1000, 4000]),
+                PayTableRow(handName: "Straight Flush", payouts: [50, 100, 150, 200, 250]),
+                PayTableRow(handName: "Four of a Kind", payouts: [35, 70, 105, 140, 175]),
+                PayTableRow(handName: "Full House", payouts: [8, 16, 24, 32, 40]),
+                PayTableRow(handName: "Flush", payouts: [5, 10, 15, 20, 25]),
                 PayTableRow(handName: "Straight", payouts: [4, 8, 12, 16, 20]),
                 PayTableRow(handName: "Three of a Kind", payouts: [3, 6, 9, 12, 15]),
                 PayTableRow(handName: "Two Pair", payouts: [2, 4, 6, 8, 10]),
@@ -94,6 +173,65 @@ extension PayTable {
                 PayTableRow(handName: "Straight", payouts: [4, 8, 12, 16, 20]),
                 PayTableRow(handName: "Three of a Kind", payouts: [3, 6, 9, 12, 15]),
                 PayTableRow(handName: "Two Pair", payouts: [2, 4, 6, 8, 10]),
+                PayTableRow(handName: "Jacks or Better", payouts: [1, 2, 3, 4, 5])
+            ]
+
+        case "bonus-poker-7-5":
+            return [
+                PayTableRow(handName: "Royal Flush", payouts: [250, 500, 750, 1000, 4000]),
+                PayTableRow(handName: "Straight Flush", payouts: [50, 100, 150, 200, 250]),
+                PayTableRow(handName: "Four Aces", payouts: [80, 160, 240, 320, 400]),
+                PayTableRow(handName: "Four 2-4", payouts: [40, 80, 120, 160, 200]),
+                PayTableRow(handName: "Four 5-K", payouts: [25, 50, 75, 100, 125]),
+                PayTableRow(handName: "Full House", payouts: [7, 14, 21, 28, 35]),
+                PayTableRow(handName: "Flush", payouts: [5, 10, 15, 20, 25]),
+                PayTableRow(handName: "Straight", payouts: [4, 8, 12, 16, 20]),
+                PayTableRow(handName: "Three of a Kind", payouts: [3, 6, 9, 12, 15]),
+                PayTableRow(handName: "Two Pair", payouts: [2, 4, 6, 8, 10]),
+                PayTableRow(handName: "Jacks or Better", payouts: [1, 2, 3, 4, 5])
+            ]
+
+        case "bonus-poker-6-5":
+            return [
+                PayTableRow(handName: "Royal Flush", payouts: [250, 500, 750, 1000, 4000]),
+                PayTableRow(handName: "Straight Flush", payouts: [50, 100, 150, 200, 250]),
+                PayTableRow(handName: "Four Aces", payouts: [80, 160, 240, 320, 400]),
+                PayTableRow(handName: "Four 2-4", payouts: [40, 80, 120, 160, 200]),
+                PayTableRow(handName: "Four 5-K", payouts: [25, 50, 75, 100, 125]),
+                PayTableRow(handName: "Full House", payouts: [6, 12, 18, 24, 30]),
+                PayTableRow(handName: "Flush", payouts: [5, 10, 15, 20, 25]),
+                PayTableRow(handName: "Straight", payouts: [4, 8, 12, 16, 20]),
+                PayTableRow(handName: "Three of a Kind", payouts: [3, 6, 9, 12, 15]),
+                PayTableRow(handName: "Two Pair", payouts: [2, 4, 6, 8, 10]),
+                PayTableRow(handName: "Jacks or Better", payouts: [1, 2, 3, 4, 5])
+            ]
+
+        case "bonus-poker-7-5-1200":
+            // 7/5 with RF paying 1200 for 5 coins
+            return [
+                PayTableRow(handName: "Royal Flush", payouts: [250, 500, 750, 1000, 6000]),
+                PayTableRow(handName: "Straight Flush", payouts: [50, 100, 150, 200, 250]),
+                PayTableRow(handName: "Four Aces", payouts: [80, 160, 240, 320, 400]),
+                PayTableRow(handName: "Four 2-4", payouts: [40, 80, 120, 160, 200]),
+                PayTableRow(handName: "Four 5-K", payouts: [25, 50, 75, 100, 125]),
+                PayTableRow(handName: "Full House", payouts: [7, 14, 21, 28, 35]),
+                PayTableRow(handName: "Flush", payouts: [5, 10, 15, 20, 25]),
+                PayTableRow(handName: "Straight", payouts: [4, 8, 12, 16, 20]),
+                PayTableRow(handName: "Three of a Kind", payouts: [3, 6, 9, 12, 15]),
+                PayTableRow(handName: "Two Pair", payouts: [2, 4, 6, 8, 10]),
+                PayTableRow(handName: "Jacks or Better", payouts: [1, 2, 3, 4, 5])
+            ]
+
+        case "bonus-poker-deluxe-9-6":
+            return [
+                PayTableRow(handName: "Royal Flush", payouts: [250, 500, 750, 1000, 4000]),
+                PayTableRow(handName: "Straight Flush", payouts: [50, 100, 150, 200, 250]),
+                PayTableRow(handName: "Four of a Kind", payouts: [80, 160, 240, 320, 400]),
+                PayTableRow(handName: "Full House", payouts: [9, 18, 27, 36, 45]),
+                PayTableRow(handName: "Flush", payouts: [6, 12, 18, 24, 30]),
+                PayTableRow(handName: "Straight", payouts: [4, 8, 12, 16, 20]),
+                PayTableRow(handName: "Three of a Kind", payouts: [3, 6, 9, 12, 15]),
+                PayTableRow(handName: "Two Pair", payouts: [1, 2, 3, 4, 5]),
                 PayTableRow(handName: "Jacks or Better", payouts: [1, 2, 3, 4, 5])
             ]
 
