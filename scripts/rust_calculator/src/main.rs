@@ -3049,10 +3049,245 @@ struct Manifest {
 }
 
 // ============================================================================
+// BINARY FORMAT (.vpstrat) - Memory-mapped strategy files
+// ============================================================================
+//
+// File format:
+//   Header (64 bytes):
+//     - Magic: "VPST" (4 bytes)
+//     - Version: u16 LE (2 bytes) - format version, currently 1
+//     - Flags: u16 LE (2 bytes) - bit 0: has_joker
+//     - Entry count: u32 LE (4 bytes)
+//     - Key length: u8 (1 byte) - 10 for standard, 12 for joker
+//     - Reserved: 51 bytes (zero-filled)
+//   Index section (entry_count * key_length bytes):
+//     - Canonical keys in sorted order (ASCII, e.g., "2a3b4c5d6a")
+//   Data section (entry_count * 5 bytes):
+//     - hold_mask: u8 (1 byte) - bitmask of cards to hold
+//     - ev: f32 LE (4 bytes) - expected value
+//
+// Lookup: binary search on index section, then direct access to data section
+
+const VPSTRAT_MAGIC: &[u8; 4] = b"VPST";
+const VPSTRAT_VERSION: u16 = 1;
+const VPSTRAT_HEADER_SIZE: usize = 64;
+const VPSTRAT_DATA_ENTRY_SIZE: usize = 5;
+
+fn generate_binary_strategy(
+    strategies: &HashMap<String, StrategyEntry>,
+    has_joker: bool,
+) -> Vec<u8> {
+    let key_length: u8 = if has_joker { 12 } else { 10 };
+    let entry_count = strategies.len() as u32;
+
+    // Sort canonical keys
+    let mut sorted_keys: Vec<&String> = strategies.keys().collect();
+    sorted_keys.sort();
+
+    // Calculate sizes
+    let index_size = entry_count as usize * key_length as usize;
+    let data_size = entry_count as usize * VPSTRAT_DATA_ENTRY_SIZE;
+    let total_size = VPSTRAT_HEADER_SIZE + index_size + data_size;
+
+    let mut buffer = vec![0u8; total_size];
+
+    // Write header
+    buffer[0..4].copy_from_slice(VPSTRAT_MAGIC);
+    buffer[4..6].copy_from_slice(&VPSTRAT_VERSION.to_le_bytes());
+    let flags: u16 = if has_joker { 1 } else { 0 };
+    buffer[6..8].copy_from_slice(&flags.to_le_bytes());
+    buffer[8..12].copy_from_slice(&entry_count.to_le_bytes());
+    buffer[12] = key_length;
+    // bytes 13-63 are reserved (already zero)
+
+    // Write index section (sorted canonical keys)
+    let mut index_offset = VPSTRAT_HEADER_SIZE;
+    for key in &sorted_keys {
+        let key_bytes = key.as_bytes();
+        let len = std::cmp::min(key_bytes.len(), key_length as usize);
+        buffer[index_offset..index_offset + len].copy_from_slice(&key_bytes[..len]);
+        // Pad with zeros if key is shorter than key_length
+        index_offset += key_length as usize;
+    }
+
+    // Write data section
+    let data_start = VPSTRAT_HEADER_SIZE + index_size;
+    for (i, key) in sorted_keys.iter().enumerate() {
+        let entry = &strategies[*key];
+        let data_offset = data_start + i * VPSTRAT_DATA_ENTRY_SIZE;
+
+        buffer[data_offset] = entry.hold;
+        buffer[data_offset + 1..data_offset + 5].copy_from_slice(&(entry.ev as f32).to_le_bytes());
+    }
+
+    buffer
+}
+
+fn save_binary_strategy(binary: &[u8], paytable_id: &str, output_dir: &str) -> Result<String, String> {
+    let filename = format!("strategy_{}.vpstrat", paytable_id.replace("-", "_"));
+    let path = Path::new(output_dir).join(&filename);
+
+    // Ensure directory exists
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
+    }
+
+    fs::write(&path, binary).map_err(|e| format!("Failed to write binary file: {}", e))?;
+
+    Ok(path.to_string_lossy().to_string())
+}
+
+// ============================================================================
+// BINARY FORMAT V2 (.vpstrat2) - Full holdEvs with variable scale
+// ============================================================================
+//
+// File format:
+//   Header (64 bytes):
+//     - Magic: "VPS2" (4 bytes)
+//     - Version: u16 LE (2 bytes) - format version, currently 2
+//     - Flags: u16 LE (2 bytes) - bit 0: has_joker
+//     - Entry count: u32 LE (4 bytes)
+//     - Key length: u8 (1 byte) - 10 for standard, 12 for joker
+//     - Reserved: 51 bytes (zero-filled)
+//   Index section (entry_count * key_length bytes):
+//     - Canonical keys in sorted order (ASCII, e.g., "2a3b4c5d6a")
+//   Data section (entry_count * 66 bytes):
+//     - best_hold: u8 (1 byte) - bitmask of optimal cards to hold (0-31)
+//     - scale: u8 (1 byte) - EV scale factor:
+//         0 = multiply by 0.0001 (range 0.0000 - 6.5535)
+//         1 = multiply by 0.001  (range 0.000 - 65.535)
+//         2 = multiply by 0.01   (range 0.00 - 655.35)
+//         3 = multiply by 0.1    (range 0.0 - 6553.5)
+//     - evs[32]: u16[32] LE (64 bytes) - EVs for hold masks 0-31
+//
+// Lookup: binary search on index section, then direct access to data section
+// EV retrieval: evs[hold_mask] * scale_factor
+
+const VPS2_MAGIC: &[u8; 4] = b"VPS2";
+const VPS2_VERSION: u16 = 2;
+const VPS2_HEADER_SIZE: usize = 64;
+const VPS2_DATA_ENTRY_SIZE: usize = 66; // 1 (bestHold) + 1 (scale) + 64 (32 * u16)
+
+/// Scale factors for EV encoding
+const VPS2_SCALES: [f64; 4] = [0.0001, 0.001, 0.01, 0.1];
+
+/// Determine the optimal scale for a set of EVs
+fn determine_scale(evs: &[f64; 32]) -> u8 {
+    let max_ev = evs.iter().cloned().fold(0.0f64, f64::max);
+
+    // Find the smallest scale that can represent max_ev
+    // Scale 0: max 6.5535, Scale 1: max 65.535, Scale 2: max 655.35, Scale 3: max 6553.5
+    if max_ev <= 6.5535 {
+        0
+    } else if max_ev <= 65.535 {
+        1
+    } else if max_ev <= 655.35 {
+        2
+    } else {
+        3
+    }
+}
+
+/// Encode an EV value with the given scale
+fn encode_ev(ev: f64, scale: u8) -> u16 {
+    let scale_factor = VPS2_SCALES[scale as usize];
+    let scaled = (ev / scale_factor).round() as u32;
+    scaled.min(65535) as u16
+}
+
+/// Generate VPS2 binary format with full holdEvs
+fn generate_binary_strategy_v2(
+    strategies: &HashMap<String, StrategyEntry>,
+    has_joker: bool,
+) -> Vec<u8> {
+    let key_length: u8 = if has_joker { 12 } else { 10 };
+    let entry_count = strategies.len() as u32;
+
+    // Sort canonical keys
+    let mut sorted_keys: Vec<&String> = strategies.keys().collect();
+    sorted_keys.sort();
+
+    // Calculate sizes
+    let index_size = entry_count as usize * key_length as usize;
+    let data_size = entry_count as usize * VPS2_DATA_ENTRY_SIZE;
+    let total_size = VPS2_HEADER_SIZE + index_size + data_size;
+
+    let mut buffer = vec![0u8; total_size];
+
+    // Write header
+    buffer[0..4].copy_from_slice(VPS2_MAGIC);
+    buffer[4..6].copy_from_slice(&VPS2_VERSION.to_le_bytes());
+    let flags: u16 = if has_joker { 1 } else { 0 };
+    buffer[6..8].copy_from_slice(&flags.to_le_bytes());
+    buffer[8..12].copy_from_slice(&entry_count.to_le_bytes());
+    buffer[12] = key_length;
+    // bytes 13-63 are reserved (already zero)
+
+    // Write index section (sorted canonical keys)
+    let mut index_offset = VPS2_HEADER_SIZE;
+    for key in &sorted_keys {
+        let key_bytes = key.as_bytes();
+        let len = std::cmp::min(key_bytes.len(), key_length as usize);
+        buffer[index_offset..index_offset + len].copy_from_slice(&key_bytes[..len]);
+        index_offset += key_length as usize;
+    }
+
+    // Write data section
+    let data_start = VPS2_HEADER_SIZE + index_size;
+    for (i, key) in sorted_keys.iter().enumerate() {
+        let entry = &strategies[*key];
+        let data_offset = data_start + i * VPS2_DATA_ENTRY_SIZE;
+
+        // Build EV array from hold_evs HashMap
+        let mut evs: [f64; 32] = [0.0; 32];
+        for (mask_str, ev) in &entry.hold_evs {
+            if let Ok(mask) = mask_str.parse::<usize>() {
+                if mask < 32 {
+                    evs[mask] = *ev;
+                }
+            }
+        }
+
+        // Determine scale for this hand
+        let scale = determine_scale(&evs);
+
+        // Write bestHold
+        buffer[data_offset] = entry.hold;
+
+        // Write scale
+        buffer[data_offset + 1] = scale;
+
+        // Write 32 EVs as u16
+        for (j, &ev) in evs.iter().enumerate() {
+            let encoded = encode_ev(ev, scale);
+            let ev_offset = data_offset + 2 + j * 2;
+            buffer[ev_offset..ev_offset + 2].copy_from_slice(&encoded.to_le_bytes());
+        }
+    }
+
+    buffer
+}
+
+fn save_binary_strategy_v2(binary: &[u8], paytable_id: &str, output_dir: &str) -> Result<String, String> {
+    let filename = format!("strategy_{}.vpstrat2", paytable_id.replace("-", "_"));
+    let path = Path::new(output_dir).join(&filename);
+
+    // Ensure directory exists
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
+    }
+
+    fs::write(&path, binary).map_err(|e| format!("Failed to write binary file: {}", e))?;
+
+    Ok(path.to_string_lossy().to_string())
+}
+
+// ============================================================================
 // FILE GENERATION & UPLOAD
 // ============================================================================
 
-fn generate_strategy_file(paytable: &Paytable) -> (Vec<u8>, usize, u32) {
+/// Returns (json_gz_bytes, binary_v1_bytes, binary_v2_bytes, hand_count, version)
+fn generate_strategy_file(paytable: &Paytable) -> (Vec<u8>, Vec<u8>, Vec<u8>, usize, u32) {
     let include_joker = paytable.is_joker_poker();
     let all_hands = generate_canonical_hands(include_joker);
     let total = all_hands.len();
@@ -3062,6 +3297,8 @@ fn generate_strategy_file(paytable: &Paytable) -> (Vec<u8>, usize, u32) {
 
     let processed = Arc::new(AtomicUsize::new(0));
     let total_for_progress = total;
+    let calc_start = Instant::now();
+    let last_print = Arc::new(AtomicUsize::new(0));
 
     // Calculate all strategies in parallel
     let strategies: HashMap<String, StrategyEntry> = all_hands
@@ -3070,9 +3307,17 @@ fn generate_strategy_file(paytable: &Paytable) -> (Vec<u8>, usize, u32) {
             let (best_hold, best_ev, hold_evs) = analyze_hand(hand, paytable);
 
             let count = processed.fetch_add(1, Ordering::Relaxed) + 1;
-            if count % 10000 == 0 {
-                let pct = (count as f64 / total_for_progress as f64 * 100.0) as u32;
-                print!("  Progress: {}/{} ({}%)\r", count, total_for_progress, pct);
+            // Print every 5% progress
+            let pct = (count * 100) / total_for_progress;
+            let last_pct = last_print.load(Ordering::Relaxed);
+            if pct >= last_pct + 5 && last_print.compare_exchange(last_pct, pct, Ordering::SeqCst, Ordering::Relaxed).is_ok() {
+                let elapsed = calc_start.elapsed().as_secs_f64();
+                let rate = count as f64 / elapsed;
+                let remaining_hands = total_for_progress - count;
+                let eta_secs = remaining_hands as f64 / rate;
+                let eta_mins = (eta_secs / 60.0).ceil() as u32;
+                println!("  Progress: {:>3}% ({}/{}) | {:.0} hands/sec | ETA: {}m",
+                    pct, count, total_for_progress, rate, eta_mins);
                 io::stdout().flush().unwrap();
             }
 
@@ -3084,12 +3329,26 @@ fn generate_strategy_file(paytable: &Paytable) -> (Vec<u8>, usize, u32) {
         })
         .collect();
 
-    println!("  Calculated {} hands                    ", strategies.len());
+    let calc_elapsed = calc_start.elapsed().as_secs_f64();
+    println!("  Completed {} hands in {:.1}s ({:.0} hands/sec)",
+        strategies.len(), calc_elapsed, strategies.len() as f64 / calc_elapsed);
 
     // Determine version (start at 1 for new files)
     let version = 1u32;
 
-    // Build the output structure
+    // Generate binary format v1 (bestHold + bestEv only)
+    print!("  Generating binary v1... ");
+    io::stdout().flush().unwrap();
+    let binary_v1 = generate_binary_strategy(&strategies, include_joker);
+    println!("Done! ({:.2} MB)", binary_v1.len() as f64 / 1024.0 / 1024.0);
+
+    // Generate binary format v2 (full holdEvs)
+    print!("  Generating binary v2... ");
+    io::stdout().flush().unwrap();
+    let binary_v2 = generate_binary_strategy_v2(&strategies, include_joker);
+    println!("Done! ({:.2} MB)", binary_v2.len() as f64 / 1024.0 / 1024.0);
+
+    // Build the JSON output structure
     let output = StrategyFile {
         game: paytable.name.clone(),
         paytable_id: paytable.id.clone(),
@@ -3100,22 +3359,26 @@ fn generate_strategy_file(paytable: &Paytable) -> (Vec<u8>, usize, u32) {
     };
 
     // Serialize to JSON
-    println!("Serializing to JSON...");
+    print!("  Serializing... ");
+    io::stdout().flush().unwrap();
     let json_string = serde_json::to_string(&output).expect("Failed to serialize");
     let json_size = json_string.len();
-    println!("  JSON size: {:.2} MB", json_size as f64 / 1024.0 / 1024.0);
 
     // Compress with gzip
-    println!("Compressing with gzip...");
+    print!("Compressing... ");
+    io::stdout().flush().unwrap();
     let mut encoder = GzEncoder::new(Vec::new(), Compression::best());
     encoder.write_all(json_string.as_bytes()).expect("Failed to compress");
     let compressed = encoder.finish().expect("Failed to finish compression");
 
     let compressed_size = compressed.len();
     let ratio = (1.0 - compressed_size as f64 / json_size as f64) * 100.0;
-    println!("  Compressed: {:.2} MB ({:.1}% reduction)", compressed_size as f64 / 1024.0 / 1024.0, ratio);
+    println!("Done! ({:.2} MB -> {:.2} MB, {:.0}% reduction)",
+        json_size as f64 / 1024.0 / 1024.0,
+        compressed_size as f64 / 1024.0 / 1024.0,
+        ratio);
 
-    (compressed, total, version)
+    (compressed, binary_v1, binary_v2, total, version)
 }
 
 fn get_storage_filename(paytable_id: &str) -> String {
@@ -3793,30 +4056,46 @@ fn generate_all_strategies(output_dir: &str) {
 
         let paytable_start = Instant::now();
 
-        // Generate strategy with progress
-        let (compressed, hand_count, _version) = generate_strategy_file_with_progress(
+        // Generate strategy with progress (JSON.gz and binary formats)
+        let (compressed, binary_v1, binary_v2, hand_count, _version) = generate_strategy_file_with_progress(
             &paytable,
             overall_done + 1,
             total_paytables
         );
         let file_size = compressed.len() as u64;
+        let binary_v1_size = binary_v1.len() as u64;
+        let binary_v2_size = binary_v2.len() as u64;
 
-        // Save locally
-        match save_locally(&compressed, paytable_id, output_dir) {
-            Ok(path) => {
+        // Save locally (all formats)
+        let json_result = save_locally(&compressed, paytable_id, output_dir);
+        let binary_v1_result = save_binary_strategy(&binary_v1, paytable_id, output_dir);
+        let binary_v2_result = save_binary_strategy_v2(&binary_v2, paytable_id, output_dir);
+
+        match (&json_result, &binary_v1_result, &binary_v2_result) {
+            (Ok(json_path), Ok(binary_v1_path), Ok(binary_v2_path)) => {
                 let elapsed = paytable_start.elapsed().as_secs_f64();
                 paytable_times.push(elapsed);
                 completed_this_run += 1;
                 total_hands += hand_count;
-                total_bytes += file_size;
+                total_bytes += file_size + binary_v1_size + binary_v2_size;
                 println!("  ✓ Saved: {} ({:.2} MB) in {:.1}s",
-                    path.split('/').last().unwrap_or(&path),
+                    json_path.split('/').last().unwrap_or(json_path),
                     file_size as f64 / 1024.0 / 1024.0,
                     elapsed
                 );
+                println!("  ✓ Binary v1: {} ({:.2} MB)",
+                    binary_v1_path.split('/').last().unwrap_or(binary_v1_path),
+                    binary_v1_size as f64 / 1024.0 / 1024.0
+                );
+                println!("  ✓ Binary v2: {} ({:.2} MB)",
+                    binary_v2_path.split('/').last().unwrap_or(binary_v2_path),
+                    binary_v2_size as f64 / 1024.0 / 1024.0
+                );
             }
-            Err(e) => {
-                println!("  ✗ Failed to save: {}", e);
+            _ => {
+                if let Err(e) = json_result { println!("  ✗ Failed to save JSON: {}", e); }
+                if let Err(e) = binary_v1_result { println!("  ✗ Failed to save binary v1: {}", e); }
+                if let Err(e) = binary_v2_result { println!("  ✗ Failed to save binary v2: {}", e); }
                 failed_paytables.push(paytable_id.to_string());
             }
         }
@@ -3970,7 +4249,299 @@ fn upload_existing_strategies(input_dir: &str) {
     }
 }
 
-fn generate_strategy_file_with_progress(paytable: &Paytable, current_paytable: usize, total_paytables: usize) -> (Vec<u8>, usize, u32) {
+fn convert_json_to_binary(input_dir: &str) {
+    use flate2::read::GzDecoder;
+    use std::io::Read;
+
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║      CONVERT JSON.GZ TO BINARY FORMATS (.vpstrat, .vpstrat2)    ║");
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+    println!();
+    println!("Input directory: {}", input_dir);
+    println!();
+
+    // Find all .json.gz files
+    let paths: Vec<_> = match fs::read_dir(input_dir) {
+        Ok(entries) => entries
+            .filter_map(|e| e.ok())
+            .map(|e| e.path())
+            .filter(|p| p.extension().map(|e| e == "gz").unwrap_or(false))
+            .filter(|p| p.to_string_lossy().contains(".json.gz"))
+            .collect(),
+        Err(e) => {
+            eprintln!("Failed to read directory: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    if paths.is_empty() {
+        println!("No .json.gz files found in {}", input_dir);
+        return;
+    }
+
+    println!("Found {} strategy files to convert\n", paths.len());
+
+    let mut converted = 0;
+    let mut failed = 0;
+
+    for path in &paths {
+        let filename = path.file_name().unwrap_or_default().to_string_lossy();
+        print!("Converting {}... ", filename);
+        io::stdout().flush().unwrap();
+
+        // Read and decompress
+        let gz_data = match fs::read(&path) {
+            Ok(data) => data,
+            Err(e) => {
+                println!("✗ Failed to read: {}", e);
+                failed += 1;
+                continue;
+            }
+        };
+
+        let mut decoder = GzDecoder::new(&gz_data[..]);
+        let mut json_string = String::new();
+        if let Err(e) = decoder.read_to_string(&mut json_string) {
+            println!("✗ Failed to decompress: {}", e);
+            failed += 1;
+            continue;
+        }
+
+        // Parse JSON
+        let strategy_file: StrategyFile = match serde_json::from_str(&json_string) {
+            Ok(sf) => sf,
+            Err(e) => {
+                println!("✗ Failed to parse JSON: {}", e);
+                failed += 1;
+                continue;
+            }
+        };
+
+        // Detect if joker poker based on paytable ID or hand count
+        let has_joker = strategy_file.paytable_id.contains("joker")
+            || strategy_file.hand_count > 210000;
+
+        // Generate binary v1
+        let binary_v1 = generate_binary_strategy(&strategy_file.strategies, has_joker);
+
+        // Generate binary v2 (with full holdEvs)
+        let binary_v2 = generate_binary_strategy_v2(&strategy_file.strategies, has_joker);
+
+        // Save binary v1 file
+        let binary_v1_filename = filename.replace(".json.gz", ".vpstrat");
+        let binary_v1_path = Path::new(input_dir).join(&binary_v1_filename);
+        if let Err(e) = fs::write(&binary_v1_path, &binary_v1) {
+            println!("✗ Failed to save v1: {}", e);
+            failed += 1;
+            continue;
+        }
+
+        // Save binary v2 file
+        let binary_v2_filename = filename.replace(".json.gz", ".vpstrat2");
+        let binary_v2_path = Path::new(input_dir).join(&binary_v2_filename);
+        if let Err(e) = fs::write(&binary_v2_path, &binary_v2) {
+            println!("✗ Failed to save v2: {}", e);
+            failed += 1;
+            continue;
+        }
+
+        println!("✓ v1: {:.2} MB, v2: {:.2} MB",
+            binary_v1.len() as f64 / 1024.0 / 1024.0,
+            binary_v2.len() as f64 / 1024.0 / 1024.0
+        );
+        converted += 1;
+    }
+
+    println!();
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║                      CONVERSION COMPLETE                         ║");
+    println!("╠══════════════════════════════════════════════════════════════════╣");
+    println!("║  Converted: {:<53} ║", converted);
+    println!("║  Failed: {:<56} ║", failed);
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+
+    if failed > 0 {
+        std::process::exit(1);
+    }
+}
+
+fn verify_binary_files(input_dir: &str) {
+    use flate2::read::GzDecoder;
+    use std::io::Read;
+
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║          VERIFY BINARY FORMAT AGAINST JSON.GZ                   ║");
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+    println!();
+    println!("Input directory: {}", input_dir);
+    println!();
+
+    // Find all .vpstrat files
+    let binary_paths: Vec<_> = match fs::read_dir(input_dir) {
+        Ok(entries) => entries
+            .filter_map(|e| e.ok())
+            .map(|e| e.path())
+            .filter(|p| p.extension().map(|e| e == "vpstrat").unwrap_or(false))
+            .collect(),
+        Err(e) => {
+            eprintln!("Failed to read directory: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    if binary_paths.is_empty() {
+        println!("No .vpstrat files found in {}", input_dir);
+        return;
+    }
+
+    println!("Found {} binary files to verify\n", binary_paths.len());
+
+    let mut passed = 0;
+    let mut failed = 0;
+
+    for binary_path in &binary_paths {
+        let filename = binary_path.file_name().unwrap_or_default().to_string_lossy();
+        let json_filename = filename.replace(".vpstrat", ".json.gz");
+        let json_path = Path::new(input_dir).join(&json_filename);
+
+        print!("Verifying {}... ", filename);
+        io::stdout().flush().unwrap();
+
+        // Check if JSON exists
+        if !json_path.exists() {
+            println!("⚠ No matching JSON.gz file");
+            continue;
+        }
+
+        // Load binary file
+        let binary_data = match fs::read(&binary_path) {
+            Ok(data) => data,
+            Err(e) => {
+                println!("✗ Failed to read binary: {}", e);
+                failed += 1;
+                continue;
+            }
+        };
+
+        // Verify binary header
+        if binary_data.len() < VPSTRAT_HEADER_SIZE {
+            println!("✗ Binary file too small");
+            failed += 1;
+            continue;
+        }
+
+        if &binary_data[0..4] != VPSTRAT_MAGIC {
+            println!("✗ Invalid magic number");
+            failed += 1;
+            continue;
+        }
+
+        let entry_count = u32::from_le_bytes([binary_data[8], binary_data[9], binary_data[10], binary_data[11]]) as usize;
+        let key_length = binary_data[12] as usize;
+
+        // Load and parse JSON
+        let gz_data = match fs::read(&json_path) {
+            Ok(data) => data,
+            Err(e) => {
+                println!("✗ Failed to read JSON: {}", e);
+                failed += 1;
+                continue;
+            }
+        };
+
+        let mut decoder = GzDecoder::new(&gz_data[..]);
+        let mut json_string = String::new();
+        if let Err(e) = decoder.read_to_string(&mut json_string) {
+            println!("✗ Failed to decompress: {}", e);
+            failed += 1;
+            continue;
+        }
+
+        let strategy_file: StrategyFile = match serde_json::from_str(&json_string) {
+            Ok(sf) => sf,
+            Err(e) => {
+                println!("✗ Failed to parse JSON: {}", e);
+                failed += 1;
+                continue;
+            }
+        };
+
+        // Verify entry count
+        if entry_count != strategy_file.hand_count {
+            println!("✗ Entry count mismatch: binary={} json={}", entry_count, strategy_file.hand_count);
+            failed += 1;
+            continue;
+        }
+
+        // Verify all entries
+        let index_size = entry_count * key_length;
+        let data_start = VPSTRAT_HEADER_SIZE + index_size;
+
+        let mut mismatches = 0;
+        let mut ev_tolerance_failures = 0;
+        let ev_tolerance: f32 = 0.0001;
+
+        for i in 0..entry_count {
+            // Read key from binary index
+            let key_offset = VPSTRAT_HEADER_SIZE + i * key_length;
+            let key_bytes = &binary_data[key_offset..key_offset + key_length];
+            let key = String::from_utf8_lossy(key_bytes).trim_end_matches('\0').to_string();
+
+            // Read data from binary
+            let data_offset = data_start + i * VPSTRAT_DATA_ENTRY_SIZE;
+            let binary_hold = binary_data[data_offset];
+            let binary_ev = f32::from_le_bytes([
+                binary_data[data_offset + 1],
+                binary_data[data_offset + 2],
+                binary_data[data_offset + 3],
+                binary_data[data_offset + 4],
+            ]);
+
+            // Look up in JSON
+            if let Some(json_entry) = strategy_file.strategies.get(&key) {
+                if binary_hold != json_entry.hold {
+                    if mismatches < 5 {
+                        eprintln!("\n  Hold mismatch for {}: binary={} json={}", key, binary_hold, json_entry.hold);
+                    }
+                    mismatches += 1;
+                } else if (binary_ev as f64 - json_entry.ev).abs() > ev_tolerance as f64 {
+                    if ev_tolerance_failures < 5 {
+                        eprintln!("\n  EV mismatch for {}: binary={:.6} json={:.6}", key, binary_ev, json_entry.ev);
+                    }
+                    ev_tolerance_failures += 1;
+                }
+            } else {
+                if mismatches < 5 {
+                    eprintln!("\n  Key not found in JSON: {}", key);
+                }
+                mismatches += 1;
+            }
+        }
+
+        if mismatches == 0 && ev_tolerance_failures == 0 {
+            println!("✓ {} entries verified", entry_count);
+            passed += 1;
+        } else {
+            println!("✗ {} hold mismatches, {} EV tolerance failures", mismatches, ev_tolerance_failures);
+            failed += 1;
+        }
+    }
+
+    println!();
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║                     VERIFICATION COMPLETE                        ║");
+    println!("╠══════════════════════════════════════════════════════════════════╣");
+    println!("║  Passed: {:<56} ║", passed);
+    println!("║  Failed: {:<56} ║", failed);
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+
+    if failed > 0 {
+        std::process::exit(1);
+    }
+}
+
+/// Returns (json_gz_bytes, binary_v1_bytes, binary_v2_bytes, hand_count, version)
+fn generate_strategy_file_with_progress(paytable: &Paytable, current_paytable: usize, total_paytables: usize) -> (Vec<u8>, Vec<u8>, Vec<u8>, usize, u32) {
     let include_joker = paytable.is_joker_poker();
     let all_hands = generate_canonical_hands(include_joker);
     let total = all_hands.len();
@@ -4016,7 +4587,19 @@ fn generate_strategy_file_with_progress(paytable: &Paytable, current_paytable: u
     // Determine version
     let version = 1u32;
 
-    // Build the output structure
+    // Generate binary format v1 (bestHold + bestEv only)
+    print!("  Generating binary v1... ");
+    io::stdout().flush().unwrap();
+    let binary_v1 = generate_binary_strategy(&strategies, include_joker);
+    println!("({:.2} MB)", binary_v1.len() as f64 / 1024.0 / 1024.0);
+
+    // Generate binary format v2 (full holdEvs)
+    print!("  Generating binary v2... ");
+    io::stdout().flush().unwrap();
+    let binary_v2 = generate_binary_strategy_v2(&strategies, include_joker);
+    println!("({:.2} MB)", binary_v2.len() as f64 / 1024.0 / 1024.0);
+
+    // Build the JSON output structure
     let output = StrategyFile {
         game: paytable.name.clone(),
         paytable_id: paytable.id.clone(),
@@ -4047,7 +4630,7 @@ fn generate_strategy_file_with_progress(paytable: &Paytable, current_paytable: u
         ratio
     );
 
-    (compressed, total, version)
+    (compressed, binary_v1, binary_v2, total, version)
 }
 
 fn main() {
@@ -4108,6 +4691,20 @@ fn main() {
     if args.get(1).map(|s| s.as_str()) == Some("test") {
         let paytable_id = args.get(2).map(|s| s.as_str());
         run_tests(paytable_id);
+        return;
+    }
+
+    // Check for convert-to-binary mode
+    if args.get(1).map(|s| s.as_str()) == Some("convert-to-binary") {
+        let input_dir = args.get(2).map(|s| s.as_str()).unwrap_or("./strategies");
+        convert_json_to_binary(input_dir);
+        return;
+    }
+
+    // Check for verify-binary mode
+    if args.get(1).map(|s| s.as_str()) == Some("verify-binary") {
+        let input_dir = args.get(2).map(|s| s.as_str()).unwrap_or("./strategies");
+        verify_binary_files(input_dir);
         return;
     }
 
@@ -4186,16 +4783,30 @@ fn main() {
 
     let start = Instant::now();
 
-    // Generate the compressed strategy file
-    let (compressed, hand_count, version) = generate_strategy_file(&paytable);
+    // Generate the compressed strategy file (JSON.gz) and binary formats
+    let (compressed, binary_v1, binary_v2, hand_count, version) = generate_strategy_file(&paytable);
     let file_size = compressed.len() as u64;
 
     // Save locally
     println!("\nSaving locally...");
     match save_locally(&compressed, &paytable_id, &output_dir) {
-        Ok(path) => println!("  ✓ Saved to {}", path),
+        Ok(path) => println!("  ✓ JSON.gz: {}", path),
         Err(e) => {
-            eprintln!("  ✗ Failed to save locally: {}", e);
+            eprintln!("  ✗ Failed to save JSON.gz: {}", e);
+            std::process::exit(1);
+        }
+    }
+    match save_binary_strategy(&binary_v1, &paytable_id, &output_dir) {
+        Ok(path) => println!("  ✓ Binary v1: {} ({:.2} MB)", path, binary_v1.len() as f64 / 1024.0 / 1024.0),
+        Err(e) => {
+            eprintln!("  ✗ Failed to save binary v1: {}", e);
+            std::process::exit(1);
+        }
+    }
+    match save_binary_strategy_v2(&binary_v2, &paytable_id, &output_dir) {
+        Ok(path) => println!("  ✓ Binary v2: {} ({:.2} MB)", path, binary_v2.len() as f64 / 1024.0 / 1024.0),
+        Err(e) => {
+            eprintln!("  ✗ Failed to save binary v2: {}", e);
             std::process::exit(1);
         }
     }

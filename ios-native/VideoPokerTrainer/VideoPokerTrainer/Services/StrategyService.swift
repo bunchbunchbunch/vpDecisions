@@ -65,7 +65,7 @@ actor StrategyService {
     private init() {}
 
     /// Lookup optimal strategy for a hand
-    /// All lookups go through local SQLite - paytables must be downloaded first
+    /// Priority: memory cache → binary V2 (full holdEvs) → SQLite → binary V1 (no holdEvs)
     func lookup(hand: Hand, paytableId: String) async throws -> StrategyResult? {
         let key = "\(paytableId):\(hand.canonicalKey)"
 
@@ -74,10 +74,16 @@ actor StrategyService {
             return cached
         }
 
-        // 2. Ensure paytable is loaded (lazy loading from bundle or download if needed)
-        _ = await ensurePaytableLoaded(paytableId: paytableId)
+        // 2. Try binary V2 store first (mmap'd with full holdEvs)
+        if let v2Result = await BinaryStrategyStoreV2.shared.lookup(
+            paytableId: paytableId,
+            handKey: hand.canonicalKey
+        ) {
+            cacheResult(key: key, result: v2Result)
+            return v2Result
+        }
 
-        // 3. Lookup from local SQLite database
+        // 3. Check SQLite (has full holdEvs data if loaded)
         if let localResult = await LocalStrategyStore.shared.lookup(
             paytableId: paytableId,
             handKey: hand.canonicalKey
@@ -86,7 +92,35 @@ actor StrategyService {
             return localResult
         }
 
-        // No fallback to Supabase - all strategies must be downloaded first
+        // 4. Try binary V1 store (fast but no holdEvs - only bestHold/bestEv)
+        if let binaryResult = await BinaryStrategyStore.shared.lookup(
+            paytableId: paytableId,
+            handKey: hand.canonicalKey
+        ) {
+            let result = binaryResult.toStrategyResult()
+            cacheResult(key: key, result: result)
+
+            // Trigger background load of full data for future lookups
+            Task {
+                await ensurePaytableLoaded(paytableId: paytableId)
+            }
+
+            return result
+        }
+
+        // 5. No binary available - try loading from bundle/download
+        _ = await ensurePaytableLoaded(paytableId: paytableId)
+
+        // 6. Try SQLite again after loading
+        if let localResult = await LocalStrategyStore.shared.lookup(
+            paytableId: paytableId,
+            handKey: hand.canonicalKey
+        ) {
+            cacheResult(key: key, result: localResult)
+            return localResult
+        }
+
+        // No strategy found
         NSLog("⚠️ No local strategy found for %@ / %@", paytableId, hand.canonicalKey)
         return nil
     }
@@ -222,8 +256,16 @@ actor StrategyService {
         return await ensurePaytableLoaded(paytableId: paytableId)
     }
 
-    /// Check if a paytable has offline data available (either loaded, bundled, or downloadable)
+    /// Check if a paytable has offline data available (binary V2, binary V1, SQLite, bundled, or downloadable)
     func hasOfflineData(paytableId: String) async -> Bool {
+        // Check binary V2 store first (has full holdEvs)
+        if await BinaryStrategyStoreV2.shared.hasStrategyFile(paytableId: paytableId) {
+            return true
+        }
+        // Check binary V1 store (fastest, but no holdEvs)
+        if await BinaryStrategyStore.shared.hasStrategyFile(paytableId: paytableId) {
+            return true
+        }
         // Check if already in SQLite
         if await LocalStrategyStore.shared.hasLocalData(paytableId: paytableId) {
             return true
@@ -246,7 +288,17 @@ actor StrategyService {
     /// Call this before starting a game to ensure smooth gameplay
     /// Returns true if ready, false if failed
     func preparePaytable(paytableId: String) async -> Bool {
-        // Check if already loaded
+        // Check if binary V2 data is available (ready immediately with full holdEvs)
+        if await BinaryStrategyStoreV2.shared.hasStrategyFile(paytableId: paytableId) {
+            return true  // Binary V2 strategies are always ready
+        }
+
+        // Check if binary V1 data is available (ready immediately, no holdEvs)
+        if await BinaryStrategyStore.shared.hasStrategyFile(paytableId: paytableId) {
+            return true  // Binary V1 strategies are always ready
+        }
+
+        // Check if already loaded in SQLite
         let existingCount = await LocalStrategyStore.shared.getHandCount(paytableId: paytableId)
         if existingCount > 0 {
             return true  // Already ready
@@ -271,7 +323,19 @@ actor StrategyService {
         // Report checking status
         await MainActor.run { onStatusChange(.checking) }
 
-        // Check if already loaded
+        // Check if binary V2 data is available (ready immediately with full holdEvs)
+        if await BinaryStrategyStoreV2.shared.hasStrategyFile(paytableId: paytableId) {
+            await MainActor.run { onStatusChange(.ready) }
+            return true
+        }
+
+        // Check if binary V1 data is available (ready immediately)
+        if await BinaryStrategyStore.shared.hasStrategyFile(paytableId: paytableId) {
+            await MainActor.run { onStatusChange(.ready) }
+            return true
+        }
+
+        // Check if already loaded in SQLite
         let existingCount = await LocalStrategyStore.shared.getHandCount(paytableId: paytableId)
         if existingCount > 0 {
             await MainActor.run { onStatusChange(.ready) }
@@ -359,8 +423,18 @@ actor StrategyService {
         }
     }
 
-    /// Check if a paytable needs to be loaded (not yet in SQLite but is available)
+    /// Check if a paytable needs to be loaded (not in binary V2/V1 or SQLite but is available)
     func paytableNeedsLoading(paytableId: String) async -> Bool {
+        // Check if binary V2 data is available (no loading needed, has holdEvs)
+        if await BinaryStrategyStoreV2.shared.hasStrategyFile(paytableId: paytableId) {
+            return false
+        }
+
+        // Check if binary V1 data is available (no loading needed)
+        if await BinaryStrategyStore.shared.hasStrategyFile(paytableId: paytableId) {
+            return false
+        }
+
         // If neither bundled nor downloadable, no loading needed/possible
         let isBundled = bundledPaytables[paytableId] != nil
         let isDownloadable = downloadablePaytables[paytableId] != nil

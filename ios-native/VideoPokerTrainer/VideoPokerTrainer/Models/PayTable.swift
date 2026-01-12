@@ -10,9 +10,7 @@ struct PayTable: Identifiable, Hashable {
         if id.hasPrefix("double-double-bonus") { return .doubleDoubleBonus }
         if id.hasPrefix("triple-double-bonus") { return .tripleDoubleBonus }
         if id.hasPrefix("double-bonus") { return .doubleBonus }
-        if id.hasPrefix("bonus-poker-deluxe") { return .bonusPokerDeluxe }
         if id.hasPrefix("bonus-poker") { return .bonusPoker }
-        if id.hasPrefix("tens-or-better") { return .tensOrBetter }
         if id.hasPrefix("jacks-or-better") { return .jacksOrBetter }
         if id.hasPrefix("deuces-wild") { return .deucesWild }
         return .jacksOrBetter // fallback
@@ -44,63 +42,50 @@ struct PayTable: Identifiable, Hashable {
         }
     }
 
-    // Jacks or Better variants
+    // ==========================================================================
+    // MARK: - Paytable Definitions (VPS2 only)
+    // Only games with VPS2 binary strategy files are included
+    // ==========================================================================
+
+    // Jacks or Better variants (5 with VPS2)
     static let jacksOrBetter96 = PayTable(id: "jacks-or-better-9-6", name: "Jacks or Better 9/6")
     static let jacksOrBetter95 = PayTable(id: "jacks-or-better-9-5", name: "Jacks or Better 9/5")
-    static let jacksOrBetter86 = PayTable(id: "jacks-or-better-8-6", name: "Jacks or Better 8/6")
     static let jacksOrBetter85 = PayTable(id: "jacks-or-better-8-5", name: "Jacks or Better 8/5")
-    static let jacksOrBetter8535 = PayTable(id: "jacks-or-better-8-5-35", name: "Jacks or Better 8/5/35")
     static let jacksOrBetter75 = PayTable(id: "jacks-or-better-7-5", name: "Jacks or Better 7/5")
     static let jacksOrBetter65 = PayTable(id: "jacks-or-better-6-5", name: "Jacks or Better 6/5")
-    static let jacksOrBetter9690 = PayTable(id: "jacks-or-better-9-6-90", name: "Jacks or Better 9/6/90 (100%)")
-    static let jacksOrBetter96940 = PayTable(id: "jacks-or-better-9-6-940", name: "Jacks or Better 9/6 RF940")
 
-    // Tens or Better variants
-    static let tensOrBetter65 = PayTable(id: "tens-or-better-6-5", name: "Tens or Better 6/5")
-
-    // Bonus Poker variants
+    // Bonus Poker variants (2 with VPS2)
     static let bonusPoker85 = PayTable(id: "bonus-poker-8-5", name: "Bonus Poker 8/5")
     static let bonusPoker75 = PayTable(id: "bonus-poker-7-5", name: "Bonus Poker 7/5")
-    static let bonusPoker65 = PayTable(id: "bonus-poker-6-5", name: "Bonus Poker 6/5")
-    static let bonusPoker751200 = PayTable(id: "bonus-poker-7-5-1200", name: "Bonus Poker 7/5 RF1200")
 
-    // Bonus Poker Deluxe variants
-    static let bonusPokerDeluxe96 = PayTable(id: "bonus-poker-deluxe-9-6", name: "Bonus Poker Deluxe 9/6")
-
-    // Double Bonus variants
+    // Double Bonus variants (1 with VPS2)
     static let doubleBonus107 = PayTable(id: "double-bonus-10-7", name: "Double Bonus 10/7")
 
-    // Double Double Bonus variants
+    // Double Double Bonus variants (1 with VPS2)
     static let doubleDoubleBonus96 = PayTable(id: "double-double-bonus-9-6", name: "Double Double Bonus 9/6")
 
-    // Triple Double Bonus variants
+    // Triple Double Bonus variants (1 with VPS2)
     static let tripleDoubleBonus96 = PayTable(id: "triple-double-bonus-9-6", name: "Triple Double Bonus 9/6")
 
-    // Deuces Wild variants
+    // Deuces Wild variants (2 with VPS2)
     static let deucesWildFullPay = PayTable(id: "deuces-wild-full-pay", name: "Deuces Wild Full Pay")
     static let deucesWildNSUD = PayTable(id: "deuces-wild-nsud", name: "Deuces Wild NSUD")
 
-    // All paytables with complete strategy data in Supabase
+    // ==========================================================================
+    // MARK: - Paytable Collections
+    // ==========================================================================
+
+    // All paytables with VPS2 strategy files
     static let allPayTables: [PayTable] = [
         // Jacks or Better
         .jacksOrBetter96,
         .jacksOrBetter95,
-        .jacksOrBetter86,
         .jacksOrBetter85,
-        .jacksOrBetter8535,
         .jacksOrBetter75,
         .jacksOrBetter65,
-        .jacksOrBetter9690,
-        .jacksOrBetter96940,
-        // Tens or Better
-        .tensOrBetter65,
         // Bonus Poker
         .bonusPoker85,
         .bonusPoker75,
-        .bonusPoker65,
-        .bonusPoker751200,
-        // Bonus Poker Deluxe
-        .bonusPokerDeluxe96,
         // Double Bonus
         .doubleBonus107,
         // Double Double Bonus
