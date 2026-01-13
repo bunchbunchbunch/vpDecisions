@@ -163,7 +163,7 @@ struct PlayerBalance: Codable {
 struct PlaySettings: Codable {
     var denomination: BetDenomination = .one
     var lineCount: LineCount = .one
-    var showOptimalFeedback: Bool = false
+    var showOptimalFeedback: Bool = true
     var selectedPaytableId: String = PayTable.jacksOrBetter96.id
 
     // Always bet 5 coins per line (max bet)
