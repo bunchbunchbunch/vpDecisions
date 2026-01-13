@@ -101,50 +101,17 @@ class PlayViewModel: ObservableObject {
         // Reset failure state
         preparationFailed = false
 
-        // Check if we need to load
-        let needsLoading = await StrategyService.shared.paytableNeedsLoading(paytableId: paytableId)
-        if !needsLoading {
-            return  // Already loaded or not bundled/downloadable
-        }
-
-        // Check if offline and game not available
-        let isOnline = NetworkMonitor.shared.isOnline
-        if !isOnline {
-            let hasOfflineData = await StrategyService.shared.hasOfflineData(paytableId: paytableId)
-            if !hasOfflineData {
-                preparationMessage = "This game isn't available offline. Please go online or select a different game."
-                preparationFailed = true
-                isPreparingPaytable = true
-                return
-            }
-        }
-
-        // Show loading state with detailed status updates
-        isPreparingPaytable = true
-
-        let success = await StrategyService.shared.preparePaytable(paytableId: paytableId) { [weak self] status in
-            guard let self = self else { return }
-            switch status {
-            case .checking:
-                self.preparationMessage = "Checking \(paytableName)..."
-            case .downloading:
-                self.preparationMessage = "Downloading \(paytableName)..."
-            case .importing:
-                self.preparationMessage = "Importing \(paytableName)..."
-            case .ready:
-                self.preparationMessage = "Ready"
-            case .failed(let message):
-                self.preparationMessage = "Failed: \(message)"
-                self.preparationFailed = true
-            }
-        }
-
-        // Hide loading state (keep showing if failed)
-        if success {
-            isPreparingPaytable = false
-        } else {
+        // Check if strategy data is available
+        let hasData = await StrategyService.shared.hasOfflineData(paytableId: paytableId)
+        if !hasData {
+            preparationMessage = "Strategy not available for \(paytableName)"
             preparationFailed = true
+            isPreparingPaytable = true
+            return
         }
+
+        // Preload the binary file for faster lookups
+        _ = await StrategyService.shared.preparePaytable(paytableId: paytableId)
     }
 
     // MARK: - Game Actions

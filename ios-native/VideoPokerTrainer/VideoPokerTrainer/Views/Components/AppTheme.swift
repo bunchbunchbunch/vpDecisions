@@ -16,6 +16,9 @@ struct AppTheme {
         static let warning = Color(hex: "e67e22")     // Orange
         static let danger = Color(hex: "e74c3c")      // Red
         static let gold = Color(hex: "f1c40f")        // Gold/Yellow
+
+        // Feature colors
+        static let simulation = Color(hex: "00a896")  // Teal (Simulation)
     }
 
     // MARK: - Gradients
@@ -61,6 +64,13 @@ struct AppTheme {
             colors: [Color(hex: "FFD700"), Color(hex: "FFA500")],
             startPoint: .leading,
             endPoint: .trailing
+        )
+
+        // Teal gradient (Simulation)
+        static let teal = LinearGradient(
+            colors: [Color(hex: "00a896"), Color(hex: "028090")],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
         )
     }
 
@@ -110,6 +120,8 @@ extension AppTheme.Gradients {
             return red
         case Color(hex: "27ae60"):
             return green
+        case Color(hex: "00a896"):
+            return teal
         default:
             // Create a gradient from the color
             return LinearGradient(

@@ -65,17 +65,8 @@ class QuizViewModel: ObservableObject {
         loadingProgress = 0
         hands = []
 
-        // First, prepare the paytable (decompress if needed)
-        let needsLoading = await StrategyService.shared.paytableNeedsLoading(paytableId: paytableId)
-        if needsLoading {
-            isPreparingPaytable = true
-            let paytableName = PayTable.allPayTables.first { $0.id == paytableId }?.name ?? "strategy data"
-            preparationMessage = "Loading \(paytableName)..."
-
-            _ = await StrategyService.shared.preparePaytable(paytableId: paytableId)
-
-            isPreparingPaytable = false
-        }
+        // Preload the paytable binary file
+        _ = await StrategyService.shared.preparePaytable(paytableId: paytableId)
 
         var foundHands: [QuizHand] = []
         var attempts = 0

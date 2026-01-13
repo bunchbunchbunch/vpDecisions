@@ -3976,20 +3976,25 @@ fn generate_all_strategies(output_dir: &str) {
     let all_ids = get_all_paytable_ids();
     let total_paytables = all_ids.len();
 
+    // iOS Resources directory for checking bundled files
+    let ios_resources_dir = "../../ios-native/VideoPokerTrainer/VideoPokerTrainer/Resources";
+
     // Ensure output directory exists
     if let Err(e) = fs::create_dir_all(output_dir) {
         eprintln!("Failed to create output directory: {}", e);
         std::process::exit(1);
     }
 
-    // Check which paytables already have output files (for resume)
+    // Check which paytables already have .vpstrat2 files (in output dir or iOS bundle)
     let mut already_done: Vec<&str> = Vec::new();
     let mut to_process: Vec<&str> = Vec::new();
 
     for id in &all_ids {
-        let filename = get_storage_filename(id);
-        let path = Path::new(output_dir).join(&filename);
-        if path.exists() {
+        let v2_filename = format!("strategy_{}.vpstrat2", id.replace("-", "_"));
+        let output_path = Path::new(output_dir).join(&v2_filename);
+        let ios_path = Path::new(ios_resources_dir).join(&v2_filename);
+
+        if output_path.exists() || ios_path.exists() {
             already_done.push(id);
         } else {
             to_process.push(id);
@@ -4056,46 +4061,32 @@ fn generate_all_strategies(output_dir: &str) {
 
         let paytable_start = Instant::now();
 
-        // Generate strategy with progress (JSON.gz and binary formats)
-        let (compressed, binary_v1, binary_v2, hand_count, _version) = generate_strategy_file_with_progress(
+        // Generate strategy with progress (vpstrat2 format only)
+        let (_compressed, _binary_v1, binary_v2, hand_count, _version) = generate_strategy_file_with_progress(
             &paytable,
             overall_done + 1,
             total_paytables
         );
-        let file_size = compressed.len() as u64;
-        let binary_v1_size = binary_v1.len() as u64;
         let binary_v2_size = binary_v2.len() as u64;
 
-        // Save locally (all formats)
-        let json_result = save_locally(&compressed, paytable_id, output_dir);
-        let binary_v1_result = save_binary_strategy(&binary_v1, paytable_id, output_dir);
+        // Save vpstrat2 file only
         let binary_v2_result = save_binary_strategy_v2(&binary_v2, paytable_id, output_dir);
 
-        match (&json_result, &binary_v1_result, &binary_v2_result) {
-            (Ok(json_path), Ok(binary_v1_path), Ok(binary_v2_path)) => {
+        match binary_v2_result {
+            Ok(binary_v2_path) => {
                 let elapsed = paytable_start.elapsed().as_secs_f64();
                 paytable_times.push(elapsed);
                 completed_this_run += 1;
                 total_hands += hand_count;
-                total_bytes += file_size + binary_v1_size + binary_v2_size;
+                total_bytes += binary_v2_size;
                 println!("  ✓ Saved: {} ({:.2} MB) in {:.1}s",
-                    json_path.split('/').last().unwrap_or(json_path),
-                    file_size as f64 / 1024.0 / 1024.0,
+                    binary_v2_path.split('/').last().unwrap_or(&binary_v2_path),
+                    binary_v2_size as f64 / 1024.0 / 1024.0,
                     elapsed
                 );
-                println!("  ✓ Binary v1: {} ({:.2} MB)",
-                    binary_v1_path.split('/').last().unwrap_or(binary_v1_path),
-                    binary_v1_size as f64 / 1024.0 / 1024.0
-                );
-                println!("  ✓ Binary v2: {} ({:.2} MB)",
-                    binary_v2_path.split('/').last().unwrap_or(binary_v2_path),
-                    binary_v2_size as f64 / 1024.0 / 1024.0
-                );
             }
-            _ => {
-                if let Err(e) = json_result { println!("  ✗ Failed to save JSON: {}", e); }
-                if let Err(e) = binary_v1_result { println!("  ✗ Failed to save binary v1: {}", e); }
-                if let Err(e) = binary_v2_result { println!("  ✗ Failed to save binary v2: {}", e); }
+            Err(e) => {
+                println!("  ✗ Failed to save: {}", e);
                 failed_paytables.push(paytable_id.to_string());
             }
         }

@@ -11,7 +11,7 @@ actor SyncService {
 
     func saveAttempt(_ attempt: HandAttempt) async {
         // Always save locally first
-        await LocalStrategyStore.shared.savePendingAttempt(attempt)
+        await PendingAttemptsStore.shared.savePendingAttempt(attempt)
 
         // Try to sync immediately if online
         if await MainActor.run(body: { NetworkMonitor.shared.isOnline }) {
@@ -27,7 +27,7 @@ actor SyncService {
         isSyncing = true
         defer { isSyncing = false }
 
-        let pending = await LocalStrategyStore.shared.getPendingAttempts()
+        let pending = await PendingAttemptsStore.shared.getPendingAttempts()
         guard !pending.isEmpty else { return }
 
         NSLog("🔄 SyncService: Syncing \(pending.count) pending attempts")
@@ -35,7 +35,7 @@ actor SyncService {
         for attempt in pending {
             do {
                 try await SupabaseService.shared.saveHandAttempt(attempt.toHandAttempt())
-                await LocalStrategyStore.shared.markAttemptSynced(id: attempt.id)
+                await PendingAttemptsStore.shared.markAttemptSynced(id: attempt.id)
                 NSLog("✅ SyncService: Synced attempt \(attempt.id)")
             } catch {
                 // Will retry on next sync
@@ -45,12 +45,12 @@ actor SyncService {
         }
 
         // Clean up synced attempts
-        await LocalStrategyStore.shared.clearSyncedAttempts()
+        await PendingAttemptsStore.shared.clearSyncedAttempts()
     }
 
     // MARK: - Pending Count (for UI)
 
     func pendingAttemptCount() async -> Int {
-        await LocalStrategyStore.shared.getPendingAttemptCount()
+        await PendingAttemptsStore.shared.getPendingAttemptCount()
     }
 }

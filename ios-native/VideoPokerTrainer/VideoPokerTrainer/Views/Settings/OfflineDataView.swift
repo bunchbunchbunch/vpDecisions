@@ -1,64 +1,12 @@
 import SwiftUI
 
-/// View model data for a paytable in the list
-struct PaytableListItem: Identifiable {
-    let id: String
-    let name: String
-    let isBundled: Bool  // Included with app
-    var storageMode: PaytableStorageMode
-    var isLoaded: Bool  // Currently in SQLite
-    var isDownloading: Bool = false  // Currently downloading
-}
-
+/// View showing available bundled strategy data
 struct OfflineDataView: View {
-    @State private var paytables: [PaytableListItem] = []
+    @State private var availablePaytables: [String] = []
     @State private var isLoading = true
-    @State private var defaultMode: PaytableStorageMode = PaytablePreferences.shared.defaultStorageMode
-    @State private var showDeleteConfirmation = false
-    @State private var paytableToDelete: PaytableListItem?
-    @State private var totalStorageUsed: Int64 = 0
-    @State private var downloadError: String?
-    @State private var showDownloadError = false
-    @State private var networkMonitor = NetworkMonitor.shared
 
     var body: some View {
         List {
-            // Offline indicator
-            if !networkMonitor.isOnline {
-                Section {
-                    Label("Downloads require internet connection", systemImage: "wifi.slash")
-                        .foregroundColor(.orange)
-                }
-            }
-
-            // Storage overview section
-            Section {
-                HStack {
-                    Label("Storage Used", systemImage: "internaldrive")
-                    Spacer()
-                    Text(formatBytes(totalStorageUsed))
-                        .foregroundColor(.secondary)
-                }
-            } header: {
-                Text("Storage")
-            }
-
-            // Default preference section
-            Section {
-                Picker("Default for New Downloads", selection: $defaultMode) {
-                    Text("Ready (Faster)").tag(PaytableStorageMode.ready)
-                    Text("Compressed (Saves Space)").tag(PaytableStorageMode.compressed)
-                }
-                .onChange(of: defaultMode) { _, newValue in
-                    PaytablePreferences.shared.defaultStorageMode = newValue
-                }
-            } header: {
-                Text("Preferences")
-            } footer: {
-                Text("Ready: Strategy stays uncompressed for instant access. Compressed: Clears on app close, re-decompresses each session.")
-            }
-
-            // Paytables section
             Section {
                 if isLoading {
                     HStack {
@@ -67,224 +15,42 @@ struct OfflineDataView: View {
                         Spacer()
                     }
                 } else {
-                    ForEach($paytables) { $paytable in
-                        PaytableRow(
-                            paytable: $paytable,
-                            isOnline: networkMonitor.isOnline,
-                            onToggleMode: { toggleStorageMode(for: paytable) },
-                            onDelete: { confirmDelete(paytable) },
-                            onDownload: { downloadPaytable(paytable) }
-                        )
+                    ForEach(PayTable.allPayTables, id: \.id) { paytable in
+                        HStack {
+                            Text(paytable.name)
+                                .font(.body)
+
+                            Spacer()
+
+                            if availablePaytables.contains(paytable.id) {
+                                Label("Available", systemImage: "checkmark.circle.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.green)
+                            } else {
+                                Label("Not Available", systemImage: "xmark.circle")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
                     }
                 }
             } header: {
                 Text("Strategy Data")
             } footer: {
-                Text("Toggle between Ready and Compressed modes based on your preference.")
+                Text("Strategy data is bundled with the app for offline access.")
             }
         }
-        .navigationTitle("Offline Data")
+        .navigationTitle("Strategy Data")
         .task {
-            await loadPaytables()
-        }
-        .refreshable {
-            await loadPaytables()
-        }
-        .alert("Remove Download?", isPresented: $showDeleteConfirmation, presenting: paytableToDelete) { paytable in
-            Button("Cancel", role: .cancel) { }
-            Button("Remove", role: .destructive) {
-                Task {
-                    await deletePaytable(paytable)
-                }
-            }
-        } message: { paytable in
-            Text("This will remove all strategy data for \(paytable.name). You'll need to download it again to play this game.")
-        }
-        .alert("Download Failed", isPresented: $showDownloadError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(downloadError ?? "An unknown error occurred while downloading.")
+            await loadAvailablePaytables()
         }
     }
 
-    // MARK: - Data Loading
-
-    private func loadPaytables() async {
+    private func loadAvailablePaytables() async {
         isLoading = true
-
-        // Get bundled paytables from StrategyService
-        let bundledIds = [
-            "jacks-or-better-9-6",
-            "double-double-bonus-9-6",
-            "triple-double-bonus-9-6",
-            "deuces-wild-nsud"
-        ]
-
-        // Get what's currently loaded in SQLite
-        let loadedPaytables = await LocalStrategyStore.shared.getAvailablePaytables()
-        let loadedIds = Set(loadedPaytables.map { $0.paytableId })
-
-        // Get storage size
-        totalStorageUsed = await LocalStrategyStore.shared.getDatabaseSize()
-
-        // Build the list
-        var items: [PaytableListItem] = []
-
-        for paytable in PayTable.allPayTables {
-            let isBundled = bundledIds.contains(paytable.id)
-            let isLoaded = loadedIds.contains(paytable.id)
-            let currentMode = PaytablePreferences.shared.getStorageMode(for: paytable.id)
-
-            items.append(PaytableListItem(
-                id: paytable.id,
-                name: paytable.name,
-                isBundled: isBundled,
-                storageMode: currentMode,
-                isLoaded: isLoaded
-            ))
-        }
-
-        paytables = items
+        availablePaytables = await BinaryStrategyStoreV2.shared.getAvailablePaytables()
         isLoading = false
-    }
-
-    // MARK: - Actions
-
-    private func toggleStorageMode(for paytable: PaytableListItem) {
-        let newMode: PaytableStorageMode = paytable.storageMode == .ready ? .compressed : .ready
-        PaytablePreferences.shared.setStorageMode(newMode, for: paytable.id)
-
-        // Update local state
-        if let index = paytables.firstIndex(where: { $0.id == paytable.id }) {
-            paytables[index].storageMode = newMode
-        }
-    }
-
-    private func confirmDelete(_ paytable: PaytableListItem) {
-        paytableToDelete = paytable
-        showDeleteConfirmation = true
-    }
-
-    private func deletePaytable(_ paytable: PaytableListItem) async {
-        await LocalStrategyStore.shared.deletePaytable(paytableId: paytable.id)
-        PaytablePreferences.shared.removePreference(for: paytable.id)
-        await loadPaytables()  // Refresh the list
-    }
-
-    private func downloadPaytable(_ paytable: PaytableListItem) {
-        // Set downloading state
-        if let index = paytables.firstIndex(where: { $0.id == paytable.id }) {
-            paytables[index].isDownloading = true
-        }
-
-        Task {
-            let success = await StrategyService.shared.downloadPaytable(paytableId: paytable.id)
-
-            await MainActor.run {
-                if success {
-                    // Set the default storage mode preference for this paytable
-                    PaytablePreferences.shared.setStorageMode(
-                        PaytablePreferences.shared.defaultStorageMode,
-                        for: paytable.id
-                    )
-                } else {
-                    downloadError = "Could not download \(paytable.name). Please check your internet connection and try again."
-                    showDownloadError = true
-                }
-            }
-
-            // Refresh the list
-            await loadPaytables()
-        }
-    }
-
-    // MARK: - Helpers
-
-    private func formatBytes(_ bytes: Int64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        return formatter.string(fromByteCount: bytes)
-    }
-}
-
-// MARK: - Paytable Row
-
-struct PaytableRow: View {
-    @Binding var paytable: PaytableListItem
-    let isOnline: Bool
-    let onToggleMode: () -> Void
-    let onDelete: () -> Void
-    let onDownload: () -> Void
-
-    var body: some View {
-        HStack {
-            Text(paytable.name)
-                .font(.body)
-
-            Spacer()
-
-            // Action buttons
-            if paytable.isDownloading {
-                // Show spinner while downloading
-                ProgressView()
-                    .scaleEffect(0.8)
-                    .frame(width: 80)
-            } else if !paytable.isBundled && !paytable.isLoaded {
-                // Download button for non-bundled, not-yet-downloaded paytables
-                Button {
-                    onDownload()
-                } label: {
-                    Label("Download", systemImage: "arrow.down.circle")
-                        .font(.caption)
-                }
-                .buttonStyle(.bordered)
-                .tint(isOnline ? .blue : .gray)
-                .disabled(!isOnline)
-            } else {
-                // Mode toggle for bundled or downloaded paytables
-                Menu {
-                    Button {
-                        if paytable.storageMode != .ready {
-                            onToggleMode()
-                        }
-                    } label: {
-                        Label("Ready", systemImage: paytable.storageMode == .ready ? "checkmark" : "")
-                    }
-
-                    Button {
-                        if paytable.storageMode != .compressed {
-                            onToggleMode()
-                        }
-                    } label: {
-                        Label("Compressed", systemImage: paytable.storageMode == .compressed ? "checkmark" : "")
-                    }
-
-                    // Remove Download option for non-bundled paytables
-                    if !paytable.isBundled {
-                        Divider()
-
-                        Button(role: .destructive) {
-                            onDelete()
-                        } label: {
-                            Label("Remove Download", systemImage: "trash")
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 4) {
-                        Text(paytable.storageMode == .ready ? "Ready" : "Compressed")
-                            .font(.caption)
-                        Image(systemName: "chevron.down")
-                            .font(.caption2)
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(paytable.storageMode == .ready ? Color.green.opacity(0.2) : Color.orange.opacity(0.2))
-                    .foregroundColor(paytable.storageMode == .ready ? .green : .orange)
-                    .cornerRadius(8)
-                }
-            }
-        }
-        .padding(.vertical, 4)
     }
 }
 

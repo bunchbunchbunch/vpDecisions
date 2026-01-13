@@ -19,10 +19,7 @@ targets:
     resources:
       - path: VideoPokerTrainer/Resources
         includes:
-          - "*.vpstrat"
           - "*.vpstrat2"
-          - "*.json.gz"
-          - "*.json"
     settings:
       base:
         INFOPLIST_FILE: VideoPokerTrainer/Info.plist

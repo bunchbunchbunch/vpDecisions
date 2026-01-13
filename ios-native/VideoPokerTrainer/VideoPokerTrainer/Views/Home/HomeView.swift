@@ -10,6 +10,7 @@ enum AppScreen: Hashable {
     case weakSpots
     case playStart
     case playGame
+    case simulationStart
 }
 
 struct HomeView: View {
@@ -22,8 +23,6 @@ struct HomeView: View {
     }
     @State private var weakSpotsMode = false
     @State private var showInDevelopment = false
-    @State private var showClearStrategyAlert = false
-    @State private var strategyCleared = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -85,7 +84,12 @@ struct HomeView: View {
                     PlayStartView(navigationPath: $navigationPath)
                 case .playGame:
                     PlayView(navigationPath: $navigationPath)
+                case .simulationStart:
+                    SimulationStartView(navigationPath: $navigationPath)
                 }
+            }
+            .navigationDestination(for: SimulationViewModel.self) { vm in
+                SimulationContainerView(viewModel: vm, navigationPath: $navigationPath)
             }
         }
     }
@@ -176,6 +180,15 @@ struct HomeView: View {
                 .tourTarget("analyzerButton")
             }
 
+            // Row 3: Simulate
+            ActionButton(
+                title: "Simulate",
+                icon: "chart.line.uptrend.xyaxis",
+                color: AppTheme.Colors.simulation
+            ) {
+                navigationPath.append(AppScreen.simulationStart)
+            }
+
             // In Development Section
             inDevelopmentSection
         }
@@ -234,39 +247,6 @@ struct HomeView: View {
                         }
                     }
 
-                    // Clear Strategy Cache button
-                    Button {
-                        showClearStrategyAlert = true
-                    } label: {
-                        HStack {
-                            Image(systemName: strategyCleared ? "checkmark.circle.fill" : "arrow.counterclockwise")
-                                .foregroundColor(strategyCleared ? .green : .orange)
-                            Text(strategyCleared ? "Strategy Cache Cleared" : "Clear Strategy Cache")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundColor(strategyCleared ? .green : .primary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                    }
-                    .buttonStyle(.plain)
-                    .alert("Clear Strategy Cache?", isPresented: $showClearStrategyAlert) {
-                        Button("Cancel", role: .cancel) { }
-                        Button("Clear", role: .destructive) {
-                            Task {
-                                await LocalStrategyStore.shared.deleteAllData()
-                                strategyCleared = true
-                                // Reset after 3 seconds
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                    strategyCleared = false
-                                }
-                            }
-                        }
-                    } message: {
-                        Text("This will delete all decompressed strategy data. The bundled strategies will be re-decompressed on next use.")
-                    }
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
