@@ -4,166 +4,227 @@ struct AuthView: View {
     @StateObject private var viewModel = AuthViewModel()
     @State private var email = ""
     @State private var password = ""
+    @State private var confirmPassword = ""
+    @State private var fullName = ""
+    @State private var username = ""
     @State private var isSignUp = false
     @State private var showForgotPassword = false
     @State private var networkMonitor = NetworkMonitor.shared
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-            Spacer()
+            ZStack {
+                // Background gradient (dark green to black)
+                AppTheme.Gradients.background
+                    .ignoresSafeArea()
 
-            // Logo/Title
-            VStack(spacing: 8) {
-                Image(systemName: "suit.spade.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(Color(hex: "667eea"))
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Login/Register Segmented Control
+                        HStack(spacing: 0) {
+                            Button {
+                                isSignUp = false
+                            } label: {
+                                Text("Login")
+                                    .font(.system(size: AppTheme.Typography.headline, weight: .semibold))
+                                    .foregroundColor(isSignUp ? AppTheme.Colors.textSecondary : .black)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 50)
+                                    .background(isSignUp ? AppTheme.Colors.buttonSecondary : .white)
+                            }
 
-                Text("VP Academy")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-
-                Text("Master Video Poker Strategy")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-
-            Spacer()
-
-            // Form
-            VStack(spacing: 16) {
-                TextField("Email", text: $email)
-                    .textFieldStyle(.roundedBorder)
-                    .textContentType(.emailAddress)
-                    .autocapitalization(.none)
-                    .keyboardType(.emailAddress)
-
-                SecureField("Password", text: $password)
-                    .textFieldStyle(.roundedBorder)
-                    .textContentType(isSignUp ? .newPassword : .password)
-
-                // Forgot password link (only show when signing in)
-                if !isSignUp {
-                    HStack {
-                        Spacer()
-                        Button {
-                            showForgotPassword = true
-                        } label: {
-                            Text("Forgot Password?")
-                                .font(.caption)
-                                .foregroundColor(Color(hex: "667eea"))
+                            Button {
+                                isSignUp = true
+                            } label: {
+                                Text("Register")
+                                    .font(.system(size: AppTheme.Typography.headline, weight: .semibold))
+                                    .foregroundColor(isSignUp ? .black : AppTheme.Colors.textSecondary)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 50)
+                                    .background(isSignUp ? .white : AppTheme.Colors.buttonSecondary)
+                            }
                         }
-                    }
-                }
+                        .cornerRadius(AppTheme.Layout.cornerRadiusButton)
+                        .padding(.horizontal, AppTheme.Layout.paddingLarge)
+                        .padding(.top, AppTheme.Layout.paddingXLarge)
 
-                // Error message
-                if let error = viewModel.errorMessage {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(error.contains("created") ? .green : .red)
-                        .multilineTextAlignment(.center)
-                }
+                        // Form fields
+                        VStack(alignment: .leading, spacing: 16) {
+                            if isSignUp {
+                                // Full Name
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Full Name*")
+                                        .font(.system(size: AppTheme.Typography.callout))
+                                        .foregroundColor(.white)
 
-                // Offline indicator
-                if !networkMonitor.isOnline {
-                    Label("Sign in requires internet connection", systemImage: "wifi.slash")
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                }
+                                    TextField("Enter full name", text: $fullName)
+                                        .inputField()
+                                        .textContentType(.name)
+                                }
 
-                // Main action button
-                Button {
-                    Task {
-                        if isSignUp {
-                            await viewModel.signUpWithEmail(email: email, password: password)
-                        } else {
-                            await viewModel.signInWithEmail(email: email, password: password)
+                                // Username
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Username*")
+                                        .font(.system(size: AppTheme.Typography.callout))
+                                        .foregroundColor(.white)
+
+                                    TextField("Enter username", text: $username)
+                                        .inputField()
+                                        .textContentType(.username)
+                                        .autocapitalization(.none)
+                                }
+                            }
+
+                            // Email
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Email Address\(isSignUp ? "*" : "")")
+                                    .font(.system(size: AppTheme.Typography.callout))
+                                    .foregroundColor(.white)
+
+                                TextField("", text: $email)
+                                    .inputField()
+                                    .textContentType(.emailAddress)
+                                    .autocapitalization(.none)
+                                    .keyboardType(.emailAddress)
+                            }
+
+                            // Password
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Password\(isSignUp ? "*" : "")")
+                                    .font(.system(size: AppTheme.Typography.callout))
+                                    .foregroundColor(.white)
+
+                                SecureField("**********", text: $password)
+                                    .inputField()
+                                    .textContentType(isSignUp ? .newPassword : .password)
+                            }
+
+                            if isSignUp {
+                                // Confirm Password
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Confirm Password*")
+                                        .font(.system(size: AppTheme.Typography.callout))
+                                        .foregroundColor(.white)
+
+                                    SecureField("**********", text: $confirmPassword)
+                                        .inputField()
+                                        .textContentType(.newPassword)
+                                }
+                            }
+
+                            // Forgot password link (login only)
+                            if !isSignUp {
+                                HStack {
+                                    Spacer()
+                                    Button {
+                                        showForgotPassword = true
+                                    } label: {
+                                        Text("Forgot Password?")
+                                            .font(.system(size: AppTheme.Typography.callout))
+                                            .foregroundColor(AppTheme.Colors.mintGreen)
+                                            .underline()
+                                    }
+                                }
+                            }
+
+                            // Error message
+                            if let error = viewModel.errorMessage {
+                                Text(error)
+                                    .font(.caption)
+                                    .foregroundColor(error.contains("created") ? AppTheme.Colors.success : AppTheme.Colors.danger)
+                                    .multilineTextAlignment(.center)
+                            }
+
+                            // Get Started button
+                            Button {
+                                Task {
+                                    if isSignUp {
+                                        await viewModel.signUpWithEmail(email: email, password: password)
+                                    } else {
+                                        await viewModel.signInWithEmail(email: email, password: password)
+                                    }
+                                }
+                            } label: {
+                                if viewModel.isLoading {
+                                    ProgressView()
+                                        .tint(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: AppTheme.Layout.buttonHeight)
+                                } else {
+                                    Text("Get Started")
+                                        .primaryButton(isEnabled: networkMonitor.isOnline)
+                                }
+                            }
+                            .disabled(viewModel.isLoading || !networkMonitor.isOnline)
+
+                            // Or login with divider
+                            HStack {
+                                Rectangle()
+                                    .fill(AppTheme.Colors.textTertiary)
+                                    .frame(height: 1)
+
+                                Text("Or login with")
+                                    .font(.system(size: AppTheme.Typography.callout))
+                                    .foregroundColor(AppTheme.Colors.textSecondary)
+                                    .padding(.horizontal, 8)
+
+                                Rectangle()
+                                    .fill(AppTheme.Colors.textTertiary)
+                                    .frame(height: 1)
+                            }
+                            .padding(.top, 8)
+
+                            // Social login buttons
+                            HStack(spacing: 16) {
+                                // Google
+                                Button {
+                                    Task {
+                                        await viewModel.signInWithGoogle()
+                                    }
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "g.circle.fill")
+                                        Text("Google")
+                                    }
+                                    .secondaryButton(isEnabled: networkMonitor.isOnline)
+                                }
+                                .disabled(viewModel.isLoading || !networkMonitor.isOnline)
+
+                                // Magic Link
+                                Button {
+                                    Task {
+                                        await viewModel.signInWithMagicLink(email: email)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "link.circle.fill")
+                                        Text("Magic Link")
+                                    }
+                                    .secondaryButton(isEnabled: networkMonitor.isOnline && !email.isEmpty)
+                                }
+                                .disabled(email.isEmpty || viewModel.isLoading || !networkMonitor.isOnline)
+                            }
+
+                            #if DEBUG
+                            // Quick login for dev
+                            Button {
+                                Task {
+                                    await viewModel.quickLogin()
+                                }
+                            } label: {
+                                HStack {
+                                    Image(systemName: "bolt.fill")
+                                    Text("Quick Login (Dev)")
+                                }
+                                .secondaryButton(isEnabled: networkMonitor.isOnline)
+                            }
+                            .disabled(viewModel.isLoading || !networkMonitor.isOnline)
+                            #endif
                         }
-                    }
-                } label: {
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                    } else {
-                        Text(isSignUp ? "Sign Up" : "Sign In")
-                            .frame(maxWidth: .infinity)
+                        .padding(.horizontal, AppTheme.Layout.paddingLarge)
                     }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Color(hex: "667eea"))
-                .disabled(viewModel.isLoading || !networkMonitor.isOnline)
-                .opacity(networkMonitor.isOnline ? 1.0 : 0.5)
-
-                // Toggle sign up/sign in
-                Button {
-                    isSignUp.toggle()
-                    viewModel.errorMessage = nil
-                } label: {
-                    Text(isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
-                        .font(.caption)
-                }
             }
-            .padding(.horizontal)
-
-            Divider()
-                .padding(.horizontal)
-
-            // Magic link sign in
-            Button {
-                Task {
-                    await viewModel.signInWithMagicLink(email: email)
-                }
-            } label: {
-                HStack {
-                    Image(systemName: "link.circle.fill")
-                    Text("Send Magic Link")
-                }
-            }
-            .buttonStyle(.bordered)
-            .tint(Color(hex: "3498db"))
-            .disabled(email.isEmpty || viewModel.isLoading || !networkMonitor.isOnline)
-            .opacity(networkMonitor.isOnline ? 1.0 : 0.5)
-
-            // Google Sign-In
-            Button {
-                Task {
-                    await viewModel.signInWithGoogle()
-                }
-            } label: {
-                HStack {
-                    Image(systemName: "g.circle.fill")
-                    Text("Continue with Google")
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .tint(.primary)
-            .disabled(viewModel.isLoading || !networkMonitor.isOnline)
-            .opacity(networkMonitor.isOnline ? 1.0 : 0.5)
-
-            #if DEBUG
-            Divider()
-                .padding(.horizontal)
-
-            // Quick login for dev
-            Button {
-                Task {
-                    await viewModel.quickLogin()
-                }
-            } label: {
-                HStack {
-                    Image(systemName: "bolt.fill")
-                    Text("Quick Login (Dev)")
-                }
-            }
-            .buttonStyle(.bordered)
-            .disabled(viewModel.isLoading || !networkMonitor.isOnline)
-            .opacity(networkMonitor.isOnline ? 1.0 : 0.5)
-            #endif
-
-                Spacer()
-            }
-            .padding()
             .navigationDestination(isPresented: $showForgotPassword) {
                 ForgotPasswordView(viewModel: viewModel)
             }

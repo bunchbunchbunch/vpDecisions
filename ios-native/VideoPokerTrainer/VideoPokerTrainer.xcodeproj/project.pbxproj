@@ -32,6 +32,7 @@
 		4AECAB933B728B9D7834F5E3 /* strategy_jacks_or_better_9_6.vpstrat2 in Resources */ = {isa = PBXBuildFile; fileRef = 3612725179DC33AC42B6BCA6 /* strategy_jacks_or_better_9_6.vpstrat2 */; };
 		4B04B4CD4470F1A26E6022E8 /* DealtWinnerBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D86334A93764A6BACF9D11 /* DealtWinnerBanner.swift */; };
 		536F632E405D093299FE5B59 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E42FBAD025A5534A6E4850 /* AuthView.swift */; };
+		5AD22DA1A49003FE0C268960 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8BBAFEEACC79287603998E8 /* WelcomeView.swift */; };
 		5438E7F43028F95D65AACEED /* HandCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */; };
 		587F6DA42B2DFF1E02E1F056 /* TourManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF39FAEB04F197691FDE1F60 /* TourManager.swift */; };
 		5CB8AA7DF512C4549C32397A /* strategy_jacks_or_better_9_6.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = B188A14203D26FE1B65F0C49 /* strategy_jacks_or_better_9_6.json.gz */; };
@@ -129,6 +130,7 @@
 		3612725179DC33AC42B6BCA6 /* strategy_jacks_or_better_9_6.vpstrat2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_jacks_or_better_9_6.vpstrat2; sourceTree = "<group>"; };
 		36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "quiz-complete.mp3"; sourceTree = "<group>"; };
 		38E42FBAD025A5534A6E4850 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		A8BBAFEEACC79287603998E8 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		3A15BD3EE17EC8145B9EA7A1 /* strategy_jacks_or_better_8_5_35.vpstrat2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_jacks_or_better_8_5_35.vpstrat2; sourceTree = "<group>"; };
 		3A372C2B67ECD0E057210D57 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		3BD0AFFC99AFF87B9DEFC49E /* CompactPayTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompactPayTableView.swift; sourceTree = "<group>"; };
@@ -232,6 +234,7 @@
 				38E42FBAD025A5534A6E4850 /* AuthView.swift */,
 				79CDFD929FF8F295FDC95267 /* ForgotPasswordView.swift */,
 				B0D795BF36AA1D7A6ED28A80 /* ResetPasswordView.swift */,
+				A8BBAFEEACC79287603998E8 /* WelcomeView.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -571,6 +574,7 @@
 				BAF65527A121DC7BC473AB21 /* AppTheme.swift in Sources */,
 				99CB3FBBAF8F43A1B2761404 /* AudioService.swift in Sources */,
 				536F632E405D093299FE5B59 /* AuthView.swift in Sources */,
+				5AD22DA1A49003FE0C268960 /* WelcomeView.swift in Sources */,
 				07D564051B4CBB23DFDF41B2 /* AuthViewModel.swift in Sources */,
 				89C0141E5A17CFE80A57AFCE /* BinaryStrategyStoreV2.swift in Sources */,
 				611CF46743CA88B71B485BCD /* Card.swift in Sources */,

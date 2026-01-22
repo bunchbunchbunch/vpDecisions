@@ -4,12 +4,21 @@ import SwiftUI
 struct VideoPokerTrainerApp: App {
     @StateObject private var authViewModel = AuthViewModel()
     @State private var showResetPassword = false
+    @AppStorage("hasSeenWelcome") private var hasSeenWelcome = false
+    @State private var showAuth = false
 
     var body: some Scene {
         WindowGroup {
             Group {
                 if authViewModel.isAuthenticated {
                     HomeView(authViewModel: authViewModel)
+                } else if !hasSeenWelcome || !showAuth {
+                    WelcomeView(showAuth: $showAuth)
+                        .onChange(of: showAuth) { _, newValue in
+                            if newValue {
+                                hasSeenWelcome = true
+                            }
+                        }
                 } else {
                     AuthView()
                 }

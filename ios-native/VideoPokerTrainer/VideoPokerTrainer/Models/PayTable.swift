@@ -33,6 +33,7 @@ struct PayTable: Identifiable, Hashable {
         switch suffix {
         case "full-pay": return "Full Pay"
         case "nsud": return "NSUD"
+        case "9-6-940": return "9/6 (94.0%)"
         default:
             // Convert "9-6" to "9/6", "9-6-90" to "9/6/90", etc.
             return suffix.replacingOccurrences(of: "-", with: "/")
@@ -47,8 +48,9 @@ struct PayTable: Identifiable, Hashable {
     // Only games with VPS2 binary strategy files are included
     // ==========================================================================
 
-    // Jacks or Better variants (5 with VPS2)
+    // Jacks or Better variants (6 with VPS2)
     static let jacksOrBetter96 = PayTable(id: "jacks-or-better-9-6", name: "Jacks or Better 9/6")
+    static let jacksOrBetter96_940 = PayTable(id: "jacks-or-better-9-6-940", name: "Jacks or Better 9/6 (94.0%)")
     static let jacksOrBetter95 = PayTable(id: "jacks-or-better-9-5", name: "Jacks or Better 9/5")
     static let jacksOrBetter85 = PayTable(id: "jacks-or-better-8-5", name: "Jacks or Better 8/5")
     static let jacksOrBetter75 = PayTable(id: "jacks-or-better-7-5", name: "Jacks or Better 7/5")
@@ -61,8 +63,9 @@ struct PayTable: Identifiable, Hashable {
     // Double Bonus variants (1 with VPS2)
     static let doubleBonus107 = PayTable(id: "double-bonus-10-7", name: "Double Bonus 10/7")
 
-    // Double Double Bonus variants (1 with VPS2)
+    // Double Double Bonus variants (2 with VPS2)
     static let doubleDoubleBonus96 = PayTable(id: "double-double-bonus-9-6", name: "Double Double Bonus 9/6")
+    static let doubleDoubleBonus85 = PayTable(id: "double-double-bonus-8-5", name: "Double Double Bonus 8/5")
 
     // Triple Double Bonus variants (1 with VPS2)
     static let tripleDoubleBonus96 = PayTable(id: "triple-double-bonus-9-6", name: "Triple Double Bonus 9/6")
@@ -79,6 +82,7 @@ struct PayTable: Identifiable, Hashable {
     static let allPayTables: [PayTable] = [
         // Jacks or Better
         .jacksOrBetter96,
+        .jacksOrBetter96_940,
         .jacksOrBetter95,
         .jacksOrBetter85,
         .jacksOrBetter75,
@@ -90,6 +94,7 @@ struct PayTable: Identifiable, Hashable {
         .doubleBonus107,
         // Double Double Bonus
         .doubleDoubleBonus96,
+        .doubleDoubleBonus85,
         // Triple Double Bonus
         .tripleDoubleBonus96,
         // Deuces Wild

@@ -27,17 +27,27 @@ struct PlayView: View {
             }
         }
         .withTour(.playGame)
-        .navigationTitle("Play")
+        .navigationTitle("Play Mode")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button("Back") {
+                Button {
                     Task {
                         await viewModel.endSession()
                     }
                     dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
                 }
+            }
+            ToolbarItem(placement: .principal) {
+                Text("Play Mode")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.white)
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
@@ -45,12 +55,14 @@ struct PlayView: View {
                         showStats = true
                     } label: {
                         Image(systemName: "chart.bar.fill")
+                            .foregroundColor(.white)
                     }
 
                     Button {
                         showSettings = true
                     } label: {
                         Image(systemName: "gearshape.fill")
+                            .foregroundColor(.white)
                     }
                 }
             }
@@ -164,9 +176,14 @@ struct PlayView: View {
 
     private var mainContent: some View {
         GeometryReader { geometry in
-            VStack(spacing: 0) {
-                // Top bar with balance and settings
-                topBar
+            ZStack {
+                // Background gradient
+                AppTheme.Gradients.background
+                    .ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    // Top bar with balance and settings
+                    topBar
 
                 // Multi-hand grid (for 5/10 line modes) - fixed
                 // For 100-play, show tally view in result phase instead
@@ -206,6 +223,7 @@ struct PlayView: View {
 
                 // Bottom controls
                 bottomControls
+                }
             }
         }
     }
@@ -216,41 +234,34 @@ struct PlayView: View {
         HStack {
             // Balance
             VStack(alignment: .leading, spacing: 2) {
-                Text("Balance")
+                Text("Practice Bank")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(AppTheme.Colors.textSecondary)
                 Text(formatCurrency(viewModel.balance.balance))
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(viewModel.balance.balance >= viewModel.settings.totalBetDollars ? .primary : .red)
+                    .foregroundColor(viewModel.balance.balance >= viewModel.settings.totalBetDollars ? .white : AppTheme.Colors.danger)
             }
-
-            Spacer()
-
-            // Add funds button
-            Button {
-                showAddFunds = true
-            } label: {
-                Label("Add Funds", systemImage: "plus.circle.fill")
-                    .font(.subheadline)
-            }
-            .buttonStyle(.bordered)
 
             Spacer()
 
             // Current denomination
-            VStack(alignment: .trailing, spacing: 2) {
+            HStack(spacing: 4) {
                 Text("Denom")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(AppTheme.Colors.textSecondary)
                 Text(viewModel.settings.denomination.displayName)
-                    .font(.title2)
+                    .font(.headline)
                     .fontWeight(.bold)
+                    .foregroundColor(AppTheme.Colors.mintGreen)
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(AppTheme.Colors.textSecondary)
             }
         }
         .tourTarget("balanceArea")
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.clear)
     }
 
     // MARK: - Cards Area
@@ -636,7 +647,7 @@ struct PlayView: View {
             actionButton
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.clear)
     }
 
     private var actionButton: some View {
@@ -653,35 +664,36 @@ struct PlayView: View {
             }
         } label: {
             Text(actionButtonText)
-                .font(.headline)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(AppTheme.Colors.darkGreen)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .frame(height: 56)
+                .background(actionButtonEnabled ? AppTheme.Colors.mintGreen : AppTheme.Colors.buttonDisabled)
+                .cornerRadius(28)
         }
-        .buttonStyle(.borderedProminent)
-        .tint(actionButtonColor)
-        .disabled(!viewModel.canDeal && (viewModel.phase == .betting || viewModel.phase == .result))
+        .disabled(!actionButtonEnabled)
         .tourTarget("actionButton")
+    }
+
+    private var actionButtonEnabled: Bool {
+        switch viewModel.phase {
+        case .betting, .result:
+            return viewModel.canDeal
+        case .dealt:
+            return true
+        case .drawing:
+            return false
+        }
     }
 
     private var actionButtonText: String {
         switch viewModel.phase {
         case .betting, .result:
-            return viewModel.canDeal ? "DEAL" : "Insufficient Funds"
+            return viewModel.canDeal ? "Next hand" : "Insufficient Funds"
         case .dealt:
             return "DRAW"
         case .drawing:
             return "Drawing..."
-        }
-    }
-
-    private var actionButtonColor: Color {
-        switch viewModel.phase {
-        case .betting, .result:
-            return viewModel.canDeal ? Color(hex: "667eea") : Color.gray
-        case .dealt:
-            return Color(hex: "27ae60")
-        case .drawing:
-            return Color.gray
         }
     }
 

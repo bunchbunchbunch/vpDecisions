@@ -3,27 +3,65 @@ import SwiftUI
 /// Centralized theme for consistent styling across the app
 struct AppTheme {
 
-    // MARK: - Brand Colors
+    // MARK: - New Design System Colors
 
     struct Colors {
-        // Primary brand colors
-        static let primary = Color(hex: "667eea")      // Indigo (Quiz)
-        static let secondary = Color(hex: "9b59b6")   // Purple (Play)
-        static let accent = Color(hex: "3498db")      // Blue (Analyzer)
+        // Primary brand colors (New Design)
+        static let mintGreen = Color(hex: "6EEDC6")       // Primary accent - mint green
+        static let darkGreen = Color(hex: "1B4D3E")       // Background dark green (brighter)
+        static let deepBlack = Color(hex: "000000")       // Background black
+        static let cardBackground = Color(hex: "1A2B25")  // Card/container background
+
+        // Input & Form colors
+        static let inputBackground = Color(hex: "C4C4C4") // Light gray input fields
+        static let inputBorder = Color(hex: "E5E5E5")     // Input border
+        static let placeholder = Color(hex: "6B7280")     // Placeholder text
+
+        // Button colors
+        static let buttonSecondary = Color(hex: "6B7280") // Secondary button gray
+        static let buttonDisabled = Color(hex: "4B5563")  // Disabled state
+
+        // Text colors
+        static let textPrimary = Color.white              // Primary text
+        static let textSecondary = Color(hex: "9CA3AF")   // Secondary text
+        static let textTertiary = Color(hex: "6B7280")    // Tertiary text
 
         // Semantic colors
-        static let success = Color(hex: "27ae60")     // Green
-        static let warning = Color(hex: "e67e22")     // Orange
-        static let danger = Color(hex: "e74c3c")      // Red
-        static let gold = Color(hex: "f1c40f")        // Gold/Yellow
+        static let success = Color(hex: "27ae60")         // Green
+        static let warning = Color(hex: "e67e22")         // Orange
+        static let danger = Color(hex: "E74C3C")          // Red/coral
+        static let gold = Color(hex: "f1c40f")            // Gold/Yellow
 
-        // Feature colors
-        static let simulation = Color(hex: "00a896")  // Teal (Simulation)
+        // Legacy colors (for backward compatibility)
+        static let primary = Color(hex: "667eea")         // Indigo (Quiz)
+        static let secondary = Color(hex: "9b59b6")       // Purple (Play)
+        static let accent = Color(hex: "3498db")          // Blue (Analyzer)
+        static let simulation = Color(hex: "00a896")      // Teal (Simulation)
     }
 
     // MARK: - Gradients
 
     struct Gradients {
+        // New Design System Gradient - organic ambient light effect
+        static var background: some View {
+            AmbientGradientBackground()
+        }
+
+        // Mint green gradient for buttons
+        static let mintButton = LinearGradient(
+            colors: [Color(hex: "6EEDC6"), Color(hex: "5DD9B5")],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        // Card subtle gradient
+        static let card = LinearGradient(
+            colors: [Color(hex: "1A2B25"), Color(hex: "162420")],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        // Legacy gradients (for backward compatibility)
         // Primary indigo gradient (Quiz mode)
         static let primary = LinearGradient(
             colors: [Color(hex: "667eea"), Color(hex: "764ba2")],
@@ -74,17 +112,55 @@ struct AppTheme {
         )
     }
 
+    // MARK: - Typography
+
+    struct Typography {
+        // Font sizes
+        static let title1: CGFloat = 32
+        static let title2: CGFloat = 28
+        static let title3: CGFloat = 24
+        static let headline: CGFloat = 20
+        static let body: CGFloat = 16
+        static let callout: CGFloat = 14
+        static let caption: CGFloat = 12
+
+        // Font weights
+        static let bold: Font.Weight = .bold
+        static let semibold: Font.Weight = .semibold
+        static let medium: Font.Weight = .medium
+        static let regular: Font.Weight = .regular
+    }
+
     // MARK: - Spacing & Sizing
 
     struct Layout {
+        // Corner radius
         static let cornerRadiusSmall: CGFloat = 8
         static let cornerRadiusMedium: CGFloat = 12
         static let cornerRadiusLarge: CGFloat = 16
         static let cornerRadiusXL: CGFloat = 24
+        static let cornerRadiusButton: CGFloat = 24      // Pill-shaped buttons
+        static let cornerRadiusInput: CGFloat = 12       // Input fields
 
-        static let iconSizeSmall: CGFloat = 36
-        static let iconSizeMedium: CGFloat = 50
-        static let iconSizeLarge: CGFloat = 60
+        // Spacing
+        static let paddingXSmall: CGFloat = 4
+        static let paddingSmall: CGFloat = 8
+        static let paddingMedium: CGFloat = 16
+        static let paddingLarge: CGFloat = 24
+        static let paddingXLarge: CGFloat = 32
+
+        // Icon sizes
+        static let iconSizeSmall: CGFloat = 20
+        static let iconSizeMedium: CGFloat = 24
+        static let iconSizeLarge: CGFloat = 32
+        static let iconSizeXL: CGFloat = 40
+
+        // Button height
+        static let buttonHeight: CGFloat = 56
+        static let buttonHeightSmall: CGFloat = 44
+
+        // Input height
+        static let inputHeight: CGFloat = 52
     }
 
     // MARK: - Shadows
@@ -157,5 +233,134 @@ struct ElevatedCardStyle: ViewModifier {
 extension View {
     func elevatedCard(color: Color = .black, cornerRadius: CGFloat = AppTheme.Layout.cornerRadiusLarge) -> some View {
         modifier(ElevatedCardStyle(color: color, cornerRadius: cornerRadius))
+    }
+}
+
+// MARK: - New Design System Components
+
+/// Primary button style (Mint green)
+struct PrimaryButtonStyle: ViewModifier {
+    var isEnabled: Bool = true
+
+    func body(content: Content) -> some View {
+        content
+            .font(.system(size: AppTheme.Typography.headline, weight: .semibold))
+            .foregroundColor(AppTheme.Colors.darkGreen)
+            .frame(maxWidth: .infinity)
+            .frame(height: AppTheme.Layout.buttonHeight)
+            .background(
+                isEnabled ? AppTheme.Colors.mintGreen : AppTheme.Colors.buttonDisabled
+            )
+            .cornerRadius(AppTheme.Layout.cornerRadiusButton)
+            .opacity(isEnabled ? 1.0 : 0.6)
+    }
+}
+
+/// Secondary button style (Gray)
+struct SecondaryButtonStyle: ViewModifier {
+    var isEnabled: Bool = true
+
+    func body(content: Content) -> some View {
+        content
+            .font(.system(size: AppTheme.Typography.headline, weight: .medium))
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: AppTheme.Layout.buttonHeight)
+            .background(
+                isEnabled ? AppTheme.Colors.buttonSecondary : AppTheme.Colors.buttonDisabled
+            )
+            .cornerRadius(AppTheme.Layout.cornerRadiusButton)
+            .opacity(isEnabled ? 1.0 : 0.6)
+    }
+}
+
+/// Input field style
+struct InputFieldStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.system(size: AppTheme.Typography.body))
+            .foregroundColor(.black)
+            .padding(.horizontal, AppTheme.Layout.paddingMedium)
+            .frame(height: AppTheme.Layout.inputHeight)
+            .background(AppTheme.Colors.inputBackground)
+            .cornerRadius(AppTheme.Layout.cornerRadiusInput)
+    }
+}
+
+/// Dark card background style
+struct DarkCardStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusLarge)
+                    .fill(AppTheme.Colors.cardBackground)
+            )
+    }
+}
+
+/// Chip/pill selection style
+struct ChipStyle: ViewModifier {
+    var isSelected: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .font(.system(size: AppTheme.Typography.callout, weight: .medium))
+            .foregroundColor(isSelected ? AppTheme.Colors.darkGreen : .white)
+            .padding(.horizontal, AppTheme.Layout.paddingMedium)
+            .padding(.vertical, AppTheme.Layout.paddingSmall)
+            .background(
+                isSelected ? AppTheme.Colors.mintGreen : AppTheme.Colors.cardBackground
+            )
+            .cornerRadius(AppTheme.Layout.cornerRadiusButton)
+    }
+}
+
+extension View {
+    func primaryButton(isEnabled: Bool = true) -> some View {
+        modifier(PrimaryButtonStyle(isEnabled: isEnabled))
+    }
+
+    func secondaryButton(isEnabled: Bool = true) -> some View {
+        modifier(SecondaryButtonStyle(isEnabled: isEnabled))
+    }
+
+    func inputField() -> some View {
+        modifier(InputFieldStyle())
+    }
+
+    func darkCard() -> some View {
+        modifier(DarkCardStyle())
+    }
+
+    func chip(isSelected: Bool) -> some View {
+        modifier(ChipStyle(isSelected: isSelected))
+    }
+}
+
+// MARK: - Ambient Gradient Background
+
+/// Creates an organic, ambient light gradient effect with a radial glow from upper-left
+struct AmbientGradientBackground: View {
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // Base: solid black
+                Color.black
+
+                // Primary glow: darker green in upper-left, extends across more of screen
+                RadialGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: Color(hex: "00913C").opacity(0.9), location: 0.0),
+                        .init(color: Color(hex: "007530").opacity(0.7), location: 0.25),
+                        .init(color: Color(hex: "005522").opacity(0.45), location: 0.5),
+                        .init(color: Color(hex: "003015").opacity(0.2), location: 0.75),
+                        .init(color: Color.clear, location: 1.0)
+                    ]),
+                    center: UnitPoint(x: 0.08, y: 0.15),
+                    startRadius: 0,
+                    endRadius: max(geometry.size.width, geometry.size.height) * 1.1
+                )
+            }
+        }
     }
 }

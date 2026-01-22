@@ -5,154 +5,52 @@ struct PlayStartView: View {
     @State private var settings = PlaySettings()
     @State private var networkMonitor = NetworkMonitor.shared
     @State private var showOfflineAlert = false
+    @State private var selectedFamily: GameFamily = .jacksOrBetter
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Gradient header card
-            ZStack {
-                RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusXL)
-                    .fill(AppTheme.Gradients.purple)
-                    .frame(height: 140)
+        ZStack {
+            AppTheme.Gradients.background
+                .ignoresSafeArea()
 
-                VStack(spacing: 8) {
-                    Image(systemName: "suit.spade.fill")
-                        .font(.system(size: 44))
-                        .foregroundColor(.white)
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header with chip icon
+                    headerSection
 
-                    Text("Play Mode")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
+                    // Popular Games
+                    popularGamesSection
 
-                    Text("Simulate real video poker")
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.85))
+                    // All Games dropdown
+                    allGamesSection
+
+                    // Lines selection
+                    linesSection
+
+                    // Denomination selection
+                    denominationSection
+
+                    // Optimal feedback toggle
+                    optimalFeedbackToggle
+
+                    Spacer(minLength: 20)
+
+                    // Start button
+                    startButtonSection
                 }
+                .padding()
             }
-            .padding(.horizontal)
-            .padding(.top, 16)
-            .padding(.bottom, 20)
-
-            // Settings section
-            VStack(spacing: 16) {
-                // Game selector
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Game")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-
-                    GameSelectorView(selectedPaytableId: $settings.selectedPaytableId)
-                }
-                .tourTarget("gameSelector")
-
-                // Line count
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Lines")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-
-                    HStack(spacing: 10) {
-                        ForEach(LineCount.allCases, id: \.self) { lineCount in
-                            Button {
-                                settings.lineCount = lineCount
-                            } label: {
-                                Text(lineCount.displayName)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 10)
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(Color(hex: "9b59b6"))
-                            .opacity(settings.lineCount == lineCount ? 1.0 : 0.5)
-                            .background(
-                                settings.lineCount == lineCount
-                                    ? Color(hex: "9b59b6").opacity(0.15)
-                                    : Color.clear
-                            )
-                            .cornerRadius(10)
-                        }
-                    }
-                }
-                .tourTarget("linesSelector")
-
-                // Denomination
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Denomination")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-
-                    HStack(spacing: 8) {
-                        ForEach(BetDenomination.allCases, id: \.self) { denom in
-                            Button {
-                                settings.denomination = denom
-                            } label: {
-                                Text(denom.displayName)
-                                    .font(.subheadline)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 10)
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(Color(hex: "9b59b6"))
-                            .opacity(settings.denomination == denom ? 1.0 : 0.5)
-                            .background(
-                                settings.denomination == denom
-                                    ? Color(hex: "9b59b6").opacity(0.15)
-                                    : Color.clear
-                            )
-                            .cornerRadius(10)
-                        }
-                    }
-                }
-                .tourTarget("denominationSelector")
-
-                // Optimal feedback toggle
-                Toggle("Show Optimal Play Feedback", isOn: $settings.showOptimalFeedback)
-                    .padding(12)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                    .tourTarget("optimalFeedbackToggle")
-            }
-            .padding(.horizontal)
-
-            Spacer()
-
-            // Start button
-            VStack(spacing: 12) {
-                Button {
-                    Task {
-                        // Check if offline and game not available
-                        if !networkMonitor.isOnline {
-                            let isAvailable = await StrategyService.shared.hasOfflineData(paytableId: settings.selectedPaytableId)
-                            if !isAvailable {
-                                showOfflineAlert = true
-                                return
-                            }
-                        }
-
-                        await PlayPersistence.shared.saveSettings(settings)
-                        navigationPath.append(AppScreen.playGame)
-                    }
-                } label: {
-                    Text("Start Playing")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(Color(hex: "9b59b6"))
-
-                Button("Back to Menu") {
-                    navigationPath.removeLast()
-                }
-                .foregroundColor(.secondary)
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 24)
         }
         .withTour(.playStart)
-        .navigationTitle("Play")
+        .navigationTitle("Play Mode")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("Play Mode")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+        }
         .task {
             settings = await PlayPersistence.shared.loadSettings()
         }
@@ -161,6 +59,353 @@ struct PlayStartView: View {
         } message: {
             Text("This game hasn't been downloaded yet. Please connect to the internet to download it, or choose a different game.")
         }
+    }
+
+    // MARK: - Header Section
+
+    private var headerSection: some View {
+        HStack(spacing: 16) {
+            // Poker chip icon
+            ZStack {
+                Circle()
+                    .fill(Color(hex: "C41E3A"))
+                    .frame(width: 60, height: 60)
+
+                Circle()
+                    .stroke(Color.white.opacity(0.4), lineWidth: 3)
+                    .frame(width: 48, height: 48)
+
+                Circle()
+                    .fill(Color(hex: "C41E3A"))
+                    .frame(width: 40, height: 40)
+
+                Circle()
+                    .stroke(Color.white.opacity(0.4), lineWidth: 2)
+                    .frame(width: 30, height: 30)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Master every hand")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.white)
+
+                Text("Simulate real video poker")
+                    .font(.system(size: 14))
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+
+            Spacer()
+        }
+    }
+
+    // MARK: - Popular Games
+
+    private var popularGamesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Popular Games")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(AppTheme.Colors.textSecondary)
+
+            FlowLayout(spacing: 8) {
+                ForEach(PayTable.popularPaytables, id: \.id) { game in
+                    GameChip(
+                        title: game.name,
+                        isSelected: settings.selectedPaytableId == game.id
+                    ) {
+                        settings.selectedPaytableId = game.id
+                        // Sync the family dropdown
+                        selectedFamily = game.family
+                    }
+                }
+            }
+        }
+        .tourTarget("gameSelector")
+    }
+
+    // MARK: - All Games
+
+    private var allGamesSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("All Games")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(AppTheme.Colors.textSecondary)
+
+            // Game Family dropdown
+            Menu {
+                ForEach(GameFamily.allCases) { family in
+                    Button {
+                        selectedFamily = family
+                        // Auto-select first paytable in family if current isn't in it
+                        let familyPaytables = PayTable.paytables(for: family)
+                        if !familyPaytables.contains(where: { $0.id == settings.selectedPaytableId }),
+                           let first = familyPaytables.first {
+                            settings.selectedPaytableId = first.id
+                        }
+                    } label: {
+                        HStack {
+                            Text(family.displayName)
+                            if selectedFamily == family {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(selectedFamily.displayName)
+                        .font(.system(size: 15))
+                        .foregroundColor(.white)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(AppTheme.Colors.cardBackground)
+                )
+            }
+
+            // Paytable variant dropdown
+            HStack(spacing: 8) {
+                Menu {
+                    ForEach(PayTable.paytables(for: selectedFamily), id: \.id) { paytable in
+                        Button {
+                            settings.selectedPaytableId = paytable.id
+                        } label: {
+                            HStack {
+                                Text(paytable.variantName)
+                                if settings.selectedPaytableId == paytable.id {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Text(selectedVariantName)
+                            .font(.system(size: 15))
+                            .foregroundColor(.white)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 12))
+                            .foregroundColor(AppTheme.Colors.textSecondary)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(AppTheme.Colors.cardBackground)
+                    )
+                }
+            }
+        }
+        .onAppear {
+            // Initialize selected family based on current paytable
+            if let paytable = PayTable.allPayTables.first(where: { $0.id == settings.selectedPaytableId }) {
+                selectedFamily = paytable.family
+            }
+        }
+    }
+
+    private var selectedVariantName: String {
+        PayTable.allPayTables.first { $0.id == settings.selectedPaytableId }?.variantName ?? "Select Variant"
+    }
+
+    // MARK: - Lines Section
+
+    private var linesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Lines")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(AppTheme.Colors.textSecondary)
+
+            HStack(spacing: 8) {
+                ForEach(LineCount.allCases, id: \.self) { lineCount in
+                    SelectionChip(
+                        title: lineCount.displayName,
+                        isSelected: settings.lineCount == lineCount
+                    ) {
+                        settings.lineCount = lineCount
+                    }
+                }
+            }
+        }
+        .tourTarget("linesSelector")
+    }
+
+    // MARK: - Denomination Section
+
+    private var denominationSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Denomination")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(AppTheme.Colors.textSecondary)
+
+            HStack(spacing: 8) {
+                ForEach(BetDenomination.allCases, id: \.self) { denom in
+                    SelectionChip(
+                        title: denom.displayName,
+                        isSelected: settings.denomination == denom
+                    ) {
+                        settings.denomination = denom
+                    }
+                }
+            }
+        }
+        .tourTarget("denominationSelector")
+    }
+
+    // MARK: - Optimal Feedback Toggle
+
+    private var optimalFeedbackToggle: some View {
+        HStack {
+            Image(systemName: "eye")
+                .font(.system(size: 18))
+                .foregroundColor(AppTheme.Colors.textSecondary)
+
+            Text("Show Optimal Play Feedback")
+                .font(.system(size: 15))
+                .foregroundColor(.white)
+
+            Spacer()
+
+            Toggle("", isOn: $settings.showOptimalFeedback)
+                .labelsHidden()
+                .tint(AppTheme.Colors.mintGreen)
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(AppTheme.Colors.cardBackground)
+        )
+        .tourTarget("optimalFeedbackToggle")
+    }
+
+    // MARK: - Start Button
+
+    private var startButtonSection: some View {
+        VStack(spacing: 12) {
+            Button {
+                Task {
+                    if !networkMonitor.isOnline {
+                        let isAvailable = await StrategyService.shared.hasOfflineData(paytableId: settings.selectedPaytableId)
+                        if !isAvailable {
+                            showOfflineAlert = true
+                            return
+                        }
+                    }
+
+                    await PlayPersistence.shared.saveSettings(settings)
+                    navigationPath.append(AppScreen.playGame)
+                }
+            } label: {
+                Text("Start Playing")
+                    .primaryButton()
+            }
+
+            Button("Back to Menu") {
+                navigationPath.removeLast()
+            }
+            .foregroundColor(AppTheme.Colors.mintGreen)
+            .underline()
+        }
+    }
+}
+
+// MARK: - Selection Chip
+
+struct SelectionChip: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(isSelected ? AppTheme.Colors.darkGreen : .white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule()
+                        .fill(isSelected ? AppTheme.Colors.mintGreen : AppTheme.Colors.cardBackground)
+                )
+        }
+    }
+}
+
+// MARK: - Game Chip
+
+struct GameChip: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(isSelected ? AppTheme.Colors.darkGreen : .white)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(isSelected ? AppTheme.Colors.mintGreen : AppTheme.Colors.cardBackground)
+                )
+        }
+    }
+}
+
+// MARK: - Flow Layout
+
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = computeLayout(proposal: proposal, subviews: subviews)
+        return result.size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = computeLayout(proposal: proposal, subviews: subviews)
+
+        for (index, position) in result.positions.enumerated() {
+            subviews[index].place(at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y), proposal: .unspecified)
+        }
+    }
+
+    private func computeLayout(proposal: ProposedViewSize, subviews: Subviews) -> (size: CGSize, positions: [CGPoint]) {
+        var positions: [CGPoint] = []
+        var currentX: CGFloat = 0
+        var currentY: CGFloat = 0
+        var lineHeight: CGFloat = 0
+        var maxWidth: CGFloat = 0
+
+        let containerWidth = proposal.width ?? .infinity
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+
+            if currentX + size.width > containerWidth && currentX > 0 {
+                currentX = 0
+                currentY += lineHeight + spacing
+                lineHeight = 0
+            }
+
+            positions.append(CGPoint(x: currentX, y: currentY))
+            lineHeight = max(lineHeight, size.height)
+            currentX += size.width + spacing
+            maxWidth = max(maxWidth, currentX - spacing)
+        }
+
+        return (CGSize(width: maxWidth, height: currentY + lineHeight), positions)
     }
 }
 

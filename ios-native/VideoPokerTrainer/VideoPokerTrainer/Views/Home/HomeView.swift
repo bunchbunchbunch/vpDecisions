@@ -22,71 +22,47 @@ struct HomeView: View {
         }
     }
     @State private var weakSpotsMode = false
-    @State private var showInDevelopment = false
+    @State private var showBetaFeatures = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Branded header
-                    brandedHeader
+            ZStack {
+                // Background gradient
+                AppTheme.Gradients.background
+                    .ignoresSafeArea()
 
-                    // Main action buttons
-                    actionButtons
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Welcome section
+                        welcomeSection
+
+                        // Play Mode - Featured card
+                        playModeCard
+
+                        // Training Mode section
+                        trainingModeSection
+
+                        // Features in Beta section
+                        betaFeaturesSection
+                    }
+                    .padding()
                 }
-                .padding()
             }
             .withTour(.home)
             .task {
-                // Sync any pending hand attempts from previous offline sessions
                 await SyncService.shared.syncPendingAttempts()
             }
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    headerLogo
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    accountMenu
+                    profileButton
                 }
             }
+            .toolbarBackground(.hidden, for: .navigationBar)
             .navigationDestination(for: AppScreen.self) { screen in
-                switch screen {
-                case .quizStart:
-                    QuizStartView(
-                        navigationPath: $navigationPath,
-                        selectedPaytable: $selectedPaytable,
-                        weakSpotsMode: $weakSpotsMode
-                    )
-                case .quizPlay(let paytableId, let weakSpotsMode, let quizSize):
-                    QuizPlayView(
-                        viewModel: QuizViewModel(
-                            paytableId: paytableId,
-                            weakSpotsMode: weakSpotsMode,
-                            quizSize: quizSize
-                        ),
-                        navigationPath: $navigationPath
-                    )
-                case .quizResults:
-                    Text("Quiz Results - navigated from quiz")
-                case .mastery:
-                    MasteryDashboardView(
-                        viewModel: MasteryViewModel(paytableId: selectedPaytable.id),
-                        navigationPath: $navigationPath
-                    )
-                case .analyzer:
-                    HandAnalyzerView()
-                case .settings:
-                    SettingsView()
-                case .weakSpots:
-                    QuizStartView(
-                        navigationPath: $navigationPath,
-                        selectedPaytable: $selectedPaytable,
-                        weakSpotsMode: .constant(true)
-                    )
-                case .playStart:
-                    PlayStartView(navigationPath: $navigationPath)
-                case .playGame:
-                    PlayView(navigationPath: $navigationPath)
-                case .simulationStart:
-                    SimulationStartView(navigationPath: $navigationPath)
-                }
+                destinationView(for: screen)
             }
             .navigationDestination(for: SimulationViewModel.self) { vm in
                 SimulationContainerView(viewModel: vm, navigationPath: $navigationPath)
@@ -94,206 +70,354 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Subviews
+    // MARK: - Header
 
-    private var brandedHeader: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("VP Academy")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundStyle(AppTheme.Gradients.primary)
+    private var headerLogo: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "play.circle.fill")
+                .font(.title2)
+                .foregroundColor(AppTheme.Colors.mintGreen)
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Video Poker")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
+                Text("Academy")
+                    .font(.system(size: 10, weight: .regular))
+                    .foregroundColor(AppTheme.Colors.textSecondary)
             }
-            Spacer()
         }
-        .padding(.top, 8)
     }
 
-    private var accountMenu: some View {
-        Menu {
-            // User email (non-interactive label)
-            Section {
-                Label(authViewModel.currentUser?.email ?? "User", systemImage: "envelope")
-            }
-
-            // Settings
-            Button {
-                navigationPath.append(AppScreen.settings)
-            } label: {
-                Label("Settings", systemImage: "gearshape")
-            }
-
-            Divider()
-
-            // Sign Out
-            Button(role: .destructive) {
-                Task {
-                    await authViewModel.signOut()
-                }
-            } label: {
-                Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-            }
+    private var profileButton: some View {
+        Button {
+            navigationPath.append(AppScreen.settings)
         } label: {
             Circle()
-                .fill(Color(hex: "667eea").opacity(0.2))
+                .fill(AppTheme.Colors.cardBackground)
                 .frame(width: 36, height: 36)
                 .overlay(
-                    Text(String(authViewModel.currentUser?.email?.prefix(1).uppercased() ?? "?"))
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color(hex: "667eea"))
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(AppTheme.Colors.textSecondary)
                 )
         }
     }
 
-    private var actionButtons: some View {
-        VStack(spacing: 12) {
-            // Row 1: Play Mode (featured)
-            ActionButton(
-                title: "Play Mode",
-                icon: "suit.spade.fill",
-                color: Color(hex: "9b59b6")
-            ) {
-                navigationPath.append(AppScreen.playStart)
-            }
-            .tourTarget("playModeButton")
+    // MARK: - Welcome Section
 
-            // Row 2: Quiz and Analyzer
+    private var welcomeSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Welcome Back!")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(.white)
+
+            Text(authViewModel.currentUser?.email?.components(separatedBy: "@").first ?? "Player")
+                .font(.system(size: 16))
+                .foregroundColor(AppTheme.Colors.textSecondary)
+
+            // Level badges
+            HStack(spacing: 8) {
+                LevelBadge(text: "Level 12", color: AppTheme.Colors.mintGreen)
+                LevelBadge(text: "Professional", color: AppTheme.Colors.mintGreen)
+            }
+            .padding(.top, 4)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: - Play Mode Card
+
+    private var playModeCard: some View {
+        Button {
+            navigationPath.append(AppScreen.playStart)
+        } label: {
+            HStack {
+                // Poker chips icon
+                ZStack {
+                    Circle()
+                        .fill(Color(hex: "C41E3A"))
+                        .frame(width: 50, height: 50)
+                    Circle()
+                        .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                        .frame(width: 40, height: 40)
+                    Circle()
+                        .fill(Color(hex: "C41E3A"))
+                        .frame(width: 35, height: 35)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Play Mode")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
+                    Text("Sharpen your strategy and play smarter.")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                }
+
+                Spacer()
+
+                Text("PLAY")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppTheme.Colors.darkGreen)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.white)
+                    .cornerRadius(16)
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(AppTheme.Colors.cardBackground)
+            )
+        }
+        .buttonStyle(.plain)
+        .tourTarget("playModeButton")
+    }
+
+    // MARK: - Training Mode Section
+
+    private var trainingModeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Training Mode")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
+
+            Text("Sharpen your strategy and play smarter.")
+                .font(.system(size: 12))
+                .foregroundColor(AppTheme.Colors.textSecondary)
+
             HStack(spacing: 12) {
-                ActionButton(
-                    title: "Quiz Mode",
+                // Quiz Mode
+                FeatureCard(
                     icon: "target",
-                    color: Color(hex: "667eea")
+                    iconColor: Color(hex: "F5A623"),
+                    title: "Quiz Mode",
+                    subtitle: "Lorem Ipsum"
                 ) {
                     weakSpotsMode = false
                     navigationPath.append(AppScreen.quizStart)
                 }
                 .tourTarget("quizModeButton")
 
-                ActionButton(
-                    title: "Analyzer",
+                // Analyze
+                FeatureCard(
                     icon: "magnifyingglass",
-                    color: Color(hex: "3498db")
+                    iconColor: AppTheme.Colors.mintGreen,
+                    title: "Analyze",
+                    subtitle: "Lorem Ipsum"
                 ) {
                     navigationPath.append(AppScreen.analyzer)
                 }
                 .tourTarget("analyzerButton")
             }
-
-            // Row 3: Simulate
-            ActionButton(
-                title: "Simulate",
-                icon: "chart.line.uptrend.xyaxis",
-                color: AppTheme.Colors.simulation
-            ) {
-                navigationPath.append(AppScreen.simulationStart)
-            }
-
-            // In Development Section
-            inDevelopmentSection
         }
     }
 
-    private var inDevelopmentSection: some View {
-        VStack(spacing: 12) {
+    // MARK: - Beta Features Section
+
+    private var betaFeaturesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
             // Collapsible header
             Button {
                 withAnimation(.easeInOut(duration: 0.25)) {
-                    showInDevelopment.toggle()
+                    showBetaFeatures.toggle()
                 }
             } label: {
                 HStack {
                     Image(systemName: "hammer.fill")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 14))
+                        .foregroundColor(AppTheme.Colors.textSecondary)
 
-                    Text("In Development")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.secondary)
+                    Text("Features in Beta")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(AppTheme.Colors.textSecondary)
 
                     Spacer()
 
-                    Image(systemName: showInDevelopment ? "chevron.up" : "chevron.down")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    Image(systemName: showBetaFeatures ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Colors.textSecondary)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
+                .background(AppTheme.Colors.cardBackground)
+                .cornerRadius(12)
             }
-            .buttonStyle(.plain)
 
             // Expandable content
-            if showInDevelopment {
-                VStack(spacing: 12) {
+            if showBetaFeatures {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Available in beta. Expect improvements.")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+
                     HStack(spacing: 12) {
-                        ActionButton(
-                            title: "Weak Spots",
+                        // Weak Spots
+                        FeatureCard(
                             icon: "flame.fill",
-                            color: Color(hex: "e74c3c")
+                            iconColor: Color(hex: "E74C3C"),
+                            title: "Weak Spots",
+                            subtitle: "Lorem Ipsum"
                         ) {
                             weakSpotsMode = true
                             navigationPath.append(AppScreen.weakSpots)
                         }
 
-                        ActionButton(
+                        // Progress
+                        FeatureCard(
+                            icon: "suit.club.fill",
+                            iconColor: Color(hex: "E74C3C"),
                             title: "Progress",
-                            icon: "chart.bar.fill",
-                            color: Color(hex: "27ae60")
+                            subtitle: "Lorem Ipsum",
+                            showCards: true
                         ) {
                             navigationPath.append(AppScreen.mastery)
                         }
                     }
-
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
     }
+
+    // MARK: - Navigation Destinations
+
+    @ViewBuilder
+    private func destinationView(for screen: AppScreen) -> some View {
+        switch screen {
+        case .quizStart:
+            QuizStartView(
+                navigationPath: $navigationPath,
+                selectedPaytable: $selectedPaytable,
+                weakSpotsMode: $weakSpotsMode
+            )
+        case .quizPlay(let paytableId, let weakSpotsMode, let quizSize):
+            QuizPlayView(
+                viewModel: QuizViewModel(
+                    paytableId: paytableId,
+                    weakSpotsMode: weakSpotsMode,
+                    quizSize: quizSize
+                ),
+                navigationPath: $navigationPath
+            )
+        case .quizResults:
+            Text("Quiz Results - navigated from quiz")
+        case .mastery:
+            MasteryDashboardView(
+                viewModel: MasteryViewModel(paytableId: selectedPaytable.id),
+                navigationPath: $navigationPath
+            )
+        case .analyzer:
+            HandAnalyzerView()
+        case .settings:
+            SettingsView()
+        case .weakSpots:
+            QuizStartView(
+                navigationPath: $navigationPath,
+                selectedPaytable: $selectedPaytable,
+                weakSpotsMode: .constant(true)
+            )
+        case .playStart:
+            PlayStartView(navigationPath: $navigationPath)
+        case .playGame:
+            PlayView(navigationPath: $navigationPath)
+        case .simulationStart:
+            SimulationStartView(navigationPath: $navigationPath)
+        }
+    }
 }
 
-// MARK: - Action Button Component
+// MARK: - Level Badge
 
-struct ActionButton: View {
-    let title: String
-    let icon: String
+struct LevelBadge: View {
+    let text: String
     let color: Color
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 12, weight: .medium))
+            .foregroundColor(color)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .stroke(color.opacity(0.5), lineWidth: 1)
+            )
+    }
+}
+
+// MARK: - Feature Card
+
+struct FeatureCard: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let subtitle: String
+    var showCards: Bool = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 10) {
-                // Icon with background circle
-                ZStack {
-                    Circle()
-                        .fill(color.opacity(0.12))
-                        .frame(width: AppTheme.Layout.iconSizeMedium, height: AppTheme.Layout.iconSizeMedium)
+            VStack(spacing: 12) {
+                if showCards {
+                    // Mini cards display for Progress
+                    HStack(spacing: -8) {
+                        MiniCardIcon(suit: "heart", color: .red)
+                        MiniCardIcon(suit: "diamond", color: .red)
+                        MiniCardIcon(suit: "club", color: .black)
+                        MiniCardIcon(suit: "spade", color: .black)
+                    }
+                } else {
+                    // Circle icon
+                    ZStack {
+                        Circle()
+                            .fill(iconColor.opacity(0.2))
+                            .frame(width: 50, height: 50)
 
-                    Image(systemName: icon)
-                        .font(.title2)
-                        .foregroundColor(color)
+                        Image(systemName: icon)
+                            .font(.system(size: 22))
+                            .foregroundColor(iconColor)
+                    }
                 }
 
-                Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                VStack(spacing: 4) {
+                    Text(title)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white)
+
+                    Text(subtitle)
+                        .font(.system(size: 11))
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                }
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 24)
+            .padding(.vertical, 20)
             .background(
-                RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusLarge)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: color.opacity(0.15), radius: 8, y: 4)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusLarge)
-                    .stroke(color.opacity(0.15), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(AppTheme.Colors.cardBackground)
             )
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Mini Card Icon
+
+struct MiniCardIcon: View {
+    let suit: String
+    let color: Color
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 4)
+            .fill(Color.white)
+            .frame(width: 28, height: 38)
+            .overlay(
+                Image(systemName: "suit.\(suit).fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(color)
+            )
+            .shadow(color: .black.opacity(0.2), radius: 2, y: 1)
     }
 }
 
@@ -310,162 +434,128 @@ struct QuizStartView: View {
     @State private var showOfflineAlert = false
 
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
+        ZStack {
+            AppTheme.Gradients.background
+                .ignoresSafeArea()
 
-            // Gradient header card
-            ZStack {
-                RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusXL)
-                    .fill(weakSpotsMode ? AppTheme.Gradients.red : AppTheme.Gradients.primary)
-                    .frame(height: 140)
+            VStack(spacing: 24) {
+                Spacer()
 
-                VStack(spacing: 8) {
-                    Image(systemName: weakSpotsMode ? "flame.fill" : "target")
-                        .font(.system(size: 44))
-                        .foregroundColor(.white)
+                // Gradient header card
+                ZStack {
+                    RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusXL)
+                        .fill(weakSpotsMode ? AppTheme.Gradients.red : AppTheme.Gradients.primary)
+                        .frame(height: 140)
 
-                    Text(weakSpotsMode ? "Weak Spots Mode" : "Quiz Mode")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
+                    VStack(spacing: 8) {
+                        Image(systemName: weakSpotsMode ? "flame.fill" : "target")
+                            .font(.system(size: 44))
+                            .foregroundColor(.white)
 
-                    Text("Test your video poker strategy")
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.85))
+                        Text(weakSpotsMode ? "Weak Spots Mode" : "Quiz Mode")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+
+                        Text("Test your video poker strategy")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.85))
+                    }
                 }
-            }
-            .padding(.horizontal)
+                .padding(.horizontal)
 
-            Spacer()
+                Spacer()
 
-            // Settings
-            VStack(spacing: 16) {
-                // Game selector
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Game")
+                // Settings
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Game")
+                            .font(.subheadline)
+                            .foregroundColor(AppTheme.Colors.textSecondary)
+
+                        GameSelectorView(selectedPaytableId: $selectedPaytableId)
+                            .onChange(of: selectedPaytableId) { _, newValue in
+                                if let paytable = PayTable.allPayTables.first(where: { $0.id == newValue }) {
+                                    selectedPaytable = paytable
+                                }
+                            }
+                    }
+                    .tourTarget("quizGameSelector")
+                    .onAppear {
+                        selectedPaytableId = selectedPaytable.id
+                    }
+                }
+                .padding(.horizontal)
+
+                Spacer()
+
+                // Quiz size selection
+                VStack(spacing: 12) {
+                    Text("Quiz Size")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
 
-                    GameSelectorView(selectedPaytableId: $selectedPaytableId)
-                        .onChange(of: selectedPaytableId) { _, newValue in
-                            if let paytable = PayTable.allPayTables.first(where: { $0.id == newValue }) {
-                                selectedPaytable = paytable
+                    HStack(spacing: 12) {
+                        ForEach([10, 25, 100], id: \.self) { size in
+                            Button {
+                                selectedQuizSize = size
+                            } label: {
+                                Text("\(size)")
+                                    .font(.headline)
+                                    .foregroundColor(selectedQuizSize == size ? AppTheme.Colors.darkGreen : .white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(
+                                        selectedQuizSize == size ? AppTheme.Colors.mintGreen : AppTheme.Colors.cardBackground
+                                    )
+                                    .cornerRadius(20)
                             }
                         }
-                }
-                .tourTarget("quizGameSelector")
-                .onAppear {
-                    selectedPaytableId = selectedPaytable.id
-                }
-            }
-            .padding(.horizontal)
-
-            Spacer()
-
-            // Quiz size selection
-            VStack(spacing: 12) {
-                Text("Quiz Size")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                HStack(spacing: 12) {
-                    // 10 hands
-                    Button {
-                        selectedQuizSize = 10
-                    } label: {
-                        Text("10")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
                     }
-                    .buttonStyle(.bordered)
-                    .tint(weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea"))
-                    .opacity(selectedQuizSize == 10 ? 1.0 : 0.5)
-                    .background(
-                        selectedQuizSize == 10 ? (weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea")).opacity(0.15) : Color.clear
-                    )
-                    .cornerRadius(10)
-
-                    // 25 hands (default)
-                    Button {
-                        selectedQuizSize = 25
-                    } label: {
-                        Text("25")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea"))
-                    .opacity(selectedQuizSize == 25 ? 1.0 : 0.5)
-                    .background(
-                        selectedQuizSize == 25 ? (weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea")).opacity(0.15) : Color.clear
-                    )
-                    .cornerRadius(10)
-
-                    // 100 hands
-                    Button {
-                        selectedQuizSize = 100
-                    } label: {
-                        Text("100")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea"))
-                    .opacity(selectedQuizSize == 100 ? 1.0 : 0.5)
-                    .background(
-                        selectedQuizSize == 100 ? (weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea")).opacity(0.15) : Color.clear
-                    )
-                    .cornerRadius(10)
                 }
-            }
-            .tourTarget("quizSizeSelector")
-            .padding(.horizontal)
+                .tourTarget("quizSizeSelector")
+                .padding(.horizontal)
 
-            Spacer()
+                Spacer()
 
-            // Start Quiz button
-            Button {
-                Task {
-                    // Check if offline and game not available
-                    if !networkMonitor.isOnline {
-                        let isAvailable = await StrategyService.shared.hasOfflineData(paytableId: selectedPaytable.id)
-                        if !isAvailable {
-                            showOfflineAlert = true
-                            return
+                // Start Quiz button
+                Button {
+                    Task {
+                        if !networkMonitor.isOnline {
+                            let isAvailable = await StrategyService.shared.hasOfflineData(paytableId: selectedPaytable.id)
+                            if !isAvailable {
+                                showOfflineAlert = true
+                                return
+                            }
                         }
+
+                        NSLog("🚀 QuizStartView: Starting %d-hand quiz with paytable: %@ - %@", selectedQuizSize, selectedPaytable.id, selectedPaytable.name)
+                        navigationPath.append(AppScreen.quizPlay(
+                            paytableId: selectedPaytable.id,
+                            weakSpotsMode: weakSpotsMode,
+                            quizSize: selectedQuizSize
+                        ))
                     }
-
-                    NSLog("🚀 QuizStartView: Starting %d-hand quiz with paytable: %@ - %@", selectedQuizSize, selectedPaytable.id, selectedPaytable.name)
-                    navigationPath.append(AppScreen.quizPlay(
-                        paytableId: selectedPaytable.id,
-                        weakSpotsMode: weakSpotsMode,
-                        quizSize: selectedQuizSize
-                    ))
+                } label: {
+                    Text("Start Quiz")
+                        .primaryButton()
                 }
-            } label: {
-                Text("Start Quiz")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(weakSpotsMode ? Color(hex: "e74c3c") : Color(hex: "667eea"))
-            .tourTarget("startQuizButton")
-            .padding(.horizontal)
+                .tourTarget("startQuizButton")
+                .padding(.horizontal)
 
-            Button("Back to Menu") {
-                navigationPath.removeLast()
-            }
-            .foregroundColor(.secondary)
+                Button("Back to Menu") {
+                    navigationPath.removeLast()
+                }
+                .foregroundColor(AppTheme.Colors.mintGreen)
+                .underline()
 
-            Spacer()
+                Spacer()
+            }
         }
         .withTour(.quizStart)
         .navigationTitle(weakSpotsMode ? "Weak Spots" : "Quiz")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .alert("Game Not Available Offline", isPresented: $showOfflineAlert) {
             Button("OK", role: .cancel) { }
         } message: {
