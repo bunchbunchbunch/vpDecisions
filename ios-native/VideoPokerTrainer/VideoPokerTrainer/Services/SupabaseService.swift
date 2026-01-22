@@ -97,6 +97,19 @@ class SupabaseService: ObservableObject {
             .execute()
     }
 
+    func updateProfile(userId: UUID, fullName: String) async throws {
+        let profile: [String: AnyJSON] = [
+            "full_name": .string(fullName),
+            "updated_at": .string(ISO8601DateFormatter().string(from: Date()))
+        ]
+
+        try await client
+            .from("profiles")
+            .update(profile)
+            .eq("id", value: userId.uuidString)
+            .execute()
+    }
+
     // MARK: - Strategy Lookups
 
     func lookupStrategy(paytableId: String, handKey: String) async throws -> StrategyResult? {

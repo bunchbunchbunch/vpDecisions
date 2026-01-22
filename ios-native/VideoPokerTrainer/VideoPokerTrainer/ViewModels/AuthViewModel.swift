@@ -138,6 +138,25 @@ class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
+    func updateProfile(fullName: String) async {
+        guard let userId = currentUser?.id else {
+            errorMessage = "No user logged in"
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            try await supabase.updateProfile(userId: userId, fullName: fullName)
+            errorMessage = "Profile updated successfully"
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
+    }
+
     func signInWithMagicLink(email: String) async {
         guard !email.isEmpty else {
             errorMessage = "Please enter your email"

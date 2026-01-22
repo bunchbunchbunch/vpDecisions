@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @ObservedObject var authViewModel: AuthViewModel
     @StateObject private var audioService = AudioService.shared
     @StateObject private var hapticService = HapticService.shared
     @Environment(\.dismiss) private var dismiss
@@ -16,9 +17,18 @@ struct SettingsView: View {
                     userProfileCard
 
                     // Account Settings
-                    settingsSection(title: "Account Settings") {
-                        SettingsRow(icon: "person", title: "Edit Profile", subtitle: "Update name, bio, and photo", showChevron: true)
-                        SettingsRow(icon: "lock", title: "Change Password", subtitle: "Update your password", showChevron: true)
+                    settingsSection(title: "Account") {
+                        NavigationLink {
+                            EditProfileView(authViewModel: authViewModel)
+                        } label: {
+                            SettingsRowContent(icon: "person.circle", title: "Edit Profile", subtitle: "Update your display name", showChevron: true)
+                        }
+
+                        NavigationLink {
+                            ChangePasswordView(authViewModel: authViewModel)
+                        } label: {
+                            SettingsRowContent(icon: "key", title: "Change Password", subtitle: "Update your password", showChevron: true)
+                        }
                     }
 
                     // Sound & Haptics
@@ -149,7 +159,9 @@ struct SettingsView: View {
 
                     // Sign Out Button
                     Button {
-                        // Sign out action - handled by parent
+                        Task {
+                            await authViewModel.signOut()
+                        }
                     } label: {
                         Text("Sign Out")
                             .font(.system(size: 16, weight: .semibold))
@@ -178,31 +190,32 @@ struct SettingsView: View {
 
     // MARK: - User Profile Card
 
+    private var userEmail: String {
+        authViewModel.currentUser?.email ?? "User"
+    }
+
+    private var userInitial: String {
+        String(userEmail.prefix(1).uppercased())
+    }
+
     private var userProfileCard: some View {
         HStack(spacing: 12) {
             Circle()
                 .fill(AppTheme.Colors.mintGreen)
                 .frame(width: 50, height: 50)
                 .overlay(
-                    Text("A")
+                    Text(userInitial)
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(AppTheme.Colors.darkGreen)
                 )
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("John Bunch")
+                Text(userEmail)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(.white)
-                Text("john@email.com")
-                    .font(.system(size: 14))
-                    .foregroundColor(AppTheme.Colors.textSecondary)
             }
 
             Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14))
-                .foregroundColor(AppTheme.Colors.textSecondary)
         }
         .padding(16)
         .background(
@@ -328,6 +341,6 @@ struct SettingsToggleRow: View {
 
 #Preview {
     NavigationStack {
-        SettingsView()
+        SettingsView(authViewModel: AuthViewModel())
     }
 }
