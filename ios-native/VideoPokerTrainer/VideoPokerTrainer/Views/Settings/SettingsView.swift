@@ -19,23 +19,6 @@ struct SettingsView: View {
                     settingsSection(title: "Account Settings") {
                         SettingsRow(icon: "person", title: "Edit Profile", subtitle: "Update name, bio, and photo", showChevron: true)
                         SettingsRow(icon: "lock", title: "Change Password", subtitle: "Update your password", showChevron: true)
-                        SettingsRow(icon: "globe", title: "Language & Region", subtitle: "English (US)", showChevron: true)
-                    }
-
-                    // Notifications
-                    settingsSection(title: "Notifications") {
-                        SettingsToggleRow(
-                            icon: "bell",
-                            title: "Push Notifications",
-                            subtitle: "Receive push notifications",
-                            isOn: .constant(true)
-                        )
-                        SettingsToggleRow(
-                            icon: "envelope",
-                            title: "Email Notifications",
-                            subtitle: "Get updates via email",
-                            isOn: .constant(false)
-                        )
                     }
 
                     // Sound & Haptics

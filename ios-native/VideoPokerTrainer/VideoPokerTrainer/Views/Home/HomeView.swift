@@ -53,9 +53,6 @@ struct HomeView: View {
                 await SyncService.shared.syncPendingAttempts()
             }
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    headerLogo
-                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     profileButton
                 }
@@ -150,20 +147,12 @@ struct HomeView: View {
                     Text("Play Mode")
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.white)
-                    Text("Sharpen your strategy and play smarter.")
+                    Text("Simulate your favorite video poker games.")
                         .font(.system(size: 12))
                         .foregroundColor(AppTheme.Colors.textSecondary)
                 }
 
                 Spacer()
-
-                Text("PLAY")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(AppTheme.Colors.darkGreen)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(Color.white)
-                    .cornerRadius(16)
             }
             .padding(16)
             .background(
@@ -193,7 +182,7 @@ struct HomeView: View {
                     icon: "target",
                     iconColor: Color(hex: "F5A623"),
                     title: "Quiz Mode",
-                    subtitle: "Lorem Ipsum"
+                    subtitle: "Test yourself on optimal strategy."
                 ) {
                     weakSpotsMode = false
                     navigationPath.append(AppScreen.quizStart)
@@ -205,7 +194,7 @@ struct HomeView: View {
                     icon: "magnifyingglass",
                     iconColor: AppTheme.Colors.mintGreen,
                     title: "Analyze",
-                    subtitle: "Lorem Ipsum"
+                    subtitle: "See the optimal strategy for a specific hand."
                 ) {
                     navigationPath.append(AppScreen.analyzer)
                 }
@@ -389,6 +378,7 @@ struct FeatureCard: View {
                     Text(subtitle)
                         .font(.system(size: 11))
                         .foregroundColor(AppTheme.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
                 }
             }
             .frame(maxWidth: .infinity)
