@@ -16,7 +16,12 @@ class SupabaseService: ObservableObject {
     private init() {
         client = SupabaseClient(
             supabaseURL: Self.supabaseURL,
-            supabaseKey: Self.supabaseAnonKey
+            supabaseKey: Self.supabaseAnonKey,
+            options: SupabaseClientOptions(
+                auth: .init(
+                    emitLocalSessionAsInitialSession: true
+                )
+            )
         )
 
         // Listen for auth state changes
@@ -64,9 +69,9 @@ class SupabaseService: ObservableObject {
         try await client.auth.signInWithOTP(email: email, redirectTo: redirectTo)
     }
 
-    func signInWithGoogle() async throws -> URL {
+    func signInWithGoogle() throws -> URL {
         let redirectTo = URL(string: "vptrainer://google-callback")!
-        return try await client.auth.getOAuthSignInURL(
+        return try client.auth.getOAuthSignInURL(
             provider: .google,
             redirectTo: redirectTo
         )

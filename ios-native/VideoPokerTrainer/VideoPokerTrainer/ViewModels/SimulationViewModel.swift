@@ -95,14 +95,14 @@ class SimulationViewModel: ObservableObject {
                 )
 
                 if let run = run {
-                    await MainActor.run {
+                    await MainActor.run { [weak self] in
                         self?.results?.runs.append(run)
                         self?.progress.currentRun = runNum + 1
                     }
                 }
             }
 
-            await MainActor.run {
+            await MainActor.run { [weak self] in
                 self?.results?.isComplete = !Task.isCancelled
                 self?.results?.isCancelled = Task.isCancelled
                 self?.phase = .results
