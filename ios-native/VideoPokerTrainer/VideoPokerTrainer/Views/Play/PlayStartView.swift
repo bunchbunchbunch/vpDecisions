@@ -13,7 +13,7 @@ struct PlayStartView: View {
                 .ignoresSafeArea()
 
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(alignment: .leading, spacing: 24) {
                     // Header with chip icon
                     headerSection
 
@@ -36,6 +36,7 @@ struct PlayStartView: View {
 
                     // Start button
                     startButtonSection
+                        .frame(maxWidth: .infinity)
                 }
                 .padding()
             }
@@ -118,7 +119,9 @@ struct PlayStartView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .tourTarget("gameSelector")
     }
 
@@ -130,48 +133,55 @@ struct PlayStartView: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(AppTheme.Colors.textSecondary)
 
-            // Game Family dropdown
-            Menu {
-                ForEach(GameFamily.allCases) { family in
-                    Button {
-                        selectedFamily = family
-                        // Auto-select first paytable in family if current isn't in it
-                        let familyPaytables = PayTable.paytables(for: family)
-                        if !familyPaytables.contains(where: { $0.id == settings.selectedPaytableId }),
-                           let first = familyPaytables.first {
-                            settings.selectedPaytableId = first.id
-                        }
-                    } label: {
-                        HStack {
-                            Text(family.displayName)
-                            if selectedFamily == family {
-                                Image(systemName: "checkmark")
+            HStack(spacing: 8) {
+                // Game Family dropdown
+                Menu {
+                    ForEach(GameFamily.allCases) { family in
+                        Button {
+                            selectedFamily = family
+                            // Auto-select first paytable in family if current isn't in it
+                            let familyPaytables = PayTable.paytables(for: family)
+                            if !familyPaytables.contains(where: { $0.id == settings.selectedPaytableId }),
+                               let first = familyPaytables.first {
+                                settings.selectedPaytableId = first.id
+                            }
+                        } label: {
+                            HStack {
+                                Text(family.displayName)
+                                if selectedFamily == family {
+                                    Image(systemName: "checkmark")
+                                }
                             }
                         }
                     }
+                } label: {
+                    HStack {
+                        // Use ZStack with hidden longest text to establish minimum width
+                        ZStack(alignment: .leading) {
+                            // Hidden text of longest option to set minimum width
+                            Text(longestFamilyName)
+                                .font(.system(size: 15))
+                                .hidden()
+
+                            Text(selectedFamily.displayName)
+                                .font(.system(size: 15))
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+                        }
+
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 12))
+                            .foregroundColor(AppTheme.Colors.textSecondary)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(AppTheme.Colors.cardBackground)
+                    )
                 }
-            } label: {
-                HStack {
-                    Text(selectedFamily.displayName)
-                        .font(.system(size: 15))
-                        .foregroundColor(.white)
 
-                    Spacer()
-
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 12))
-                        .foregroundColor(AppTheme.Colors.textSecondary)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(AppTheme.Colors.cardBackground)
-                )
-            }
-
-            // Paytable variant dropdown
-            HStack(spacing: 8) {
+                // Paytable variant dropdown
                 Menu {
                     ForEach(PayTable.paytables(for: selectedFamily), id: \.id) { paytable in
                         Button {
@@ -187,18 +197,25 @@ struct PlayStartView: View {
                     }
                 } label: {
                     HStack {
-                        Text(selectedVariantName)
-                            .font(.system(size: 15))
-                            .foregroundColor(.white)
+                        // Use ZStack with hidden longest text to establish minimum width
+                        ZStack(alignment: .leading) {
+                            // Hidden text to set minimum width for variant names
+                            Text("9/6 (94.0%)")
+                                .font(.system(size: 15))
+                                .hidden()
 
-                        Spacer()
+                            Text(selectedVariantName)
+                                .font(.system(size: 15))
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+                        }
 
                         Image(systemName: "chevron.down")
                             .font(.system(size: 12))
                             .foregroundColor(AppTheme.Colors.textSecondary)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
                             .fill(AppTheme.Colors.cardBackground)
@@ -206,12 +223,18 @@ struct PlayStartView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear {
             // Initialize selected family based on current paytable
             if let paytable = PayTable.allPayTables.first(where: { $0.id == settings.selectedPaytableId }) {
                 selectedFamily = paytable.family
             }
         }
+    }
+
+    // Longest family name to establish dropdown width
+    private var longestFamilyName: String {
+        GameFamily.allCases.map(\.displayName).max(by: { $0.count < $1.count }) ?? ""
     }
 
     private var selectedVariantName: String {
@@ -237,6 +260,7 @@ struct PlayStartView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .tourTarget("linesSelector")
     }
 
@@ -259,6 +283,7 @@ struct PlayStartView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .tourTarget("denominationSelector")
     }
 

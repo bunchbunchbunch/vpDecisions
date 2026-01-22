@@ -429,133 +429,238 @@ struct QuizStartView: View {
     @Binding var weakSpotsMode: Bool
 
     @State private var selectedPaytableId: String = PayTable.jacksOrBetter96.id
+    @State private var selectedFamily: GameFamily = .jacksOrBetter
     @State private var selectedQuizSize: Int = 25
     @State private var networkMonitor = NetworkMonitor.shared
     @State private var showOfflineAlert = false
+
+    // Longest family name to establish dropdown width
+    private var longestFamilyName: String {
+        GameFamily.allCases.map(\.displayName).max(by: { $0.count < $1.count }) ?? ""
+    }
+
+    private var selectedVariantName: String {
+        PayTable.allPayTables.first { $0.id == selectedPaytableId }?.variantName ?? "Select Variant"
+    }
 
     var body: some View {
         ZStack {
             AppTheme.Gradients.background
                 .ignoresSafeArea()
 
-            VStack(spacing: 24) {
-                Spacer()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    // Gradient header card
+                    ZStack {
+                        RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusXL)
+                            .fill(weakSpotsMode ? AppTheme.Gradients.red : AppTheme.Gradients.primary)
+                            .frame(height: 140)
 
-                // Gradient header card
-                ZStack {
-                    RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusXL)
-                        .fill(weakSpotsMode ? AppTheme.Gradients.red : AppTheme.Gradients.primary)
-                        .frame(height: 140)
+                        VStack(spacing: 8) {
+                            Image(systemName: weakSpotsMode ? "flame.fill" : "target")
+                                .font(.system(size: 44))
+                                .foregroundColor(.white)
 
-                    VStack(spacing: 8) {
-                        Image(systemName: weakSpotsMode ? "flame.fill" : "target")
-                            .font(.system(size: 44))
-                            .foregroundColor(.white)
+                            Text(weakSpotsMode ? "Weak Spots Mode" : "Quiz Mode")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
 
-                        Text(weakSpotsMode ? "Weak Spots Mode" : "Quiz Mode")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-
-                        Text("Test your video poker strategy")
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.85))
+                            Text("Test your video poker strategy")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.85))
+                        }
                     }
-                }
-                .padding(.horizontal)
 
-                Spacer()
-
-                // Settings
-                VStack(spacing: 16) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Game")
-                            .font(.subheadline)
+                    // Popular Games
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Popular Games")
+                            .font(.system(size: 14, weight: .medium))
                             .foregroundColor(AppTheme.Colors.textSecondary)
 
-                        GameSelectorView(selectedPaytableId: $selectedPaytableId)
-                            .onChange(of: selectedPaytableId) { _, newValue in
-                                if let paytable = PayTable.allPayTables.first(where: { $0.id == newValue }) {
-                                    selectedPaytable = paytable
+                        FlowLayout(spacing: 8) {
+                            ForEach(PayTable.popularPaytables, id: \.id) { game in
+                                GameChip(
+                                    title: game.name,
+                                    isSelected: selectedPaytableId == game.id
+                                ) {
+                                    selectedPaytableId = game.id
+                                    selectedFamily = game.family
+                                    selectedPaytable = game
                                 }
                             }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .tourTarget("quizGameSelector")
-                    .onAppear {
-                        selectedPaytableId = selectedPaytable.id
-                    }
-                }
-                .padding(.horizontal)
 
-                Spacer()
+                    // All Games
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("All Games")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(AppTheme.Colors.textSecondary)
 
-                // Quiz size selection
-                VStack(spacing: 12) {
-                    Text("Quiz Size")
-                        .font(.subheadline)
-                        .foregroundColor(AppTheme.Colors.textSecondary)
-
-                    HStack(spacing: 12) {
-                        ForEach([10, 25, 100], id: \.self) { size in
-                            Button {
-                                selectedQuizSize = size
+                        HStack(spacing: 8) {
+                            // Game Family dropdown
+                            Menu {
+                                ForEach(GameFamily.allCases) { family in
+                                    Button {
+                                        selectedFamily = family
+                                        let familyPaytables = PayTable.paytables(for: family)
+                                        if !familyPaytables.contains(where: { $0.id == selectedPaytableId }),
+                                           let first = familyPaytables.first {
+                                            selectedPaytableId = first.id
+                                            selectedPaytable = first
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Text(family.displayName)
+                                            if selectedFamily == family {
+                                                Image(systemName: "checkmark")
+                                            }
+                                        }
+                                    }
+                                }
                             } label: {
-                                Text("\(size)")
-                                    .font(.headline)
-                                    .foregroundColor(selectedQuizSize == size ? AppTheme.Colors.darkGreen : .white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
-                                    .background(
-                                        selectedQuizSize == size ? AppTheme.Colors.mintGreen : AppTheme.Colors.cardBackground
-                                    )
-                                    .cornerRadius(20)
+                                HStack {
+                                    ZStack(alignment: .leading) {
+                                        Text(longestFamilyName)
+                                            .font(.system(size: 15))
+                                            .hidden()
+                                        Text(selectedFamily.displayName)
+                                            .font(.system(size: 15))
+                                            .foregroundColor(.white)
+                                            .lineLimit(1)
+                                    }
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(AppTheme.Colors.textSecondary)
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(AppTheme.Colors.cardBackground)
+                                )
+                            }
+
+                            // Paytable variant dropdown
+                            Menu {
+                                ForEach(PayTable.paytables(for: selectedFamily), id: \.id) { paytable in
+                                    Button {
+                                        selectedPaytableId = paytable.id
+                                        selectedPaytable = paytable
+                                    } label: {
+                                        HStack {
+                                            Text(paytable.variantName)
+                                            if selectedPaytableId == paytable.id {
+                                                Image(systemName: "checkmark")
+                                            }
+                                        }
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    ZStack(alignment: .leading) {
+                                        Text("9/6 (94.0%)")
+                                            .font(.system(size: 15))
+                                            .hidden()
+                                        Text(selectedVariantName)
+                                            .font(.system(size: 15))
+                                            .foregroundColor(.white)
+                                            .lineLimit(1)
+                                    }
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(AppTheme.Colors.textSecondary)
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(AppTheme.Colors.cardBackground)
+                                )
                             }
                         }
                     }
-                }
-                .tourTarget("quizSizeSelector")
-                .padding(.horizontal)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer()
+                    // Quiz size selection
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Quiz Size")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(AppTheme.Colors.textSecondary)
 
-                // Start Quiz button
-                Button {
-                    Task {
-                        if !networkMonitor.isOnline {
-                            let isAvailable = await StrategyService.shared.hasOfflineData(paytableId: selectedPaytable.id)
-                            if !isAvailable {
-                                showOfflineAlert = true
-                                return
+                        HStack(spacing: 8) {
+                            ForEach([10, 25, 100], id: \.self) { size in
+                                SelectionChip(
+                                    title: "\(size)",
+                                    isSelected: selectedQuizSize == size
+                                ) {
+                                    selectedQuizSize = size
+                                }
                             }
                         }
-
-                        NSLog("🚀 QuizStartView: Starting %d-hand quiz with paytable: %@ - %@", selectedQuizSize, selectedPaytable.id, selectedPaytable.name)
-                        navigationPath.append(AppScreen.quizPlay(
-                            paytableId: selectedPaytable.id,
-                            weakSpotsMode: weakSpotsMode,
-                            quizSize: selectedQuizSize
-                        ))
                     }
-                } label: {
-                    Text("Start Quiz")
-                        .primaryButton()
-                }
-                .tourTarget("startQuizButton")
-                .padding(.horizontal)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .tourTarget("quizSizeSelector")
 
-                Button("Back to Menu") {
-                    navigationPath.removeLast()
-                }
-                .foregroundColor(AppTheme.Colors.mintGreen)
-                .underline()
+                    Spacer(minLength: 20)
 
-                Spacer()
+                    // Start Quiz button
+                    VStack(spacing: 12) {
+                        Button {
+                            Task {
+                                if !networkMonitor.isOnline {
+                                    let isAvailable = await StrategyService.shared.hasOfflineData(paytableId: selectedPaytable.id)
+                                    if !isAvailable {
+                                        showOfflineAlert = true
+                                        return
+                                    }
+                                }
+
+                                NSLog("🚀 QuizStartView: Starting %d-hand quiz with paytable: %@ - %@", selectedQuizSize, selectedPaytable.id, selectedPaytable.name)
+                                navigationPath.append(AppScreen.quizPlay(
+                                    paytableId: selectedPaytable.id,
+                                    weakSpotsMode: weakSpotsMode,
+                                    quizSize: selectedQuizSize
+                                ))
+                            }
+                        } label: {
+                            Text("Start Quiz")
+                                .primaryButton()
+                        }
+                        .tourTarget("startQuizButton")
+
+                        Button("Back to Menu") {
+                            navigationPath.removeLast()
+                        }
+                        .foregroundColor(AppTheme.Colors.mintGreen)
+                        .underline()
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .padding()
             }
         }
         .withTour(.quizStart)
         .navigationTitle(weakSpotsMode ? "Weak Spots" : "Quiz")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(weakSpotsMode ? "Weak Spots" : "Quiz Mode")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+        }
+        .onAppear {
+            selectedPaytableId = selectedPaytable.id
+            if let paytable = PayTable.allPayTables.first(where: { $0.id == selectedPaytableId }) {
+                selectedFamily = paytable.family
+            }
+        }
         .alert("Game Not Available Offline", isPresented: $showOfflineAlert) {
             Button("OK", role: .cancel) { }
         } message: {

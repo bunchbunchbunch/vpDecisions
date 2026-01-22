@@ -5,6 +5,7 @@ struct PlayView: View {
     @Binding var navigationPath: NavigationPath
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var showSettings = false
     @State private var showStats = false
@@ -16,6 +17,9 @@ struct PlayView: View {
     @State private var swipedCardIndices: Set<Int> = []
     @State private var isDragging = false
     @State private var dragStartLocation: CGPoint?
+
+    // Exit confirmation
+    @State private var showExitConfirmation = false
 
     var body: some View {
         ZStack {
@@ -34,10 +38,14 @@ struct PlayView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
-                    Task {
-                        await viewModel.endSession()
+                    if viewModel.phase == .dealt {
+                        showExitConfirmation = true
+                    } else {
+                        Task {
+                            await viewModel.endSession()
+                        }
+                        dismiss()
                     }
-                    dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 16, weight: .semibold))
@@ -92,6 +100,39 @@ struct PlayView: View {
             }
         } message: {
             Text("Enter amount to add to your balance")
+        }
+        .alert("Leave Game?", isPresented: $showExitConfirmation) {
+            Button("Stay", role: .cancel) { }
+            Button("Leave") {
+                Task {
+                    await viewModel.abandonHand()
+                    await viewModel.endSession()
+                }
+                dismiss()
+            }
+        } message: {
+            Text("You have an active hand. Your bet will be refunded and the hand won't count in your statistics.")
+        }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            switch newPhase {
+            case .inactive:
+                // Save immediately when becoming inactive (happens before background/termination)
+                Task {
+                    await viewModel.saveHandState()
+                }
+            case .background:
+                // Also save on background as a backup
+                Task {
+                    await viewModel.saveHandState()
+                }
+            case .active:
+                // Restore hand state if returning from background or inactive
+                if oldPhase == .background || oldPhase == .inactive {
+                    Task {
+                        await viewModel.restoreHandState()
+                    }
+                }
+            }
         }
     }
 

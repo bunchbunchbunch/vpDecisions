@@ -89,8 +89,26 @@ class PlayViewModel: ObservableObject {
         self.balance = await PlayPersistence.shared.loadBalance()
         self.allTimeStats = await PlayPersistence.shared.loadStats(for: settings.selectedPaytableId)
 
+        // Check for orphaned hand (app was terminated with active hand)
+        await checkForOrphanedHand()
+
         // Prepare the paytable if needed
         await prepareCurrentPaytable()
+    }
+
+    /// Checks if there's a saved hand state from a previous session that was terminated.
+    /// If found, refunds the bet and clears the state.
+    private func checkForOrphanedHand() async {
+        guard let savedHand = await PlayPersistence.shared.loadActiveHand() else { return }
+
+        // Refund the bet
+        balance.win(savedHand.betAmount)
+        await PlayPersistence.shared.saveBalance(balance)
+
+        // Clear the orphaned hand state
+        await PlayPersistence.shared.clearActiveHand()
+
+        NSLog("🎰 Orphaned hand detected - bet refunded: $%.2f", savedHand.betAmount)
     }
 
     /// Prepares the current paytable for use (decompresses if needed)
@@ -199,6 +217,9 @@ class PlayViewModel: ObservableObject {
 
         isAnimating = false
         phase = .result
+
+        // Clear saved hand state since hand completed normally
+        await clearSavedHandState()
     }
 
     private func performStandardDraw() async {
@@ -363,6 +384,87 @@ class PlayViewModel: ObservableObject {
     func addFunds(_ amount: Double) async {
         balance.deposit(amount)
         await PlayPersistence.shared.saveBalance(balance)
+    }
+
+    /// Saves the current hand state when going to background.
+    /// This allows the hand to be restored if the user returns, or refunded if the app is terminated.
+    func saveHandState() async {
+        guard phase == .dealt else {
+            // No active hand to save - clear any stale state
+            await PlayPersistence.shared.clearActiveHand()
+            return
+        }
+
+        let state = ActiveHandState(
+            dealtCards: dealtCards,
+            selectedIndices: selectedIndices,
+            remainingDeck: remainingDeck,
+            betAmount: settings.totalBetDollars,
+            settings: settings
+        )
+        await PlayPersistence.shared.saveActiveHand(state)
+        NSLog("🎰 Hand state saved for background")
+    }
+
+    /// Restores the hand state when returning from background.
+    /// Returns true if a hand was restored, false otherwise.
+    @discardableResult
+    func restoreHandState() async -> Bool {
+        guard let savedHand = await PlayPersistence.shared.loadActiveHand() else {
+            return false
+        }
+
+        // Restore the hand
+        dealtCards = savedHand.dealtCards.map { $0.toCard() }
+        selectedIndices = Set(savedHand.selectedIndices)
+        remainingDeck = savedHand.remainingDeck.map { $0.toCard() }
+        phase = .dealt
+
+        // Clear the saved state since we've restored it
+        await PlayPersistence.shared.clearActiveHand()
+
+        NSLog("🎰 Hand state restored from background")
+        return true
+    }
+
+    /// Clears any saved hand state (call when hand is completed normally).
+    func clearSavedHandState() async {
+        await PlayPersistence.shared.clearActiveHand()
+    }
+
+    /// Abandons the current hand when user explicitly navigates away.
+    /// Refunds the bet and does not count the hand in statistics.
+    func abandonHand() async {
+        guard phase == .dealt else { return }
+
+        // Refund the bet
+        let betAmount = settings.totalBetDollars
+        balance.win(betAmount)
+        await PlayPersistence.shared.saveBalance(balance)
+
+        // Remove from stats (hand was counted when dealt)
+        currentStats.handsPlayed -= 1
+        currentStats.totalBet -= betAmount
+
+        // Clear any saved hand state
+        await PlayPersistence.shared.clearActiveHand()
+
+        // Reset hand state
+        dealtCards = []
+        selectedIndices = []
+        remainingDeck = []
+        lineResults = []
+        hundredPlayTally = []
+        optimalHoldIndices = []
+        userEvLost = 0
+        showMistakeFeedback = false
+        strategyResult = nil
+        showDealtWinner = false
+        dealtWinnerName = nil
+
+        phase = .betting
+
+        NSLog("🎰 Hand abandoned - bet refunded: $%.2f", betAmount)
     }
 
     // MARK: - Stats Management

@@ -180,11 +180,33 @@ struct PlaySettings: Codable {
 
 // MARK: - Game Phase
 
-enum PlayPhase: Equatable {
+enum PlayPhase: Equatable, Codable {
     case betting
     case dealt
     case drawing
     case result
+}
+
+// MARK: - Active Hand State (for background persistence)
+
+/// Stores the state of an active hand so it can be restored if the app goes to background
+/// and then returns, or refunded if the app was terminated.
+struct ActiveHandState: Codable {
+    let dealtCards: [CardData]
+    let selectedIndices: [Int]
+    let remainingDeck: [CardData]
+    let betAmount: Double
+    let settings: PlaySettings
+    let timestamp: Date
+
+    init(dealtCards: [Card], selectedIndices: Set<Int>, remainingDeck: [Card], betAmount: Double, settings: PlaySettings) {
+        self.dealtCards = dealtCards.map { CardData(rank: $0.rank, suit: $0.suit) }
+        self.selectedIndices = Array(selectedIndices)
+        self.remainingDeck = remainingDeck.map { CardData(rank: $0.rank, suit: $0.suit) }
+        self.betAmount = betAmount
+        self.settings = settings
+        self.timestamp = Date()
+    }
 }
 
 // MARK: - Persistence Manager
@@ -195,6 +217,7 @@ actor PlayPersistence {
     private let balanceKey = "playerBalance"
     private let statsKeyPrefix = "playStats_"
     private let settingsKey = "playSettings"
+    private let activeHandKey = "activeHandState"
 
     private init() {}
 
@@ -250,5 +273,27 @@ actor PlayPersistence {
         if let data = try? JSONEncoder().encode(settings) {
             UserDefaults.standard.set(data, forKey: settingsKey)
         }
+    }
+
+    // MARK: - Active Hand State
+
+    func loadActiveHand() -> ActiveHandState? {
+        guard let data = UserDefaults.standard.data(forKey: activeHandKey),
+              let state = try? JSONDecoder().decode(ActiveHandState.self, from: data) else {
+            return nil
+        }
+        return state
+    }
+
+    func saveActiveHand(_ state: ActiveHandState) {
+        if let data = try? JSONEncoder().encode(state) {
+            UserDefaults.standard.set(data, forKey: activeHandKey)
+            // Force immediate write - critical for when app is quickly terminated
+            UserDefaults.standard.synchronize()
+        }
+    }
+
+    func clearActiveHand() {
+        UserDefaults.standard.removeObject(forKey: activeHandKey)
     }
 }
