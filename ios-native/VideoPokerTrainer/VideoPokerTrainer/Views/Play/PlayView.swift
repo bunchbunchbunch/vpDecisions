@@ -21,6 +21,15 @@ struct PlayView: View {
     // Exit confirmation
     @State private var showExitConfirmation = false
 
+    // Win counting animation
+    @State private var animatedWinAmount: Double = 0
+    @State private var animatedBalanceAmount: Double = 0
+    @State private var isCountingWin: Bool = false
+    @State private var countingTimer: Timer?
+    @State private var targetWinAmount: Double = 0
+    @State private var targetBalanceAmount: Double = 0
+    @State private var preWinBalance: Double = 0
+
     var body: some View {
         ZStack {
             mainContent
@@ -133,6 +142,74 @@ struct PlayView: View {
                 break
             }
         }
+        .onChange(of: viewModel.phase) { oldPhase, newPhase in
+            if newPhase == .result && viewModel.totalPayoutDollars > 0 {
+                startWinCountingAnimation()
+            } else if newPhase == .betting {
+                // Reset animation state when starting new hand
+                resetWinAnimation()
+            }
+        }
+        .onDisappear {
+            countingTimer?.invalidate()
+            countingTimer = nil
+        }
+    }
+
+    // MARK: - Win Counting Animation
+
+    private func startWinCountingAnimation() {
+        let winAmount = viewModel.totalPayoutDollars
+        let currentBalance = viewModel.balance.balance
+
+        // Store targets
+        targetWinAmount = winAmount
+        targetBalanceAmount = currentBalance
+        preWinBalance = currentBalance - winAmount
+
+        // Start from zero win and pre-win balance
+        animatedWinAmount = 0
+        animatedBalanceAmount = preWinBalance
+        isCountingWin = true
+
+        // Calculate increment based on win size (complete in ~1.5 seconds)
+        let totalSteps = 30.0
+        let winIncrement = winAmount / totalSteps
+        let intervalTime = 1.5 / totalSteps
+
+        countingTimer?.invalidate()
+        countingTimer = Timer.scheduledTimer(withTimeInterval: intervalTime, repeats: true) { timer in
+            if animatedWinAmount < targetWinAmount {
+                animatedWinAmount = min(animatedWinAmount + winIncrement, targetWinAmount)
+                animatedBalanceAmount = min(animatedBalanceAmount + winIncrement, targetBalanceAmount)
+            } else {
+                finishWinAnimation()
+            }
+        }
+    }
+
+    private func skipWinAnimation() {
+        if isCountingWin {
+            finishWinAnimation()
+        }
+    }
+
+    private func finishWinAnimation() {
+        countingTimer?.invalidate()
+        countingTimer = nil
+        animatedWinAmount = targetWinAmount
+        animatedBalanceAmount = targetBalanceAmount
+        isCountingWin = false
+    }
+
+    private func resetWinAnimation() {
+        countingTimer?.invalidate()
+        countingTimer = nil
+        animatedWinAmount = 0
+        animatedBalanceAmount = viewModel.balance.balance
+        isCountingWin = false
+        targetWinAmount = 0
+        targetBalanceAmount = 0
     }
 
     // MARK: - Preparing Paytable Overlay
@@ -337,7 +414,7 @@ struct PlayView: View {
 
                 Text(winDollarsDisplay)
                     .font(.system(size: 22, weight: .black, design: .monospaced))
-                    .foregroundColor(viewModel.totalPayout > 0 ? Color(hex: "FFD700") : Color(hex: "00FF00"))
+                    .foregroundColor(Color(hex: "FFD700"))
             }
         }
         .padding(.horizontal, 16)
@@ -355,7 +432,10 @@ struct PlayView: View {
     }
 
     private var balanceDollarsDisplay: String {
-        formatDollars(viewModel.balance.balance)
+        if isCountingWin {
+            return formatDollars(animatedBalanceAmount)
+        }
+        return formatDollars(viewModel.balance.balance)
     }
 
     private var betDollarsDisplay: String {
@@ -363,16 +443,15 @@ struct PlayView: View {
     }
 
     private var winDollarsDisplay: String {
+        if isCountingWin {
+            return formatDollars(animatedWinAmount)
+        }
         let winAmount = viewModel.phase == .result ? viewModel.totalPayoutDollars : 0
         return formatDollars(winAmount)
     }
 
     private func formatDollars(_ amount: Double) -> String {
-        if amount >= 1000 {
-            return String(format: "$%.0f", amount)
-        } else {
-            return String(format: "$%.2f", amount)
-        }
+        return String(format: "$%.2f", amount)
     }
 
     // MARK: - Compact Paytable Bar
@@ -485,8 +564,15 @@ struct PlayView: View {
                     )
 
                 VStack(spacing: 8) {
-                    // Add space at top to push cards down
-                    Spacer(minLength: 16)
+                    // Dealt winner indicator or spacer
+                    if viewModel.phase == .dealt, let handName = viewModel.dealtWinnerName {
+                        Text(handName.uppercased())
+                            .font(.system(size: 14, weight: .black))
+                            .foregroundColor(Color(hex: "FFD700"))
+                            .padding(.top, 8)
+                    } else {
+                        Spacer(minLength: 16)
+                    }
 
                     // Cards with win badge overlay
                     ZStack(alignment: .bottom) {
@@ -649,6 +735,9 @@ struct PlayView: View {
     private var casinoButtonBar: some View {
         // Main DEAL/DRAW button (centered, full width)
         Button {
+            // Skip win animation if user presses DEAL while counting
+            skipWinAnimation()
+
             Task {
                 switch viewModel.phase {
                 case .betting, .result:
@@ -800,49 +889,51 @@ struct PlayView: View {
                 let userHold = Array(viewModel.selectedIndices).sorted()
                 let userCanonicalHold = hand.originalIndicesToCanonical(userHold)
                 let options = result.sortedHoldOptionsPrioritizingUser(userCanonicalHold)
+                // Limit to top 3 options for readability
+                let topOptions = Array(options.prefix(3))
 
-                VStack(spacing: 4) {
+                VStack(spacing: 6) {
                     // Table header
                     HStack {
                         Text("#")
-                            .font(.system(size: 11, weight: .bold))
-                            .frame(width: 24, alignment: .leading)
+                            .font(.system(size: 13, weight: .bold))
+                            .frame(width: 28, alignment: .leading)
                         Text("HOLD")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.system(size: 13, weight: .bold))
                             .frame(maxWidth: .infinity, alignment: .leading)
                         Text("EXP. VALUE")
-                            .font(.system(size: 11, weight: .bold))
-                            .frame(width: 70, alignment: .trailing)
+                            .font(.system(size: 13, weight: .bold))
+                            .frame(width: 85, alignment: .trailing)
                     }
                     .foregroundColor(Color(hex: "888888"))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
                     .background(Color.black.opacity(0.3))
-                    .cornerRadius(4)
+                    .cornerRadius(6)
 
-                    // Table rows
-                    ForEach(Array(options.enumerated()), id: \.offset) { index, option in
+                    // Table rows (top 3 only)
+                    ForEach(Array(topOptions.enumerated()), id: \.offset) { index, option in
                         let optionOriginalIndices = hand.canonicalIndicesToOriginal(option.indices)
                         let optionCards = optionOriginalIndices.map { viewModel.dealtCards[$0] }
                         let rank = result.rankForOption(at: index, inUserPrioritizedList: options)
                         let isBest = rank == 1
                         let isUserSelection = userCanonicalHold.sorted() == option.indices.sorted()
 
-                        HStack(spacing: 4) {
+                        HStack(spacing: 6) {
                             Text("\(rank)")
-                                .font(.system(size: 12, weight: isBest ? .bold : .regular, design: .monospaced))
-                                .frame(width: 24, alignment: .leading)
+                                .font(.system(size: 16, weight: isBest ? .bold : .medium, design: .monospaced))
+                                .frame(width: 28, alignment: .leading)
 
                             if optionCards.isEmpty {
                                 Text("Draw all")
-                                    .font(.system(size: 12))
+                                    .font(.system(size: 16, weight: .medium))
                                     .italic()
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             } else {
-                                HStack(spacing: 2) {
+                                HStack(spacing: 4) {
                                     ForEach(optionCards, id: \.id) { card in
                                         Text(card.displayText)
-                                            .font(.system(size: 12, weight: isBest ? .bold : .regular))
+                                            .font(.system(size: 16, weight: isBest ? .bold : .medium))
                                             .foregroundColor(card.suit.textColor(for: colorScheme))
                                     }
                                 }
@@ -851,18 +942,18 @@ struct PlayView: View {
 
                             let dollarEv = option.ev * viewModel.settings.totalBetDollars
                             Text(formatCurrency(dollarEv))
-                                .font(.system(size: 12, weight: isBest ? .bold : .regular, design: .monospaced))
-                                .frame(width: 70, alignment: .trailing)
+                                .font(.system(size: 16, weight: isBest ? .bold : .medium, design: .monospaced))
+                                .frame(width: 85, alignment: .trailing)
                         }
                         .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
                         .background(
                             isUserSelection
                                 ? (isBest ? Color(hex: "00aa00").opacity(0.3) : Color(hex: "FFA726").opacity(0.3))
                                 : (isBest ? Color(hex: "667eea").opacity(0.2) : Color.black.opacity(0.2))
                         )
-                        .cornerRadius(4)
+                        .cornerRadius(6)
                     }
                 }
             }
