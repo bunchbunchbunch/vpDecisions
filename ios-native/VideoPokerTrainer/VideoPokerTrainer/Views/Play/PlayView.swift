@@ -53,9 +53,9 @@ struct PlayView: View {
                 }
             }
             ToolbarItem(placement: .principal) {
-                Text("Play Mode")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white)
+                Text(viewModel.currentPaytable?.name ?? "Video Poker")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(Color(hex: "FFD700"))
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
@@ -116,22 +116,21 @@ struct PlayView: View {
         .onChange(of: scenePhase) { oldPhase, newPhase in
             switch newPhase {
             case .inactive:
-                // Save immediately when becoming inactive (happens before background/termination)
                 Task {
                     await viewModel.saveHandState()
                 }
             case .background:
-                // Also save on background as a backup
                 Task {
                     await viewModel.saveHandState()
                 }
             case .active:
-                // Restore hand state if returning from background or inactive
                 if oldPhase == .background || oldPhase == .inactive {
                     Task {
                         await viewModel.restoreHandState()
                     }
                 }
+            @unknown default:
+                break
             }
         }
     }
@@ -145,7 +144,6 @@ struct PlayView: View {
 
             VStack(spacing: 16) {
                 if viewModel.preparationFailed {
-                    // Failure state
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 44))
                         .foregroundColor(.orange)
@@ -183,7 +181,6 @@ struct PlayView: View {
                     }
                     .padding(.top, 8)
                 } else {
-                    // Loading state
                     ProgressView()
                         .scaleEffect(1.5)
                         .tint(Color(hex: "667eea"))
@@ -218,304 +215,523 @@ struct PlayView: View {
     private var mainContent: some View {
         GeometryReader { geometry in
             ZStack {
-                // Background gradient
-                AppTheme.Gradients.background
-                    .ignoresSafeArea()
+                // Casino-style dark blue gradient background
+                LinearGradient(
+                    colors: [Color(hex: "0a0a1a"), Color(hex: "1a1a3a"), Color(hex: "0a0a1a")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // Top bar with balance and settings
-                    topBar
+                    // Fixed top section - paytable and cards (doesn't move)
+                    VStack(spacing: 0) {
+                        // Multi-hand grid (for 5/10 line modes)
+                        if viewModel.settings.lineCount == .oneHundred {
+                            HundredPlayTallyView(
+                                tallyResults: viewModel.phase == .result ? viewModel.hundredPlayTally : [],
+                                denomination: viewModel.settings.denomination.rawValue
+                            )
+                            .frame(height: 160)
+                            .padding(.horizontal, 8)
+                        } else if viewModel.settings.lineCount != .one {
+                            MultiHandGrid(
+                                lineCount: viewModel.settings.lineCount,
+                                results: gridResults,
+                                phase: viewModel.phase,
+                                denomination: viewModel.settings.denomination.rawValue,
+                                showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
+                            )
+                        }
 
-                // Multi-hand grid (for 5/10 line modes) - fixed
-                // For 100-play, show tally view in result phase instead
-                if viewModel.settings.lineCount == .oneHundred {
-                    // 100-play tally view - same position as 10-play grid
-                    // Fixed height container with internal scrolling
-                    HundredPlayTallyView(
-                        tallyResults: viewModel.phase == .result ? viewModel.hundredPlayTally : [],
-                        denomination: viewModel.settings.denomination.rawValue
-                    )
-                    .frame(height: 180) // Match approximate height of 10-play grid
-                    .padding(.horizontal)
-                } else if viewModel.settings.lineCount != .one {
-                    MultiHandGrid(
-                        lineCount: viewModel.settings.lineCount,
-                        results: gridResults,
-                        phase: viewModel.phase,
-                        denomination: viewModel.settings.denomination.rawValue,
-                        showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
-                    )
-                }
+                        // Compact Paytable Display
+                        compactPaytableBar
+                            .padding(.horizontal, 8)
+                            .padding(.top, 4)
 
-                // Cards area (main hand - last line) - fixed
-                cardsArea(geometry: geometry)
-                    .padding(.top, 12)
+                        // Machine frame with cards
+                        machineFrame(geometry: geometry)
+                            .padding(.horizontal, 8)
+                            .padding(.top, 8)
 
-                // EV Options Table (scrollable when visible)
-                if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
-                    ScrollView {
-                        evOptionsTable
-                            .padding(.horizontal)
-                            .padding(.top, 12)
+                        // Balance, Bet, Win Display Bar (below cards)
+                        creditsBar
+                            .padding(.top, 8)
                     }
-                } else {
-                    Spacer()
-                }
 
-                // Bottom controls
-                bottomControls
+                    // Flexible bottom section - result info, EV table, buttons
+                    VStack(spacing: 0) {
+                        // Result info (when in result phase)
+                        if viewModel.phase == .result {
+                            resultInfoBar
+                                .padding(.horizontal, 16)
+                                .padding(.top, 8)
+                        }
+
+                        Spacer(minLength: 0)
+
+                        // EV Options Table (scrollable when visible)
+                        if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
+                            ScrollView {
+                                evOptionsTable
+                                    .padding(.horizontal)
+                            }
+                            .frame(maxHeight: 180)
+                        }
+
+                        // Casino-style button bar
+                        casinoButtonBar
+                            .padding(.horizontal, 8)
+                            .padding(.bottom, 8)
+                    }
                 }
             }
         }
     }
 
-    // MARK: - Top Bar
+    // MARK: - Credits Bar
 
-    private var topBar: some View {
+    private var creditsBar: some View {
         HStack {
-            // Balance
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Practice Bank")
-                    .font(.caption)
-                    .foregroundColor(AppTheme.Colors.textSecondary)
-                Text(formatCurrency(viewModel.balance.balance))
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(viewModel.balance.balance >= viewModel.settings.totalBetDollars ? .white : AppTheme.Colors.danger)
+            // Balance display (in dollars) - tap to add funds
+            Button {
+                showAddFunds = true
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 4) {
+                        Text("BALANCE")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(Color(hex: "888888"))
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(Color(hex: "00FF00").opacity(0.7))
+                    }
+
+                    Text(balanceDollarsDisplay)
+                        .font(.system(size: 22, weight: .black, design: .monospaced))
+                        .foregroundColor(viewModel.balance.balance >= viewModel.settings.totalBetDollars ? Color(hex: "00FF00") : Color(hex: "FF4444"))
+                }
+            }
+            .tourTarget("balanceArea")
+
+            Spacer()
+
+            // Bet display (in dollars)
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("BET")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(Color(hex: "888888"))
+
+                Text(betDollarsDisplay)
+                    .font(.system(size: 22, weight: .black, design: .monospaced))
+                    .foregroundColor(Color(hex: "FFFF00"))
             }
 
             Spacer()
 
-            // Current denomination
-            HStack(spacing: 4) {
-                Text("Denom")
-                    .font(.caption)
-                    .foregroundColor(AppTheme.Colors.textSecondary)
-                Text(viewModel.settings.denomination.displayName)
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(AppTheme.Colors.mintGreen)
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(AppTheme.Colors.textSecondary)
+            // Win display (in dollars)
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("WIN")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(Color(hex: "888888"))
+
+                Text(winDollarsDisplay)
+                    .font(.system(size: 22, weight: .black, design: .monospaced))
+                    .foregroundColor(viewModel.totalPayout > 0 ? Color(hex: "FFD700") : Color(hex: "00FF00"))
             }
         }
-        .tourTarget("balanceArea")
-        .padding()
-        .background(Color.clear)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.black.opacity(0.6))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color(hex: "333355"), lineWidth: 1)
+                )
+        )
+        .padding(.horizontal, 8)
+        .padding(.top, 4)
     }
 
-    // MARK: - Cards Area
+    private var balanceDollarsDisplay: String {
+        formatDollars(viewModel.balance.balance)
+    }
 
-    private func cardsArea(geometry: GeometryProxy) -> some View {
-        ZStack {
-            // Green felt background
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(hex: "2d5016"))
-                .shadow(radius: 5)
+    private var betDollarsDisplay: String {
+        formatDollars(viewModel.settings.totalBetDollars)
+    }
 
-            VStack(spacing: 4) {
-                // Dealt winner banner (overlay above cards)
-                if viewModel.showDealtWinner, let handName = viewModel.dealtWinnerName {
-                    DealtWinnerBanner(handName: handName)
-                        .transition(AnyTransition.scale.combined(with: AnyTransition.opacity))
-                        .padding(.top, 8)
-                } else {
-                    // Top info row: Lines, Paytable button, Coins
-                    HStack {
-                        Text("\(viewModel.settings.lineCount.displayName)")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.8))
+    private var winDollarsDisplay: String {
+        let winAmount = viewModel.phase == .result ? viewModel.totalPayoutDollars : 0
+        return formatDollars(winAmount)
+    }
 
-                        Spacer()
+    private func formatDollars(_ amount: Double) -> String {
+        if amount >= 1000 {
+            return String(format: "$%.0f", amount)
+        } else {
+            return String(format: "$%.2f", amount)
+        }
+    }
 
-                        // Game name button (opens paytable)
-                        Button {
-                            showPaytable = true
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "list.bullet.rectangle")
-                                    .font(.caption)
-                                Text(viewModel.currentPaytable?.name ?? "Paytable")
-                                    .font(.caption)
-                            }
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.white.opacity(0.2))
-                            .cornerRadius(6)
+    // MARK: - Compact Paytable Bar
+
+    private var compactPaytableBar: some View {
+        Button {
+            showPaytable = true
+        } label: {
+            HStack(spacing: 0) {
+                if let paytable = viewModel.currentPaytable {
+                    // Show top payouts in a row
+                    ForEach(Array(paytable.rows.prefix(4)), id: \.handName) { row in
+                        VStack(spacing: 2) {
+                            Text(abbreviateHandName(row.handName))
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(Color(hex: "AAAAAA"))
+                            Text("\(row.payouts[4])")
+                                .font(.system(size: 11, weight: .black, design: .monospaced))
+                                .foregroundColor(Color(hex: "FFD700"))
                         }
-                        .tourTarget("paytableButton")
-
-                        Spacer()
-
-                        Text("5 coins")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.8))
+                        .frame(maxWidth: .infinity)
                     }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
+
+                    // More indicator
+                    VStack(spacing: 2) {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 10))
+                            .foregroundColor(Color(hex: "AAAAAA"))
+                        Text("MORE")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(Color(hex: "AAAAAA"))
+                    }
+                    .frame(width: 50)
                 }
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.black.opacity(0.5))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color(hex: "444466"), lineWidth: 1)
+                    )
+            )
+        }
+        .tourTarget("paytableButton")
+    }
 
-                Spacer()
+    private func abbreviateHandName(_ name: String) -> String {
+        switch name {
+        case "Royal Flush": return "ROYAL"
+        case "Straight Flush": return "ST FL"
+        case "Four of a Kind": return "4 KIND"
+        case "Full House": return "F HOUSE"
+        case "Flush": return "FLUSH"
+        case "Straight": return "STRT"
+        case "Three of a Kind": return "3 KIND"
+        case "Two Pair": return "2 PAIR"
+        case "Jacks or Better": return "JKS+"
+        case "Tens or Better": return "10s+"
+        case "Five of a Kind": return "5 KIND"
+        case "Wild Royal Flush": return "W ROYAL"
+        case "Natural Royal Flush": return "N ROYAL"
+        // Four of a kind variants
+        case "Four Aces": return "4 ACES"
+        case "Four 2s", "Four Twos", "Four Deuces": return "4 2s"
+        case "Four 3s", "Four Threes": return "4 3s"
+        case "Four 4s", "Four Fours": return "4 4s"
+        case "Four 5s", "Four Fives": return "4 5s"
+        case "Four 6s", "Four Sixes": return "4 6s"
+        case "Four 7s", "Four Sevens": return "4 7s"
+        case "Four 8s", "Four Eights": return "4 8s"
+        case "Four 9s", "Four Nines": return "4 9s"
+        case "Four 10s", "Four Tens": return "4 10s"
+        case "Four Jacks": return "4 Js"
+        case "Four Queens": return "4 Qs"
+        case "Four Kings": return "4 Ks"
+        // Range-based four of a kind
+        case "Four 2-4": return "4 2-4"
+        case "Four 5-K": return "4 5-K"
+        case "Four 2s-4s": return "4 2s-4s"
+        case "Four 5s-Ks": return "4 5s-Ks"
+        // Aces with kicker hands
+        case let s where s.hasPrefix("Four Aces"):
+            return "4 A+" + (s.contains("2-4") ? "2-4" : s.contains("J-K") ? "JK" : "")
+        // Generic four of a kind patterns
+        case let s where s.hasPrefix("Four "):
+            let rest = s.dropFirst(5)
+            if rest.hasPrefix("Aces") { return "4 ACES" }
+            return "4 " + rest.prefix(3).uppercased()
+        default: return String(name.prefix(7)).uppercased()
+        }
+    }
 
-                // Cards with win badge overlay
-                ZStack(alignment: .bottom) {
-                    if !viewModel.dealtCards.isEmpty {
-                        GeometryReader { cardGeometry in
-                            HStack(spacing: 8) {
-                                ForEach(Array(viewModel.dealtCards.enumerated()), id: \.element.id) { index, card in
-                                    let displayCard = displayCardForIndex(index)
-                                    CardView(
-                                        card: displayCard,
-                                        isSelected: viewModel.selectedIndices.contains(index),
-                                        showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
-                                    ) {
-                                        if viewModel.phase == .dealt {
-                                            viewModel.toggleCard(index)
-                                        }
-                                    }
-                                }
-                            }
-                            .simultaneousGesture(
-                                DragGesture(minimumDistance: 0)
-                                    .onChanged { value in
-                                        guard viewModel.phase == .dealt else { return }
+    // MARK: - Machine Frame with Cards
 
-                                        let cardWidth = (cardGeometry.size.width - 32) / 5
-                                        let xPosition = value.location.x
-                                        let cardIndex = Int(xPosition / (cardWidth + 8))
+    private func machineFrame(geometry: GeometryProxy) -> some View {
+        VStack(spacing: 0) {
+            // Cards area with felt background
+            ZStack {
+                // Green felt
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "1a4d1a"), Color(hex: "0d3d0d"), Color(hex: "1a4d1a")],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
 
-                                        if !isDragging {
-                                            isDragging = true
-                                            dragStartLocation = value.location
-                                            swipedCardIndices = []
-                                        }
+                VStack(spacing: 8) {
+                    // Add space at top to push cards down
+                    Spacer(minLength: 16)
 
-                                        if cardIndex >= 0 && cardIndex < 5 && !swipedCardIndices.contains(cardIndex) {
-                                            guard let startLocation = dragStartLocation else { return }
-                                            let dragDistance = hypot(
-                                                value.location.x - startLocation.x,
-                                                value.location.y - startLocation.y
-                                            )
-
-                                            if dragDistance > 10 || !swipedCardIndices.isEmpty {
-                                                swipedCardIndices.insert(cardIndex)
-                                                viewModel.toggleCard(cardIndex)
+                    // Cards with win badge overlay
+                    ZStack(alignment: .bottom) {
+                        if !viewModel.dealtCards.isEmpty {
+                            GeometryReader { cardGeometry in
+                                HStack(spacing: 6) {
+                                    ForEach(Array(viewModel.dealtCards.enumerated()), id: \.element.id) { index, card in
+                                        let displayCard = displayCardForIndex(index)
+                                        CardView(
+                                            card: displayCard,
+                                            isSelected: viewModel.selectedIndices.contains(index),
+                                            showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
+                                        ) {
+                                            if viewModel.phase == .dealt {
+                                                viewModel.toggleCard(index)
                                             }
                                         }
                                     }
-                                    .onEnded { _ in
-                                        swipedCardIndices = []
-                                        isDragging = false
-                                        dragStartLocation = nil
-                                    }
-                            )
-                        }
-                    } else {
-                        // Empty card placeholders
-                        HStack(spacing: 8) {
-                            ForEach(0..<5, id: \.self) { _ in
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.white.opacity(0.1))
-                                    .aspectRatio(2.5/3.5, contentMode: .fit)
+                                }
+                                .simultaneousGesture(
+                                    DragGesture(minimumDistance: 0)
+                                        .onChanged { value in
+                                            guard viewModel.phase == .dealt else { return }
+
+                                            let cardWidth = (cardGeometry.size.width - 24) / 5
+                                            let xPosition = value.location.x
+                                            let cardIndex = Int(xPosition / (cardWidth + 6))
+
+                                            if !isDragging {
+                                                isDragging = true
+                                                dragStartLocation = value.location
+                                                swipedCardIndices = []
+                                            }
+
+                                            if cardIndex >= 0 && cardIndex < 5 && !swipedCardIndices.contains(cardIndex) {
+                                                guard let startLocation = dragStartLocation else { return }
+                                                let dragDistance = hypot(
+                                                    value.location.x - startLocation.x,
+                                                    value.location.y - startLocation.y
+                                                )
+
+                                                if dragDistance > 10 || !swipedCardIndices.isEmpty {
+                                                    swipedCardIndices.insert(cardIndex)
+                                                    viewModel.toggleCard(cardIndex)
+                                                }
+                                            }
+                                        }
+                                        .onEnded { _ in
+                                            swipedCardIndices = []
+                                            isDragging = false
+                                            dragStartLocation = nil
+                                        }
+                                )
+                            }
+                        } else {
+                            // Empty card placeholders
+                            HStack(spacing: 6) {
+                                ForEach(0..<5, id: \.self) { _ in
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(Color.black.opacity(0.3))
+                                        .aspectRatio(2.5/3.5, contentMode: .fit)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                        )
+                                }
                             }
                         }
-                    }
 
-                    // Win badge overlay (result phase only)
-                    if viewModel.phase == .result, let result = mainHandResult {
-                        mainHandWinBadge(result: result)
-                            .offset(y: 12)
+                        // Win badge overlay (result phase only)
+                        if viewModel.phase == .result, let result = mainHandResult {
+                            mainHandWinBadge(result: result)
+                                .offset(y: 16)
+                        }
+                    }
+                    .frame(height: 120)
+                    .padding(.horizontal, 8)
+
+                    // Swipe tip or phase indicator
+                    if viewModel.phase == .dealt && viewModel.showSwipeTip {
+                        HStack(spacing: 4) {
+                            Image(systemName: "hand.draw")
+                                .font(.system(size: 11))
+                            Text("TAP OR SWIPE TO HOLD")
+                                .font(.system(size: 11, weight: .bold))
+                        }
+                        .foregroundColor(Color(hex: "AAAAAA"))
+                        .padding(.bottom, 4)
+                    } else {
+                        Text(" ")
+                            .font(.system(size: 11))
+                            .padding(.bottom, 4)
                     }
                 }
-                .frame(height: 100)
-                .padding(.horizontal)
-
-                Spacer()
-
-                // Unified info line below cards
-                handInfoLine
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, 8)
+                .padding(.vertical, 8)
             }
         }
+        .background(
+            // Machine chrome frame
+            RoundedRectangle(cornerRadius: 12)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: "2a2a4a"), Color(hex: "1a1a3a"), Color(hex: "2a2a4a")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color(hex: "4a4a6a"), Color(hex: "3a3a5a")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 2
+                        )
+                )
+                .shadow(color: .black.opacity(0.5), radius: 8, x: 0, y: 4)
+        )
         .tourTarget("cardsArea")
-        .frame(height: 200)
-        .padding(.horizontal)
     }
 
-    // MARK: - Hand Info Line
+    // MARK: - Result Info Bar
 
-    @ViewBuilder
-    private var handInfoLine: some View {
-        HStack(spacing: 8) {
-            if viewModel.phase == .betting {
-                // Empty placeholder to maintain layout
-                Text(" ")
-                    .font(.caption)
-            } else if viewModel.phase == .dealt {
-                // Swipe tip during dealt phase
-                if viewModel.showSwipeTip {
-                    Image(systemName: "hand.draw")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
-                    Text("Swipe to select")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
-                } else {
-                    Text(" ")
-                        .font(.caption)
-                }
-            } else if viewModel.phase == .result {
-                // Result info: Feedback | Bet summary (win/no-win shown as badge on cards)
-
-                // Feedback (if enabled)
-                if viewModel.settings.showOptimalFeedback {
-                    if viewModel.showMistakeFeedback {
-                        Text("✗ Incorrect Decision")
-                            .font(.caption)
+    private var resultInfoBar: some View {
+        HStack {
+            if viewModel.settings.showOptimalFeedback {
+                if viewModel.showMistakeFeedback {
+                    HStack(spacing: 4) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(Color(hex: "FFA726"))
+                        Text("INCORRECT")
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundColor(Color(hex: "FFA726"))
                         if viewModel.userEvLost > 0 {
                             let dollarEvLost = viewModel.userEvLost * viewModel.settings.totalBetDollars
-                            Text("-\(formatCurrency(dollarEvLost))")
-                                .font(.caption)
+                            Text("(-\(formatCurrency(dollarEvLost)) EV)")
+                                .font(.system(size: 11))
                                 .foregroundColor(Color(hex: "FFA726"))
                         }
-                    } else {
-                        Text("✓ Correct Decision")
-                            .font(.caption)
-                            .foregroundColor(.green)
                     }
-
-                    Text("•")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.4))
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(Color(hex: "00FF00"))
+                        Text("CORRECT!")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(Color(hex: "00FF00"))
+                    }
                 }
-
-                // Bet summary
-                Text("\(formatCurrency(viewModel.settings.totalBetDollars))→\(formatCurrency(viewModel.totalPayoutDollars))")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.7))
             }
+
+            Spacer()
+        }
+    }
+
+    // MARK: - Casino Button Bar
+
+    private var casinoButtonBar: some View {
+        // Main DEAL/DRAW button (centered, full width)
+        Button {
+            Task {
+                switch viewModel.phase {
+                case .betting, .result:
+                    await viewModel.deal()
+                case .dealt:
+                    await viewModel.draw()
+                case .drawing:
+                    break
+                }
+            }
+        } label: {
+            VStack(spacing: 2) {
+                Text(actionButtonLabel)
+                    .font(.system(size: 20, weight: .black))
+                if viewModel.phase == .betting || viewModel.phase == .result {
+                    Text(formatCurrency(viewModel.settings.totalBetDollars))
+                        .font(.system(size: 12, weight: .medium))
+                }
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(
+                        actionButtonEnabled ?
+                        LinearGradient(
+                            colors: [Color(hex: "00aa00"), Color(hex: "008800")],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ) :
+                        LinearGradient(
+                            colors: [Color(hex: "444444"), Color(hex: "333333")],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(actionButtonEnabled ? Color(hex: "00cc00") : Color(hex: "555555"), lineWidth: 2)
+                    )
+                    .shadow(color: actionButtonEnabled ? Color(hex: "00ff00").opacity(0.3) : .clear, radius: 8)
+            )
+        }
+        .disabled(!actionButtonEnabled)
+        .tourTarget("actionButton")
+        .padding(.horizontal, 16)
+    }
+
+    private var actionButtonLabel: String {
+        switch viewModel.phase {
+        case .betting, .result:
+            return viewModel.canDeal ? "DEAL" : "ADD FUNDS"
+        case .dealt:
+            return "DRAW"
+        case .drawing:
+            return "..."
+        }
+    }
+
+    private var actionButtonEnabled: Bool {
+        switch viewModel.phase {
+        case .betting, .result:
+            return viewModel.canDeal
+        case .dealt:
+            return true
+        case .drawing:
+            return false
         }
     }
 
     private func displayCardForIndex(_ index: Int) -> Card {
-        // During result phase, show the final cards from the last line result (main hand)
         if viewModel.phase == .result, let lastResult = viewModel.lineResults.last {
             return lastResult.finalHand[index].toCard()
         }
         return viewModel.dealtCards[index]
     }
 
-    /// Results for the grid (all but the last line, which shows in the main play area)
     private var gridResults: [PlayHandResult] {
         guard viewModel.lineResults.count > 1 else { return [] }
         return Array(viewModel.lineResults.dropLast())
     }
 
-    /// The main hand result (last line)
     private var mainHandResult: PlayHandResult? {
         viewModel.lineResults.last
     }
@@ -526,15 +742,12 @@ struct PlayView: View {
     private func mainHandWinBadge(result: PlayHandResult) -> some View {
         if let handName = result.handName, result.payout > 0 {
             let badgeColors = winBadgeColors(for: handName)
-            // Winner badge (only show for wins, matching mini-hand behavior)
             HStack(spacing: 6) {
-                Text(handName)
-                    .font(.caption)
-                    .fontWeight(.bold)
+                Text(handName.uppercased())
+                    .font(.system(size: 12, weight: .black))
                     .foregroundColor(.white)
-                Text("+\(formatCurrency(Double(result.payout) * viewModel.settings.denomination.rawValue))")
-                    .font(.caption)
-                    .fontWeight(.bold)
+                Text("+\(result.payout)")
+                    .font(.system(size: 12, weight: .black, design: .monospaced))
                     .foregroundColor(.white)
             }
             .padding(.horizontal, 12)
@@ -549,42 +762,31 @@ struct PlayView: View {
                         )
                     )
             )
-            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+            .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
         }
-        // No badge shown for non-winning hands (matches mini-hand grid behavior)
     }
 
     private func winBadgeColors(for handName: String) -> [Color] {
         switch handName {
         case "Jacks or Better", "Tens or Better":
-            // Light Purple
             return [Color(hex: "B388FF"), Color(hex: "9575CD")]
         case "Two Pair":
-            // Light Blue
             return [Color(hex: "81D4FA"), Color(hex: "4FC3F7")]
         case "Three of a Kind":
-            // Yellow
             return [Color(hex: "FFEE58"), Color(hex: "FDD835")]
         case "Straight":
-            // Dark Pink
             return [Color(hex: "F06292"), Color(hex: "EC407A")]
         case "Flush":
-            // Green
             return [Color(hex: "66BB6A"), Color(hex: "43A047")]
         case "Full House":
-            // Dark Blue
             return [Color(hex: "5C6BC0"), Color(hex: "3F51B5")]
         case _ where handName.contains("Four"):
-            // Light Pink (Four of a Kind and variants)
             return [Color(hex: "F8BBD9"), Color(hex: "F48FB1")]
         case "Straight Flush":
-            // Dark Purple
             return [Color(hex: "7E57C2"), Color(hex: "5E35B1")]
         case "Royal Flush", "Natural Royal", "Wild Royal":
-            // Red
             return [Color(hex: "EF5350"), Color(hex: "E53935")]
         default:
-            // Default gold
             return [Color(hex: "FFD700"), Color(hex: "FFA500")]
         }
     }
@@ -599,142 +801,71 @@ struct PlayView: View {
                 let userCanonicalHold = hand.originalIndicesToCanonical(userHold)
                 let options = result.sortedHoldOptionsPrioritizingUser(userCanonicalHold)
 
-                VStack(spacing: 8) {
+                VStack(spacing: 4) {
                     // Table header
                     HStack {
-                        Text("Rank")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .frame(width: 40, alignment: .leading)
-
-                        Text("Hold")
-                            .font(.caption)
-                            .fontWeight(.bold)
+                        Text("#")
+                            .font(.system(size: 11, weight: .bold))
+                            .frame(width: 24, alignment: .leading)
+                        Text("HOLD")
+                            .font(.system(size: 11, weight: .bold))
                             .frame(maxWidth: .infinity, alignment: .leading)
-
-                        Text("Exp. Value")
-                            .font(.caption)
-                            .fontWeight(.bold)
+                        Text("EXP. VALUE")
+                            .font(.system(size: 11, weight: .bold))
                             .frame(width: 70, alignment: .trailing)
                     }
-                    .padding(.horizontal, 12)
+                    .foregroundColor(Color(hex: "888888"))
+                    .padding(.horizontal, 8)
                     .padding(.vertical, 6)
-                    .background(Color(.systemGray5))
-                    .cornerRadius(8)
+                    .background(Color.black.opacity(0.3))
+                    .cornerRadius(4)
 
                     // Table rows
-                    VStack(spacing: 4) {
-                        ForEach(Array(options.enumerated()), id: \.offset) { index, option in
-                            let optionOriginalIndices = hand.canonicalIndicesToOriginal(option.indices)
-                            let optionCards = optionOriginalIndices.map { viewModel.dealtCards[$0] }
-                            let rank = result.rankForOption(at: index, inUserPrioritizedList: options)
-                            let isBest = rank == 1
-                            let isUserSelection = userCanonicalHold.sorted() == option.indices.sorted()
+                    ForEach(Array(options.enumerated()), id: \.offset) { index, option in
+                        let optionOriginalIndices = hand.canonicalIndicesToOriginal(option.indices)
+                        let optionCards = optionOriginalIndices.map { viewModel.dealtCards[$0] }
+                        let rank = result.rankForOption(at: index, inUserPrioritizedList: options)
+                        let isBest = rank == 1
+                        let isUserSelection = userCanonicalHold.sorted() == option.indices.sorted()
 
-                            HStack(spacing: 8) {
-                                // Rank (shows tied rank number)
-                                Text("\(rank)")
-                                    .font(.subheadline)
-                                    .fontWeight(isBest ? .bold : .regular)
-                                    .frame(width: 40, alignment: .leading)
+                        HStack(spacing: 4) {
+                            Text("\(rank)")
+                                .font(.system(size: 12, weight: isBest ? .bold : .regular, design: .monospaced))
+                                .frame(width: 24, alignment: .leading)
 
-                                // Hold cards
-                                if optionCards.isEmpty {
-                                    Text("Draw all")
-                                        .font(.subheadline)
-                                        .italic()
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                } else {
-                                    HStack(spacing: 4) {
-                                        ForEach(optionCards, id: \.id) { card in
-                                            Text(card.displayText)
-                                                .font(.subheadline)
-                                                .foregroundColor(card.suit.textColor(for: colorScheme))
-                                                .fontWeight(isBest ? .bold : .regular)
-                                        }
-                                    }
+                            if optionCards.isEmpty {
+                                Text("Draw all")
+                                    .font(.system(size: 12))
+                                    .italic()
                                     .frame(maxWidth: .infinity, alignment: .leading)
+                            } else {
+                                HStack(spacing: 2) {
+                                    ForEach(optionCards, id: \.id) { card in
+                                        Text(card.displayText)
+                                            .font(.system(size: 12, weight: isBest ? .bold : .regular))
+                                            .foregroundColor(card.suit.textColor(for: colorScheme))
+                                    }
                                 }
-
-                                // Expected Value in dollars
-                                let dollarEv = option.ev * viewModel.settings.totalBetDollars
-                                Text(formatCurrency(dollarEv))
-                                    .font(.subheadline)
-                                    .fontWeight(isBest ? .bold : .regular)
-                                    .frame(width: 70, alignment: .trailing)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(
-                                isUserSelection
-                                    ? (isBest ? Color(hex: "27ae60").opacity(0.3) : Color(hex: "FFA726").opacity(0.3))
-                                    : (isBest ? Color(hex: "667eea").opacity(0.2) : Color(.systemGray6))
-                            )
-                            .cornerRadius(6)
+
+                            let dollarEv = option.ev * viewModel.settings.totalBetDollars
+                            Text(formatCurrency(dollarEv))
+                                .font(.system(size: 12, weight: isBest ? .bold : .regular, design: .monospaced))
+                                .frame(width: 70, alignment: .trailing)
                         }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .background(
+                            isUserSelection
+                                ? (isBest ? Color(hex: "00aa00").opacity(0.3) : Color(hex: "FFA726").opacity(0.3))
+                                : (isBest ? Color(hex: "667eea").opacity(0.2) : Color.black.opacity(0.2))
+                        )
+                        .cornerRadius(4)
                     }
                 }
-                .padding(.vertical, 4)
             }
-        }
-    }
-
-
-    // MARK: - Bottom Controls
-
-    private var bottomControls: some View {
-        VStack(spacing: 12) {
-            // Action button
-            actionButton
-        }
-        .padding()
-        .background(Color.clear)
-    }
-
-    private var actionButton: some View {
-        Button {
-            Task {
-                switch viewModel.phase {
-                case .betting, .result:
-                    await viewModel.deal()
-                case .dealt:
-                    await viewModel.draw()
-                case .drawing:
-                    break
-                }
-            }
-        } label: {
-            Text(actionButtonText)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(AppTheme.Colors.darkGreen)
-                .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .background(actionButtonEnabled ? AppTheme.Colors.mintGreen : AppTheme.Colors.buttonDisabled)
-                .cornerRadius(28)
-        }
-        .disabled(!actionButtonEnabled)
-        .tourTarget("actionButton")
-    }
-
-    private var actionButtonEnabled: Bool {
-        switch viewModel.phase {
-        case .betting, .result:
-            return viewModel.canDeal
-        case .dealt:
-            return true
-        case .drawing:
-            return false
-        }
-    }
-
-    private var actionButtonText: String {
-        switch viewModel.phase {
-        case .betting, .result:
-            return viewModel.canDeal ? "Next hand" : "Insufficient Funds"
-        case .dealt:
-            return "DRAW"
-        case .drawing:
-            return "Drawing..."
         }
     }
 
@@ -763,9 +894,7 @@ struct PaytableSheet: View {
                             .font(.headline)
                             .padding(.top)
 
-                        // Paytable rows
                         VStack(spacing: 4) {
-                            // Header
                             HStack {
                                 Text("Hand")
                                     .font(.caption)
@@ -784,7 +913,6 @@ struct PaytableSheet: View {
                             .background(Color(.systemGray5))
                             .cornerRadius(8)
 
-                            // Rows
                             ForEach(paytable.rows, id: \.handName) { row in
                                 HStack {
                                     Text(row.handName)
@@ -921,13 +1049,8 @@ struct PlayStatsSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Current session stats
                     sessionStatsCard
-
-                    // All-time stats
                     allTimeStatsCard
-
-                    // Wins by hand type
                     winsBreakdownCard
                 }
                 .padding()
