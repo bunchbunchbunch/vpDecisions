@@ -112,13 +112,6 @@ struct HomeView: View {
             Text(authViewModel.currentUser?.email?.components(separatedBy: "@").first ?? "Player")
                 .font(.system(size: 16))
                 .foregroundColor(AppTheme.Colors.textSecondary)
-
-            // Level badges
-            HStack(spacing: 8) {
-                LevelBadge(text: "Level 12", color: AppTheme.Colors.mintGreen)
-                LevelBadge(text: "Professional", color: AppTheme.Colors.mintGreen)
-            }
-            .padding(.top, 4)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -130,18 +123,11 @@ struct HomeView: View {
             navigationPath.append(AppScreen.playStart)
         } label: {
             HStack {
-                // Poker chips icon
-                ZStack {
-                    Circle()
-                        .fill(Color(hex: "C41E3A"))
-                        .frame(width: 50, height: 50)
-                    Circle()
-                        .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                        .frame(width: 40, height: 40)
-                    Circle()
-                        .fill(Color(hex: "C41E3A"))
-                        .frame(width: 35, height: 35)
-                }
+                // Red chip icon
+                Image("chip-red")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 50, height: 50)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Play Mode")
@@ -179,8 +165,7 @@ struct HomeView: View {
             HStack(spacing: 12) {
                 // Quiz Mode
                 FeatureCard(
-                    icon: "target",
-                    iconColor: Color(hex: "F5A623"),
+                    chipImage: "chip-gold",
                     title: "Quiz Mode",
                     subtitle: "Test yourself on optimal strategy."
                 ) {
@@ -191,8 +176,7 @@ struct HomeView: View {
 
                 // Analyze
                 FeatureCard(
-                    icon: "magnifyingglass",
-                    iconColor: AppTheme.Colors.mintGreen,
+                    chipImage: "chip-blue",
                     title: "Analyze",
                     subtitle: "See the optimal strategy for a specific hand."
                 ) {
@@ -244,10 +228,9 @@ struct HomeView: View {
                     HStack(spacing: 12) {
                         // Weak Spots
                         FeatureCard(
-                            icon: "flame.fill",
-                            iconColor: Color(hex: "E74C3C"),
+                            chipImage: "chip-black",
                             title: "Weak Spots",
-                            subtitle: "Lorem Ipsum"
+                            subtitle: "Practice your problem hands."
                         ) {
                             weakSpotsMode = true
                             navigationPath.append(AppScreen.weakSpots)
@@ -255,10 +238,8 @@ struct HomeView: View {
 
                         // Progress
                         FeatureCard(
-                            icon: "suit.club.fill",
-                            iconColor: Color(hex: "E74C3C"),
                             title: "Progress",
-                            subtitle: "Lorem Ipsum",
+                            subtitle: "Track your mastery.",
                             showCards: true
                         ) {
                             navigationPath.append(AppScreen.mastery)
@@ -300,7 +281,7 @@ struct HomeView: View {
         case .analyzer:
             HandAnalyzerView()
         case .settings:
-            SettingsView()
+            SettingsView(authViewModel: authViewModel)
         case .weakSpots:
             QuizStartView(
                 navigationPath: $navigationPath,
@@ -339,8 +320,9 @@ struct LevelBadge: View {
 // MARK: - Feature Card
 
 struct FeatureCard: View {
-    let icon: String
-    let iconColor: Color
+    var icon: String = ""
+    var iconColor: Color = .white
+    var chipImage: String? = nil
     let title: String
     let subtitle: String
     var showCards: Bool = false
@@ -357,8 +339,14 @@ struct FeatureCard: View {
                         MiniCardIcon(suit: "club", color: .black)
                         MiniCardIcon(suit: "spade", color: .black)
                     }
+                } else if let chipImage = chipImage {
+                    // Chip image
+                    Image(chipImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 50, height: 50)
                 } else {
-                    // Circle icon
+                    // Circle icon (fallback)
                     ZStack {
                         Circle()
                             .fill(iconColor.opacity(0.2))
@@ -447,16 +435,17 @@ struct QuizStartView: View {
                             .frame(height: 140)
 
                         VStack(spacing: 8) {
-                            Image(systemName: weakSpotsMode ? "flame.fill" : "target")
-                                .font(.system(size: 44))
-                                .foregroundColor(.white)
+                            Image(weakSpotsMode ? "chip-black" : "chip-gold")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 50, height: 50)
 
-                            Text(weakSpotsMode ? "Weak Spots Mode" : "Quiz Mode")
+                            Text(weakSpotsMode ? "Weak Spots" : "Quiz Mode")
                                 .font(.title2)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
 
-                            Text("Test your video poker strategy")
+                            Text(weakSpotsMode ? "Practice your problem hands." : "Test yourself on optimal strategy.")
                                 .font(.subheadline)
                                 .foregroundColor(.white.opacity(0.85))
                         }

@@ -831,11 +831,12 @@ struct PlayView: View {
     private func mainHandWinBadge(result: PlayHandResult) -> some View {
         if let handName = result.handName, result.payout > 0 {
             let badgeColors = winBadgeColors(for: handName)
+            let payoutDollars = Double(result.payout) * viewModel.settings.denomination.rawValue
             HStack(spacing: 6) {
                 Text(handName.uppercased())
                     .font(.system(size: 12, weight: .black))
                     .foregroundColor(.white)
-                Text("+\(result.payout)")
+                Text("+\(formatCurrency(payoutDollars))")
                     .font(.system(size: 12, weight: .black, design: .monospaced))
                     .foregroundColor(.white)
             }

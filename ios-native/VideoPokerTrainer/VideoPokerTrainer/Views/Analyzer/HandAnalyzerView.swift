@@ -97,17 +97,24 @@ struct HandAnalyzerView: View {
     private var analyzerHeader: some View {
         ZStack {
             AppTheme.Gradients.blue
-                .frame(height: 70)
+                .frame(height: 90)
 
-            HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass")
-                    .font(.title2)
-                    .foregroundColor(.white)
+            HStack(spacing: 12) {
+                Image("chip-blue")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 44, height: 44)
 
-                Text("Hand Analyzer")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Analyze")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+
+                    Text("See the optimal strategy for a specific hand.")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.85))
+                }
             }
         }
     }

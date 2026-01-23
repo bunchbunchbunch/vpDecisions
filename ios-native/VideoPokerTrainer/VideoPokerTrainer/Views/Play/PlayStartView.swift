@@ -66,31 +66,18 @@ struct PlayStartView: View {
 
     private var headerSection: some View {
         HStack(spacing: 16) {
-            // Poker chip icon
-            ZStack {
-                Circle()
-                    .fill(Color(hex: "C41E3A"))
-                    .frame(width: 60, height: 60)
-
-                Circle()
-                    .stroke(Color.white.opacity(0.4), lineWidth: 3)
-                    .frame(width: 48, height: 48)
-
-                Circle()
-                    .fill(Color(hex: "C41E3A"))
-                    .frame(width: 40, height: 40)
-
-                Circle()
-                    .stroke(Color.white.opacity(0.4), lineWidth: 2)
-                    .frame(width: 30, height: 30)
-            }
+            // Red chip icon
+            Image("chip-red")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 60, height: 60)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Master every hand")
+                Text("Play Mode")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(.white)
 
-                Text("Simulate real video poker")
+                Text("Simulate your favorite video poker games.")
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.textSecondary)
             }
