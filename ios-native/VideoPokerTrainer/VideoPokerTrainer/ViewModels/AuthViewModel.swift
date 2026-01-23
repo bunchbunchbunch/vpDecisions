@@ -149,6 +149,8 @@ class AuthViewModel: ObservableObject {
 
         do {
             try await supabase.updateProfile(userId: userId, fullName: fullName)
+            // Refresh the current user to get updated metadata
+            await checkSession()
             errorMessage = "Profile updated successfully"
         } catch {
             errorMessage = error.localizedDescription

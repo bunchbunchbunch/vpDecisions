@@ -98,6 +98,10 @@ class SupabaseService: ObservableObject {
     }
 
     func updateProfile(userId: UUID, fullName: String) async throws {
+        // Update auth user metadata so it's available in currentUser.userMetadata
+        try await client.auth.update(user: UserAttributes(data: ["full_name": .string(fullName)]))
+
+        // Also update the profiles table for consistency
         let profile: [String: AnyJSON] = [
             "full_name": .string(fullName),
             "updated_at": .string(ISO8601DateFormatter().string(from: Date()))

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A2B3C4D5E6F7A8B9C0D1E2F /* big-win.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 4D5E6F7A8B9C0D1E2F3A4B5C /* big-win.mp3 */; };
+		2B3C4D5E6F7A8B9C0D1E2F3A /* card-flip.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 5E6F7A8B9C0D1E2F3A4B5C6D /* card-flip.mp3 */; };
+		3C4D5E6F7A8B9C0D1E2F3A4B /* coin-payout.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6F7A8B9C0D1E2F3A4B5C6D7E /* coin-payout.mp3 */; };
 		01FF69BDF3EBD9C0AD445DD9 /* TourTooltipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1905AE0390569A95AE29470 /* TourTooltipView.swift */; };
 		07D564051B4CBB23DFDF41B2 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC11F57C339351683A7A945E /* AuthViewModel.swift */; };
 		0D124A6548091FBE3020534B /* OfflineDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04493682371D6C684F390870 /* OfflineDataView.swift */; };
@@ -107,6 +110,9 @@
 
 /* Begin PBXFileReference section */
 		02889465DAE8498345DCC9FB /* strategy_double_bonus_10_7.vpstrat2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_double_bonus_10_7.vpstrat2; sourceTree = "<group>"; };
+		4D5E6F7A8B9C0D1E2F3A4B5C /* big-win.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "big-win.mp3"; sourceTree = "<group>"; };
+		5E6F7A8B9C0D1E2F3A4B5C6D /* card-flip.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "card-flip.mp3"; sourceTree = "<group>"; };
+		6F7A8B9C0D1E2F3A4B5C6D7E /* coin-payout.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "coin-payout.mp3"; sourceTree = "<group>"; };
 		03FD663D9F07AEE4E1829685 /* Hand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hand.swift; sourceTree = "<group>"; };
 		04493682371D6C684F390870 /* OfflineDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineDataView.swift; sourceTree = "<group>"; };
 		0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticService.swift; sourceTree = "<group>"; };
@@ -295,8 +301,11 @@
 		6D4E6C8A92962B0696AE19C9 /* Sounds */ = {
 			isa = PBXGroup;
 			children = (
+				4D5E6F7A8B9C0D1E2F3A4B5C /* big-win.mp3 */,
 				DCE574B6713DC27CBB847898 /* button-tap.mp3 */,
+				5E6F7A8B9C0D1E2F3A4B5C6D /* card-flip.mp3 */,
 				52626371C1AE90FB294E4C82 /* card-select.mp3 */,
+				6F7A8B9C0D1E2F3A4B5C6D7E /* coin-payout.mp3 */,
 				7C7B891E2E0E0C3A4CE8293E /* correct.mp3 */,
 				192AEE07411E5DBD2F6F8F0D /* dealt-winner.mp3 */,
 				A938B302053EBA1843CDBDD8 /* incorrect.mp3 */,
@@ -537,8 +546,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				FCD4460BC57F88E834DA6FAB /* Assets.xcassets in Resources */,
+				1A2B3C4D5E6F7A8B9C0D1E2F /* big-win.mp3 in Resources */,
 				2D12B9D50B6BE8EFFB32868D /* button-tap.mp3 in Resources */,
+				2B3C4D5E6F7A8B9C0D1E2F3A /* card-flip.mp3 in Resources */,
 				973BBB083DDAACDE2DD8DBBB /* card-select.mp3 in Resources */,
+				3C4D5E6F7A8B9C0D1E2F3A4B /* coin-payout.mp3 in Resources */,
 				FEB433C9189612043BBCEAF8 /* correct.mp3 in Resources */,
 				8E430B3CF10EA07783EAC4E5 /* dealt-winner.mp3 in Resources */,
 				71A602043D2B35B4789E7D57 /* incorrect.mp3 in Resources */,

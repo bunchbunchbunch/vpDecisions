@@ -95,6 +95,9 @@ class QuizViewModel: ObservableObject {
         isLoading = false
         handStartTime = Date()
 
+        // Play card flip sound for first hand
+        audioService.play(.cardFlip)
+
         // Check if first hand is a dealt winner
         await checkDealtWinner()
     }
@@ -209,6 +212,9 @@ class QuizViewModel: ObservableObject {
             selectedIndices = []
             showFeedback = false
             handStartTime = Date()
+
+            // Play card flip sound for new hand
+            audioService.play(.cardFlip)
 
             // Check if new hand is a dealt winner
             Task {

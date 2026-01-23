@@ -167,7 +167,7 @@ class PlayViewModel: ObservableObject {
 
         phase = .dealt
 
-        audioService.play(.cardSelect)
+        audioService.play(.cardFlip)
 
         // Check if dealt hand is already a winner
         evaluateDealtHandForBanner()
@@ -263,13 +263,24 @@ class PlayViewModel: ObservableObject {
                 currentStats.biggestWinHandName = results.first { $0.payout > 0 }?.handName
             }
 
-            // Track wins by hand type
+            // Track wins by hand type and check for big wins
+            var hasBigWin = false
             for result in results where result.handName != nil {
                 let handName = result.handName!
                 currentStats.winsByHandType[handName, default: 0] += 1
+                if currentPaytable?.isBigWin(handName: handName) == true {
+                    hasBigWin = true
+                }
             }
 
-            audioService.play(.correct)
+            // Play appropriate win sound
+            if hasBigWin {
+                audioService.play(.bigWin)
+            } else if winAmount > settings.totalBetDollars {
+                audioService.play(.coinPayout)
+            } else {
+                audioService.play(.correct)
+            }
         } else {
             audioService.play(.submit)
         }
@@ -342,12 +353,23 @@ class PlayViewModel: ObservableObject {
                 currentStats.biggestWinHandName = biggestWinHand
             }
 
-            // Track wins by hand type
+            // Track wins by hand type and check for big wins
+            var hasBigWin = false
             for (handName, count) in handCounts {
                 currentStats.winsByHandType[handName, default: 0] += count
+                if currentPaytable?.isBigWin(handName: handName) == true {
+                    hasBigWin = true
+                }
             }
 
-            audioService.play(.correct)
+            // Play appropriate win sound
+            if hasBigWin {
+                audioService.play(.bigWin)
+            } else if winAmount > settings.totalBetDollars {
+                audioService.play(.coinPayout)
+            } else {
+                audioService.play(.correct)
+            }
         } else {
             audioService.play(.submit)
         }

@@ -3,6 +3,9 @@ import Foundation
 
 enum SoundEffect: String, CaseIterable {
     case cardSelect = "card-select"
+    case cardFlip = "card-flip"
+    case coinPayout = "coin-payout"
+    case bigWin = "big-win"
     case submit = "submit"
     case correct = "correct"
     case incorrect = "incorrect"
