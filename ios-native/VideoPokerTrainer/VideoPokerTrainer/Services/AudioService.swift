@@ -63,20 +63,31 @@ class AudioService: ObservableObject {
     }
 
     private func preloadSounds() {
+        NSLog("🔊 AudioService: Starting to preload sounds...")
         for sound in SoundEffect.allCases {
-            if let url = Bundle.main.url(forResource: sound.filename, withExtension: "mp3", subdirectory: "Sounds") {
+            // Try without subdirectory first (files copied to bundle root)
+            var url = Bundle.main.url(forResource: sound.filename, withExtension: "mp3")
+
+            // Fallback to subdirectory if needed
+            if url == nil {
+                url = Bundle.main.url(forResource: sound.filename, withExtension: "mp3", subdirectory: "Sounds")
+            }
+
+            if let url = url {
                 do {
                     let player = try AVAudioPlayer(contentsOf: url)
                     player.prepareToPlay()
                     player.volume = volume
                     players[sound] = player
+                    NSLog("🔊 AudioService: Loaded %@", sound.rawValue)
                 } catch {
-                    print("Failed to load sound \(sound.rawValue): \(error)")
+                    NSLog("🔊 AudioService: Failed to load %@: %@", sound.rawValue, error.localizedDescription)
                 }
             } else {
-                print("Sound file not found: \(sound.filename).mp3")
+                NSLog("🔊 AudioService: File not found: %@.mp3", sound.filename)
             }
         }
+        NSLog("🔊 AudioService: Preloaded %d sounds", players.count)
     }
 
     private func updatePlayerVolumes() {
@@ -86,11 +97,18 @@ class AudioService: ObservableObject {
     }
 
     func play(_ sound: SoundEffect) {
-        guard isEnabled else { return }
+        NSLog("🔊 AudioService.play(%@) called - isEnabled: %@", sound.rawValue, isEnabled ? "true" : "false")
+        guard isEnabled else {
+            NSLog("🔊 AudioService: Sound disabled, skipping")
+            return
+        }
 
         if let player = players[sound] {
             player.currentTime = 0
-            player.play()
+            let success = player.play()
+            NSLog("🔊 AudioService: Playing %@ - success: %@, volume: %.2f", sound.rawValue, success ? "true" : "false", player.volume)
+        } else {
+            NSLog("🔊 AudioService: No player found for %@", sound.rawValue)
         }
     }
 }
