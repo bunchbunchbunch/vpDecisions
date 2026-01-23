@@ -5,23 +5,30 @@ struct MasteryDashboardView: View {
     @Binding var navigationPath: NavigationPath
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .padding()
-                } else {
-                    // Overall mastery card
-                    overallMasteryCard
+        GeometryReader { geometry in
+            let isLandscape = geometry.size.width > geometry.size.height
+            let maxContentWidth: CGFloat = isLandscape ? min(600, geometry.size.width - 48) : .infinity
 
-                    // Category breakdown
-                    categoryList
+            ScrollView {
+                VStack(spacing: 20) {
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .padding()
+                    } else {
+                        // Overall mastery card
+                        overallMasteryCard
+
+                        // Category breakdown
+                        categoryList
+                    }
+
+                    // Action buttons
+                    actionButtons
                 }
-
-                // Action buttons
-                actionButtons
+                .padding()
+                .frame(maxWidth: maxContentWidth)
+                .frame(maxWidth: .infinity)
             }
-            .padding()
         }
         .navigationTitle("Progress")
         .task {

@@ -7,82 +7,89 @@ struct SimulationStartView: View {
     @State private var showOfflineAlert = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                // Gradient header card
-                headerCard
+        GeometryReader { geometry in
+            let isLandscape = geometry.size.width > geometry.size.height
+            let maxContentWidth: CGFloat = isLandscape ? min(600, geometry.size.width - 48) : .infinity
 
-                // Configuration options
-                VStack(spacing: 20) {
-                    // Game selector
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Game")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Gradient header card
+                    headerCard
 
-                        GameSelectorView(selectedPaytableId: $viewModel.selectedPaytableId)
+                    // Configuration options
+                    VStack(spacing: 20) {
+                        // Game selector
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Game")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+
+                            GameSelectorView(selectedPaytableId: $viewModel.selectedPaytableId)
+                        }
+
+                        // Denomination picker
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Denomination")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+
+                            denominationPicker
+                        }
+
+                        // Lines per hand
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Lines per Hand")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+
+                            linesPicker
+                        }
+
+                        // Hands per simulation
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Hands per Simulation")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+
+                            handsPerSimPicker
+                        }
+
+                        // Number of simulations
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Number of Simulations")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+
+                            numSimsPicker
+                        }
                     }
+                    .padding(.horizontal)
 
-                    // Denomination picker
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Denomination")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                    // Summary
+                    summaryCard
 
-                        denominationPicker
+                    // Start button
+                    Button {
+                        startSimulation()
+                    } label: {
+                        Text("Run Simulation")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppTheme.Colors.simulation)
+                    .padding(.horizontal)
 
-                    // Lines per hand
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Lines per Hand")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-
-                        linesPicker
+                    Button("Back to Menu") {
+                        navigationPath.removeLast()
                     }
-
-                    // Hands per simulation
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Hands per Simulation")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-
-                        handsPerSimPicker
-                    }
-
-                    // Number of simulations
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Number of Simulations")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-
-                        numSimsPicker
-                    }
+                    .foregroundColor(.secondary)
                 }
-                .padding(.horizontal)
-
-                // Summary
-                summaryCard
-
-                // Start button
-                Button {
-                    startSimulation()
-                } label: {
-                    Text("Run Simulation")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(AppTheme.Colors.simulation)
-                .padding(.horizontal)
-
-                Button("Back to Menu") {
-                    navigationPath.removeLast()
-                }
-                .foregroundColor(.secondary)
+                .padding(.vertical)
+                .frame(maxWidth: maxContentWidth)
+                .frame(maxWidth: .infinity)
             }
-            .padding(.vertical)
         }
         .navigationTitle("Simulation")
         .navigationBarTitleDisplayMode(.inline)

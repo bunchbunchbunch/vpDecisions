@@ -364,3 +364,93 @@ struct AmbientGradientBackground: View {
         }
     }
 }
+
+// MARK: - Orientation Helpers
+
+/// Environment key for checking if device is in landscape orientation
+struct IsLandscapeKey: EnvironmentKey {
+    static let defaultValue: Bool = false
+}
+
+extension EnvironmentValues {
+    var isLandscape: Bool {
+        get { self[IsLandscapeKey.self] }
+        set { self[IsLandscapeKey.self] = newValue }
+    }
+}
+
+/// A view that detects orientation and provides it to child views
+struct OrientationReader<Content: View>: View {
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+
+    let content: (Bool) -> Content
+
+    init(@ViewBuilder content: @escaping (Bool) -> Content) {
+        self.content = content
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            let isLandscape = geometry.size.width > geometry.size.height
+            content(isLandscape)
+                .frame(width: geometry.size.width, height: geometry.size.height)
+        }
+    }
+}
+
+/// View modifier that provides landscape state
+struct OrientationModifier: ViewModifier {
+    @State private var isLandscape: Bool = false
+
+    func body(content: Content) -> some View {
+        GeometryReader { geometry in
+            content
+                .environment(\.isLandscape, geometry.size.width > geometry.size.height)
+                .onAppear {
+                    isLandscape = geometry.size.width > geometry.size.height
+                }
+                .onChange(of: geometry.size) { _, newSize in
+                    isLandscape = newSize.width > newSize.height
+                }
+        }
+    }
+}
+
+extension View {
+    /// Provides isLandscape environment value to child views
+    func withOrientationTracking() -> some View {
+        modifier(OrientationModifier())
+    }
+}
+
+/// A simple adaptive stack that switches between VStack and HStack based on orientation
+struct AdaptiveStack<Content: View>: View {
+    let isLandscape: Bool
+    let horizontalAlignment: HorizontalAlignment
+    let verticalAlignment: VerticalAlignment
+    let spacing: CGFloat?
+    let content: () -> Content
+
+    init(
+        isLandscape: Bool,
+        horizontalAlignment: HorizontalAlignment = .center,
+        verticalAlignment: VerticalAlignment = .center,
+        spacing: CGFloat? = nil,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.isLandscape = isLandscape
+        self.horizontalAlignment = horizontalAlignment
+        self.verticalAlignment = verticalAlignment
+        self.spacing = spacing
+        self.content = content
+    }
+
+    var body: some View {
+        if isLandscape {
+            HStack(alignment: verticalAlignment, spacing: spacing, content: content)
+        } else {
+            VStack(alignment: horizontalAlignment, spacing: spacing, content: content)
+        }
+    }
+}

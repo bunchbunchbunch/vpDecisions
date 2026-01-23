@@ -13,40 +13,44 @@ struct AuthView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                // Background gradient (dark green to black)
-                AppTheme.Gradients.background
-                    .ignoresSafeArea()
+            GeometryReader { geometry in
+                let isLandscape = geometry.size.width > geometry.size.height
+                let maxContentWidth: CGFloat = isLandscape ? min(500, geometry.size.width - 48) : .infinity
 
-                ScrollView {
-                    VStack(spacing: 24) {
-                        // Login/Register Segmented Control
-                        HStack(spacing: 0) {
-                            Button {
-                                isSignUp = false
-                            } label: {
-                                Text("Login")
-                                    .font(.system(size: AppTheme.Typography.headline, weight: .semibold))
-                                    .foregroundColor(isSignUp ? AppTheme.Colors.textSecondary : .black)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 50)
-                                    .background(isSignUp ? AppTheme.Colors.buttonSecondary : .white)
-                            }
+                ZStack {
+                    // Background gradient (dark green to black)
+                    AppTheme.Gradients.background
+                        .ignoresSafeArea()
 
-                            Button {
-                                isSignUp = true
-                            } label: {
-                                Text("Register")
-                                    .font(.system(size: AppTheme.Typography.headline, weight: .semibold))
-                                    .foregroundColor(isSignUp ? .black : AppTheme.Colors.textSecondary)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 50)
-                                    .background(isSignUp ? .white : AppTheme.Colors.buttonSecondary)
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            // Login/Register Segmented Control
+                            HStack(spacing: 0) {
+                                Button {
+                                    isSignUp = false
+                                } label: {
+                                    Text("Login")
+                                        .font(.system(size: AppTheme.Typography.headline, weight: .semibold))
+                                        .foregroundColor(isSignUp ? AppTheme.Colors.textSecondary : .black)
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 50)
+                                        .background(isSignUp ? AppTheme.Colors.buttonSecondary : .white)
+                                }
+
+                                Button {
+                                    isSignUp = true
+                                } label: {
+                                    Text("Register")
+                                        .font(.system(size: AppTheme.Typography.headline, weight: .semibold))
+                                        .foregroundColor(isSignUp ? .black : AppTheme.Colors.textSecondary)
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 50)
+                                        .background(isSignUp ? .white : AppTheme.Colors.buttonSecondary)
+                                }
                             }
-                        }
-                        .cornerRadius(AppTheme.Layout.cornerRadiusButton)
-                        .padding(.horizontal, AppTheme.Layout.paddingLarge)
-                        .padding(.top, AppTheme.Layout.paddingXLarge)
+                            .cornerRadius(AppTheme.Layout.cornerRadiusButton)
+                            .padding(.horizontal, AppTheme.Layout.paddingLarge)
+                            .padding(.top, isLandscape ? AppTheme.Layout.paddingMedium : AppTheme.Layout.paddingXLarge)
 
                         // Form fields
                         VStack(alignment: .leading, spacing: 16) {
@@ -223,7 +227,10 @@ struct AuthView: View {
                         }
                         .padding(.horizontal, AppTheme.Layout.paddingLarge)
                     }
+                    .frame(maxWidth: maxContentWidth)
+                    .frame(maxWidth: .infinity)
                 }
+            }
             }
             .navigationDestination(isPresented: $showForgotPassword) {
                 ForgotPasswordView(viewModel: viewModel)

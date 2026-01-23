@@ -9,24 +9,31 @@ struct SimulationResultsView: View {
     @State private var showRunDetails = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Header with completion status
-                headerSection
+        GeometryReader { geometry in
+            let isLandscape = geometry.size.width > geometry.size.height
+            let maxContentWidth: CGFloat = isLandscape ? min(700, geometry.size.width - 48) : .infinity
 
-                // Overall results card
-                overallResultsCard
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Header with completion status
+                    headerSection
 
-                // Statistics grid
-                statisticsGrid
+                    // Overall results card
+                    overallResultsCard
 
-                // Charts section
-                chartsSection
+                    // Statistics grid
+                    statisticsGrid
 
-                // Action buttons
-                actionButtons
+                    // Charts section
+                    chartsSection
+
+                    // Action buttons
+                    actionButtons
+                }
+                .padding()
+                .frame(maxWidth: maxContentWidth)
+                .frame(maxWidth: .infinity)
             }
-            .padding()
         }
         .navigationTitle("Results")
         .navigationBarTitleDisplayMode(.inline)

@@ -13,126 +13,133 @@ struct EditProfileView: View {
     }
 
     var body: some View {
-        ZStack {
-            AppTheme.Gradients.background
-                .ignoresSafeArea()
+        GeometryReader { geometry in
+            let isLandscape = geometry.size.width > geometry.size.height
+            let maxContentWidth: CGFloat = isLandscape ? min(500, geometry.size.width - 48) : .infinity
 
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Profile Avatar
-                    VStack(spacing: 12) {
-                        Circle()
-                            .fill(AppTheme.Colors.mintGreen)
-                            .frame(width: 80, height: 80)
-                            .overlay(
-                                Text(avatarInitial)
-                                    .font(.system(size: 32, weight: .semibold))
-                                    .foregroundColor(AppTheme.Colors.darkGreen)
-                            )
+            ZStack {
+                AppTheme.Gradients.background
+                    .ignoresSafeArea()
 
-                        Text("Edit Profile")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.top, 20)
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Profile Avatar
+                        VStack(spacing: 12) {
+                            Circle()
+                                .fill(AppTheme.Colors.mintGreen)
+                                .frame(width: 80, height: 80)
+                                .overlay(
+                                    Text(avatarInitial)
+                                        .font(.system(size: 32, weight: .semibold))
+                                        .foregroundColor(AppTheme.Colors.darkGreen)
+                                )
 
-                    // Form Fields
-                    VStack(spacing: 20) {
-                        // Display Name
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Display Name")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(AppTheme.Colors.textSecondary)
-
-                            TextField("Enter your name", text: $fullName)
+                            Text("Edit Profile")
+                                .font(.system(size: 24, weight: .bold))
                                 .foregroundColor(.white)
-                                .padding()
-                                .background(AppTheme.Colors.cardBackground)
-                                .cornerRadius(12)
                         }
+                        .padding(.top, isLandscape ? 8 : 20)
 
-                        // Email (Read-only)
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Email")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(AppTheme.Colors.textSecondary)
-
-                            HStack {
-                                Text(userEmail)
+                        // Form Fields
+                        VStack(spacing: 20) {
+                            // Display Name
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Display Name")
+                                    .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(AppTheme.Colors.textSecondary)
-                                Spacer()
-                                Image(systemName: "lock.fill")
-                                    .font(.system(size: 14))
+
+                                TextField("Enter your name", text: $fullName)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .background(AppTheme.Colors.cardBackground)
+                                    .cornerRadius(12)
+                            }
+
+                            // Email (Read-only)
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Email")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(AppTheme.Colors.textSecondary)
+
+                                HStack {
+                                    Text(userEmail)
+                                        .foregroundColor(AppTheme.Colors.textSecondary)
+                                    Spacer()
+                                    Image(systemName: "lock.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(AppTheme.Colors.textTertiary)
+                                }
+                                .padding()
+                                .background(AppTheme.Colors.cardBackground.opacity(0.5))
+                                .cornerRadius(12)
+
+                                Text("Email cannot be changed")
+                                    .font(.system(size: 12))
                                     .foregroundColor(AppTheme.Colors.textTertiary)
                             }
-                            .padding()
-                            .background(AppTheme.Colors.cardBackground.opacity(0.5))
-                            .cornerRadius(12)
 
-                            Text("Email cannot be changed")
-                                .font(.system(size: 12))
-                                .foregroundColor(AppTheme.Colors.textTertiary)
-                        }
-
-                        // Success message
-                        if showSuccessMessage {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(AppTheme.Colors.success)
-                                Text("Profile updated successfully!")
-                                    .foregroundColor(AppTheme.Colors.success)
-                            }
-                            .font(.system(size: 14))
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(AppTheme.Colors.success.opacity(0.15))
-                            .cornerRadius(12)
-                        }
-
-                        // Error message
-                        if let errorMessage = authViewModel.errorMessage,
-                           !errorMessage.contains("successfully") {
-                            Text(errorMessage)
+                            // Success message
+                            if showSuccessMessage {
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(AppTheme.Colors.success)
+                                    Text("Profile updated successfully!")
+                                        .foregroundColor(AppTheme.Colors.success)
+                                }
                                 .font(.system(size: 14))
-                                .foregroundColor(AppTheme.Colors.danger)
-                                .multilineTextAlignment(.center)
-                        }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(AppTheme.Colors.success.opacity(0.15))
+                                .cornerRadius(12)
+                            }
 
-                        // Save Button
-                        Button {
-                            Task {
-                                isSaving = true
-                                await authViewModel.updateProfile(fullName: fullName)
-                                isSaving = false
+                            // Error message
+                            if let errorMessage = authViewModel.errorMessage,
+                               !errorMessage.contains("successfully") {
+                                Text(errorMessage)
+                                    .font(.system(size: 14))
+                                    .foregroundColor(AppTheme.Colors.danger)
+                                    .multilineTextAlignment(.center)
+                            }
 
-                                if authViewModel.errorMessage?.contains("successfully") == true {
-                                    showSuccessMessage = true
-                                    authViewModel.errorMessage = nil
+                            // Save Button
+                            Button {
+                                Task {
+                                    isSaving = true
+                                    await authViewModel.updateProfile(fullName: fullName)
+                                    isSaving = false
 
-                                    // Auto-dismiss after success
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                        dismiss()
+                                    if authViewModel.errorMessage?.contains("successfully") == true {
+                                        showSuccessMessage = true
+                                        authViewModel.errorMessage = nil
+
+                                        // Auto-dismiss after success
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                            dismiss()
+                                        }
                                     }
                                 }
+                            } label: {
+                                if isSaving {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: AppTheme.Colors.darkGreen))
+                                        .primaryButton()
+                                } else {
+                                    Text("Save Changes")
+                                        .primaryButton(isEnabled: !fullName.isEmpty)
+                                }
                             }
-                        } label: {
-                            if isSaving {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: AppTheme.Colors.darkGreen))
-                                    .primaryButton()
-                            } else {
-                                Text("Save Changes")
-                                    .primaryButton(isEnabled: !fullName.isEmpty)
-                            }
+                            .disabled(fullName.isEmpty || isSaving)
+                            .padding(.top, 8)
                         }
-                        .disabled(fullName.isEmpty || isSaving)
-                        .padding(.top, 8)
-                    }
-                    .padding(.horizontal)
+                        .padding(.horizontal)
 
-                    Spacer()
+                        Spacer()
+                    }
+                    .padding()
+                    .frame(maxWidth: maxContentWidth)
+                    .frame(maxWidth: .infinity)
                 }
-                .padding()
             }
         }
         .navigationTitle("Edit Profile")

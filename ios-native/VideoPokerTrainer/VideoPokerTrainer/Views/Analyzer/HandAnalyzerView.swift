@@ -10,43 +10,80 @@ struct HandAnalyzerView: View {
     let allRanks: [Rank] = Rank.allCases
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                // Compact gradient header
-                analyzerHeader
+        GeometryReader { geometry in
+            let isLandscape = geometry.size.width > geometry.size.height
 
-                // Paytable picker at top
-                paytablePickerBar
-                    .tourTarget("analyzerGameSelector")
+            ZStack {
+                VStack(spacing: 0) {
+                    // Compact gradient header
+                    analyzerHeader
 
-                Divider()
+                    // Paytable picker at top
+                    paytablePickerBar
+                        .tourTarget("analyzerGameSelector")
 
-                // Selected cards display
-                selectedCardsBar
-                    .tourTarget("selectedCardsBar")
-
-                Divider()
-
-                // Card grid
-                cardGrid
-                    .tourTarget("cardGrid")
-
-                // Results table (inline, similar to quiz mode)
-                if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
                     Divider()
-                    resultsTable(hand: hand, result: result)
-                        .tourTarget("resultsTable")
+
+                    if isLandscape {
+                        // Landscape: side by side layout
+                        HStack(alignment: .top, spacing: 0) {
+                            // Left: Selected cards + Card grid
+                            VStack(spacing: 0) {
+                                selectedCardsBar
+                                    .tourTarget("selectedCardsBar")
+                                Divider()
+                                cardGrid
+                                    .tourTarget("cardGrid")
+                            }
+                            .frame(width: geometry.size.width * 0.55)
+
+                            Divider()
+
+                            // Right: Results
+                            if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
+                                resultsTable(hand: hand, result: result)
+                                    .tourTarget("resultsTable")
+                                    .frame(width: geometry.size.width * 0.45)
+                            } else {
+                                VStack {
+                                    Spacer()
+                                    Text("Select 5 cards to see analysis")
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                }
+                                .frame(width: geometry.size.width * 0.45)
+                            }
+                        }
+                    } else {
+                        // Portrait: vertical layout
+                        // Selected cards display
+                        selectedCardsBar
+                            .tourTarget("selectedCardsBar")
+
+                        Divider()
+
+                        // Card grid
+                        cardGrid
+                            .tourTarget("cardGrid")
+
+                        // Results table (inline, similar to quiz mode)
+                        if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
+                            Divider()
+                            resultsTable(hand: hand, result: result)
+                                .tourTarget("resultsTable")
+                        }
+                    }
+
+                    // Bottom bar with just error message
+                    if let error = viewModel.errorMessage {
+                        bottomErrorBar(error: error)
+                    }
                 }
 
-                // Bottom bar with just error message
-                if let error = viewModel.errorMessage {
-                    bottomErrorBar(error: error)
+                // Loading overlay when preparing paytable
+                if viewModel.isPreparingPaytable {
+                    preparingPaytableOverlay
                 }
-            }
-
-            // Loading overlay when preparing paytable
-            if viewModel.isPreparingPaytable {
-                preparingPaytableOverlay
             }
         }
         .withTour(.analyzer)

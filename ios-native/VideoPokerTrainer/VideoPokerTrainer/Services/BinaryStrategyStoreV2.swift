@@ -100,9 +100,14 @@ actor BinaryStrategyStoreV2 {
 
     // MARK: - File Management
 
-    private func strategiesDirectory() -> URL {
+    /// Get the directory where downloaded strategies are stored
+    func getStrategiesDirectory() -> URL {
         let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
         return caches.appendingPathComponent("binary_strategies_v2", isDirectory: true)
+    }
+
+    private func strategiesDirectory() -> URL {
+        return getStrategiesDirectory()
     }
 
     private func strategyFilename(paytableId: String) -> String {

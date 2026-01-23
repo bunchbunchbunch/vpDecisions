@@ -7,173 +7,180 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ZStack {
-            AppTheme.Gradients.background
-                .ignoresSafeArea()
+        GeometryReader { geometry in
+            let isLandscape = geometry.size.width > geometry.size.height
+            let maxContentWidth: CGFloat = isLandscape ? min(600, geometry.size.width - 48) : .infinity
 
-            ScrollView {
-                VStack(spacing: 20) {
-                    // User Profile Card
-                    userProfileCard
+            ZStack {
+                AppTheme.Gradients.background
+                    .ignoresSafeArea()
 
-                    // Account Settings
-                    settingsSection(title: "Account") {
-                        NavigationLink {
-                            EditProfileView(authViewModel: authViewModel)
-                        } label: {
-                            SettingsRowContent(icon: "person.circle", title: "Edit Profile", subtitle: "Update your display name", showChevron: true)
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // User Profile Card
+                        userProfileCard
+
+                        // Account Settings
+                        settingsSection(title: "Account") {
+                            NavigationLink {
+                                EditProfileView(authViewModel: authViewModel)
+                            } label: {
+                                SettingsRowContent(icon: "person.circle", title: "Edit Profile", subtitle: "Update your display name", showChevron: true)
+                            }
+
+                            NavigationLink {
+                                ChangePasswordView(authViewModel: authViewModel)
+                            } label: {
+                                SettingsRowContent(icon: "key", title: "Change Password", subtitle: "Update your password", showChevron: true)
+                            }
                         }
 
-                        NavigationLink {
-                            ChangePasswordView(authViewModel: authViewModel)
-                        } label: {
-                            SettingsRowContent(icon: "key", title: "Change Password", subtitle: "Update your password", showChevron: true)
-                        }
-                    }
+                        // Sound & Haptics
+                        settingsSection(title: "Sound & Haptics") {
+                            SettingsToggleRow(
+                                icon: "speaker.wave.2",
+                                title: "Sound Effects",
+                                subtitle: nil,
+                                isOn: $audioService.isEnabled
+                            )
 
-                    // Sound & Haptics
-                    settingsSection(title: "Sound & Haptics") {
-                        SettingsToggleRow(
-                            icon: "speaker.wave.2",
-                            title: "Sound Effects",
-                            subtitle: nil,
-                            isOn: $audioService.isEnabled
-                        )
-
-                        if audioService.isEnabled {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Volume: \(Int(audioService.volume * 100))%")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(AppTheme.Colors.textSecondary)
-
-                                HStack {
-                                    Image(systemName: "speaker.fill")
+                            if audioService.isEnabled {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Volume: \(Int(audioService.volume * 100))%")
                                         .font(.system(size: 12))
                                         .foregroundColor(AppTheme.Colors.textSecondary)
 
-                                    Slider(value: $audioService.volume, in: 0...1, step: 0.1)
-                                        .tint(AppTheme.Colors.mintGreen)
+                                    HStack {
+                                        Image(systemName: "speaker.fill")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(AppTheme.Colors.textSecondary)
 
-                                    Image(systemName: "speaker.wave.3.fill")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(AppTheme.Colors.textSecondary)
+                                        Slider(value: $audioService.volume, in: 0...1, step: 0.1)
+                                            .tint(AppTheme.Colors.mintGreen)
+
+                                        Image(systemName: "speaker.wave.3.fill")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(AppTheme.Colors.textSecondary)
+                                    }
                                 }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+
+                                Button {
+                                    audioService.play(.correct)
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "play.circle")
+                                            .foregroundColor(AppTheme.Colors.mintGreen)
+                                        Text("Test Sound")
+                                            .foregroundColor(AppTheme.Colors.mintGreen)
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                }
+                            }
+
+                            SettingsToggleRow(
+                                icon: "iphone.radiowaves.left.and.right",
+                                title: "Haptic Feedback",
+                                subtitle: nil,
+                                isOn: $hapticService.isEnabled
+                            )
+
+                            if hapticService.isEnabled {
+                                Button {
+                                    hapticService.trigger(.success)
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "hand.tap")
+                                            .foregroundColor(AppTheme.Colors.mintGreen)
+                                        Text("Test Haptic")
+                                            .foregroundColor(AppTheme.Colors.mintGreen)
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                }
+                            }
+                        }
+
+                        // Data & Storage
+                        settingsSection(title: "Data & Storage") {
+                            NavigationLink {
+                                OfflineDataView()
+                            } label: {
+                                SettingsRowContent(icon: "internaldrive", title: "Offline Data", subtitle: "Manage downloaded strategy data and storage preferences.", showChevron: true)
+                            }
+                        }
+
+                        // Help & Tours
+                        settingsSection(title: "Help & Tours") {
+                            NavigationLink {
+                                TourSettingsView()
+                            } label: {
+                                SettingsRowContent(icon: "questionmark.circle", title: "Product Tours", subtitle: "Replay guided tours to learn app features.", showChevron: true)
+                            }
+                        }
+
+                        // Reset
+                        Button {
+                            resetToDefaults()
+                        } label: {
+                            HStack {
+                                Image(systemName: "arrow.counterclockwise")
+                                    .foregroundColor(AppTheme.Colors.danger)
+                                Text("Reset to Defaults")
+                                    .foregroundColor(AppTheme.Colors.danger)
+                            }
+                        }
+                        .padding(.top, 8)
+
+                        // About
+                        settingsSection(title: "About") {
+                            HStack {
+                                Text("Version")
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Text("1.0.0")
+                                    .foregroundColor(AppTheme.Colors.textSecondary)
                             }
                             .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
+                            .padding(.vertical, 12)
 
-                            Button {
-                                audioService.play(.correct)
-                            } label: {
-                                HStack {
-                                    Image(systemName: "play.circle")
-                                        .foregroundColor(AppTheme.Colors.mintGreen)
-                                    Text("Test Sound")
-                                        .foregroundColor(AppTheme.Colors.mintGreen)
-                                    Spacer()
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("VP Academy")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white)
+                                Text("Master optimal video poker strategy through practice and learning.")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(AppTheme.Colors.textSecondary)
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
                         }
 
-                        SettingsToggleRow(
-                            icon: "iphone.radiowaves.left.and.right",
-                            title: "Haptic Feedback",
-                            subtitle: nil,
-                            isOn: $hapticService.isEnabled
-                        )
-
-                        if hapticService.isEnabled {
-                            Button {
-                                hapticService.trigger(.success)
-                            } label: {
-                                HStack {
-                                    Image(systemName: "hand.tap")
-                                        .foregroundColor(AppTheme.Colors.mintGreen)
-                                    Text("Test Haptic")
-                                        .foregroundColor(AppTheme.Colors.mintGreen)
-                                    Spacer()
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
+                        // Sign Out Button
+                        Button {
+                            Task {
+                                await authViewModel.signOut()
                             }
-                        }
-                    }
-
-                    // Data & Storage
-                    settingsSection(title: "Data & Storage") {
-                        NavigationLink {
-                            OfflineDataView()
                         } label: {
-                            SettingsRowContent(icon: "internaldrive", title: "Offline Data", subtitle: "Manage downloaded strategy data and storage preferences.", showChevron: true)
-                        }
-                    }
-
-                    // Help & Tours
-                    settingsSection(title: "Help & Tours") {
-                        NavigationLink {
-                            TourSettingsView()
-                        } label: {
-                            SettingsRowContent(icon: "questionmark.circle", title: "Product Tours", subtitle: "Replay guided tours to learn app features.", showChevron: true)
-                        }
-                    }
-
-                    // Reset
-                    Button {
-                        resetToDefaults()
-                    } label: {
-                        HStack {
-                            Image(systemName: "arrow.counterclockwise")
-                                .foregroundColor(AppTheme.Colors.danger)
-                            Text("Reset to Defaults")
-                                .foregroundColor(AppTheme.Colors.danger)
-                        }
-                    }
-                    .padding(.top, 8)
-
-                    // About
-                    settingsSection(title: "About") {
-                        HStack {
-                            Text("Version")
-                                .foregroundColor(.white)
-                            Spacer()
-                            Text("1.0.0")
-                                .foregroundColor(AppTheme.Colors.textSecondary)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("VP Academy")
+                            Text("Sign Out")
                                 .font(.system(size: 16, weight: .semibold))
                                 .foregroundColor(.white)
-                            Text("Master optimal video poker strategy through practice and learning.")
-                                .font(.system(size: 12))
-                                .foregroundColor(AppTheme.Colors.textSecondary)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 56)
+                                .background(AppTheme.Colors.danger)
+                                .cornerRadius(28)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
+                        .padding(.top, 8)
                     }
-
-                    // Sign Out Button
-                    Button {
-                        Task {
-                            await authViewModel.signOut()
-                        }
-                    } label: {
-                        Text("Sign Out")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(AppTheme.Colors.danger)
-                            .cornerRadius(28)
-                    }
-                    .padding(.top, 8)
+                    .padding()
+                    .frame(maxWidth: maxContentWidth)
+                    .frame(maxWidth: .infinity)
                 }
-                .padding()
             }
         }
         .navigationTitle("Settings")

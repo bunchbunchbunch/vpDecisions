@@ -8,50 +8,25 @@ struct PlayStartView: View {
     @State private var selectedFamily: GameFamily = .jacksOrBetter
 
     var body: some View {
-        ZStack {
-            AppTheme.Gradients.background
-                .ignoresSafeArea()
+        GeometryReader { geometry in
+            let isLandscape = geometry.size.width > geometry.size.height
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    // Header with chip icon
-                    headerSection
+            ZStack {
+                AppTheme.Gradients.background
+                    .ignoresSafeArea()
 
-                    // Popular Games
-                    popularGamesSection
-
-                    // All Games dropdown
-                    allGamesSection
-
-                    // Lines selection
-                    linesSection
-
-                    // Denomination selection
-                    denominationSection
-
-                    // Optimal feedback toggle
-                    optimalFeedbackToggle
-
-                    Spacer(minLength: 20)
-
-                    // Start button
-                    startButtonSection
-                        .frame(maxWidth: .infinity)
+                if isLandscape {
+                    landscapeLayout(geometry: geometry)
+                        .ignoresSafeArea(edges: .top)
+                } else {
+                    portraitLayout
                 }
-                .padding()
             }
         }
         .withTour(.playStart)
-        .navigationTitle("Play Mode")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text("Play Mode")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white)
-            }
-        }
         .task {
             settings = await PlayPersistence.shared.loadSettings()
         }
@@ -59,6 +34,78 @@ struct PlayStartView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("This game hasn't been downloaded yet. Please connect to the internet to download it, or choose a different game.")
+        }
+    }
+
+    // MARK: - Portrait Layout
+
+    private var portraitLayout: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                headerSection
+                popularGamesSection
+                allGamesSection
+                linesSection
+                denominationSection
+                optimalFeedbackToggle
+                Spacer(minLength: 20)
+                startButtonSection
+                    .frame(maxWidth: .infinity)
+            }
+            .padding()
+        }
+    }
+
+    // MARK: - Landscape Layout
+
+    private func landscapeLayout(geometry: GeometryProxy) -> some View {
+        HStack(alignment: .top, spacing: 20) {
+            // Left column: Header + Game selection + Lines
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 10) {
+                    compactHeaderSection
+                    popularGamesSection
+                    allGamesSection
+                    linesSection
+                }
+            }
+            .frame(width: (geometry.size.width - 48) * 0.55)
+
+            // Right column: Denomination, feedback toggle, and start
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 10) {
+                    denominationSection
+                    optimalFeedbackToggle
+                    Spacer(minLength: 8)
+                    startButtonSection
+                }
+            }
+            .frame(width: (geometry.size.width - 48) * 0.45)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+    }
+
+    // MARK: - Compact Header Section (for landscape)
+
+    private var compactHeaderSection: some View {
+        HStack(spacing: 12) {
+            Image("chip-red")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 40, height: 40)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Play Mode")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+
+                Text("Simulate your favorite video poker games.")
+                    .font(.system(size: 12))
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+
+            Spacer()
         }
     }
 
@@ -236,7 +283,7 @@ struct PlayStartView: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(AppTheme.Colors.textSecondary)
 
-            HStack(spacing: 8) {
+            FlowLayout(spacing: 8) {
                 ForEach(LineCount.allCases, id: \.self) { lineCount in
                     SelectionChip(
                         title: lineCount.displayName,
@@ -246,6 +293,7 @@ struct PlayStartView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .tourTarget("linesSelector")
@@ -259,7 +307,7 @@ struct PlayStartView: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(AppTheme.Colors.textSecondary)
 
-            HStack(spacing: 8) {
+            FlowLayout(spacing: 8) {
                 ForEach(BetDenomination.allCases, id: \.self) { denom in
                     SelectionChip(
                         title: denom.displayName,
@@ -269,6 +317,7 @@ struct PlayStartView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .tourTarget("denominationSelector")
@@ -342,6 +391,8 @@ struct SelectionChip: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 14, weight: .medium))
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
                 .foregroundColor(isSelected ? AppTheme.Colors.darkGreen : .white)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
