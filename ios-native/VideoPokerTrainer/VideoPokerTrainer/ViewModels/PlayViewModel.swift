@@ -277,12 +277,9 @@ class PlayViewModel: ObservableObject {
             if hasBigWin {
                 audioService.play(.bigWin)
             } else if winAmount > settings.totalBetDollars {
-                audioService.play(.coinPayout)
-            } else {
                 audioService.play(.correct)
             }
-        } else {
-            audioService.play(.submit)
+            // Small wins (win ≤ bet) play no sound
         }
     }
 
@@ -366,12 +363,9 @@ class PlayViewModel: ObservableObject {
             if hasBigWin {
                 audioService.play(.bigWin)
             } else if winAmount > settings.totalBetDollars {
-                audioService.play(.coinPayout)
-            } else {
                 audioService.play(.correct)
             }
-        } else {
-            audioService.play(.submit)
+            // Small wins (win ≤ bet) play no sound
         }
     }
 
