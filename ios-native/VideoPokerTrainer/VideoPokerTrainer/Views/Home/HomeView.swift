@@ -64,7 +64,7 @@ struct HomeView: View {
 
     private var portraitLayout: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: 20) {
                 // Welcome section
                 welcomeSection
 
@@ -77,71 +77,100 @@ struct HomeView: View {
                 // Features in Beta section
                 betaFeaturesSection
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 16)
         }
     }
 
     // MARK: - Landscape Layout
 
     private func landscapeLayout(geometry: GeometryProxy) -> some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Welcome section (compact)
+        let availableHeight = geometry.size.height - 32
+
+        return ScrollView(showsIndicators: false) {
+            VStack(spacing: 0) {
+                // Welcome section at top left - compact
                 HStack {
-                    welcomeSection
-                    Spacer()
-                }
-                .padding(.bottom, 8)
-
-                // Main content in 2 columns
-                HStack(alignment: .top, spacing: 16) {
-                    // Left column: Play Mode
-                    VStack(spacing: 16) {
-                        playModeCard
-
-                        // Beta features (collapsed by default)
-                        betaFeaturesSection
-                    }
-                    .frame(width: (geometry.size.width - 48) * 0.45)
-
-                    // Right column: Training Mode
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Training Mode")
-                            .font(.system(size: 16, weight: .semibold))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Welcome Back!")
+                            .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(.white)
 
-                        Text("Sharpen your strategy and play smarter.")
-                            .font(.system(size: 12))
+                        Text(displayName)
+                            .font(.system(size: 14))
                             .foregroundColor(AppTheme.Colors.textSecondary)
-
-                        // Feature cards in horizontal layout for landscape
-                        HStack(spacing: 12) {
-                            // Quiz Mode
-                            FeatureCard(
-                                chipImage: "chip-gold",
-                                title: "Quiz Mode",
-                                subtitle: "Test yourself on optimal strategy."
-                            ) {
-                                weakSpotsMode = false
-                                navigationPath.append(AppScreen.quizStart)
-                            }
-                            .tourTarget("quizModeButton")
-
-                            // Analyze
-                            FeatureCard(
-                                chipImage: "chip-blue",
-                                title: "Analyze",
-                                subtitle: "See the optimal strategy for a specific hand."
-                            ) {
-                                navigationPath.append(AppScreen.analyzer)
-                            }
-                            .tourTarget("analyzerButton")
-                        }
                     }
-                    .frame(width: (geometry.size.width - 48) * 0.55)
+                    Spacer()
                 }
+
+                Spacer(minLength: 16)
+
+                // All feature cards in a row
+                HStack(spacing: 16) {
+                    // Play Mode - larger featured card
+                    Button {
+                        navigationPath.append(AppScreen.playStart)
+                    } label: {
+                        VStack(spacing: 12) {
+                            Image("chip-red")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 50, height: 50)
+
+                            VStack(spacing: 4) {
+                                Text("Play Mode")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white)
+                                Text("Simulate your favorite games.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(AppTheme.Colors.textSecondary)
+                                    .multilineTextAlignment(.center)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.vertical, 20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(AppTheme.Colors.cardBackground)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .tourTarget("playModeButton")
+
+                    // Quiz Mode
+                    FeatureCard(
+                        chipImage: "chip-gold",
+                        title: "Quiz Mode",
+                        subtitle: "Test optimal strategy."
+                    ) {
+                        weakSpotsMode = false
+                        navigationPath.append(AppScreen.quizStart)
+                    }
+                    .tourTarget("quizModeButton")
+
+                    // Analyze
+                    FeatureCard(
+                        chipImage: "chip-blue",
+                        title: "Analyze",
+                        subtitle: "Check any hand."
+                    ) {
+                        navigationPath.append(AppScreen.analyzer)
+                    }
+                    .tourTarget("analyzerButton")
+                }
+                .frame(maxHeight: availableHeight * 0.45)
+
+                Spacer(minLength: 16)
+
+                // Beta features section at bottom
+                betaFeaturesSection
+
+                Spacer(minLength: 8)
             }
-            .padding()
+            .frame(minHeight: availableHeight)
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
         }
     }
 
@@ -181,13 +210,26 @@ struct HomeView: View {
 
     // MARK: - Welcome Section
 
+    private var displayName: String {
+        // First try full_name from userMetadata
+        if let fullName = authViewModel.currentUser?.userMetadata["full_name"]?.stringValue,
+           !fullName.isEmpty {
+            return fullName
+        }
+        // Fall back to email prefix
+        if let email = authViewModel.currentUser?.email {
+            return email.components(separatedBy: "@").first ?? "Player"
+        }
+        return "Player"
+    }
+
     private var welcomeSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Welcome Back!")
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(.white)
 
-            Text(authViewModel.currentUser?.email?.components(separatedBy: "@").first ?? "Player")
+            Text(displayName)
                 .font(.system(size: 16))
                 .foregroundColor(AppTheme.Colors.textSecondary)
         }
@@ -322,6 +364,20 @@ struct HomeView: View {
                         ) {
                             navigationPath.append(AppScreen.mastery)
                         }
+                    }
+
+                    HStack(spacing: 12) {
+                        // Simulation
+                        FeatureCard(
+                            icon: "chart.line.uptrend.xyaxis",
+                            iconColor: AppTheme.Colors.mintGreen,
+                            title: "Simulation",
+                            subtitle: "Run thousands of hands to see expected results."
+                        ) {
+                            navigationPath.append(AppScreen.simulationStart)
+                        }
+
+                        Spacer()
                     }
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -558,31 +614,59 @@ struct QuizStartView: View {
     // MARK: - Landscape Layout
 
     private func landscapeLayout(geometry: GeometryProxy) -> some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Header at top
-                headerSection
-                    .padding(.bottom, 8)
+        let availableHeight = geometry.size.height - 16
 
-                // Two columns
-                HStack(alignment: .top, spacing: 24) {
-                    // Left column: Game selection
-                    VStack(alignment: .leading, spacing: 16) {
-                        popularGamesSection
-                        allGamesSection
-                    }
-                    .frame(width: (geometry.size.width - 64) * 0.55)
-
-                    // Right column: Quiz size and start
-                    VStack(alignment: .leading, spacing: 16) {
-                        quizSizeSection
-                        Spacer(minLength: 12)
-                        startButtonSection
-                    }
-                    .frame(width: (geometry.size.width - 64) * 0.45)
+        return HStack(alignment: .top, spacing: 20) {
+            // Left column: Header + Game selection
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    compactHeaderSection
+                    Spacer(minLength: 10)
+                    popularGamesSection
+                    Spacer(minLength: 10)
+                    allGamesSection
+                    Spacer(minLength: 8)
                 }
+                .frame(minHeight: availableHeight)
             }
-            .padding()
+            .frame(width: (geometry.size.width - 48) * 0.55)
+
+            // Right column: Quiz size and start
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    quizSizeSection
+                    Spacer(minLength: 16)
+                    startButtonSection
+                    Spacer(minLength: 8)
+                }
+                .frame(minHeight: availableHeight)
+            }
+            .frame(width: (geometry.size.width - 48) * 0.45)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+    }
+
+    // MARK: - Compact Header Section (for landscape)
+
+    private var compactHeaderSection: some View {
+        HStack(spacing: 12) {
+            Image(weakSpotsMode ? "chip-black" : "chip-gold")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 40, height: 40)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(weakSpotsMode ? "Weak Spots" : "Quiz Mode")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+
+                Text(weakSpotsMode ? "Practice your problem hands." : "Test yourself on optimal strategy.")
+                    .font(.system(size: 12))
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+
+            Spacer()
         }
     }
 

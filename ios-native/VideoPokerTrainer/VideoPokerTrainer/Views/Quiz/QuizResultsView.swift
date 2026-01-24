@@ -94,10 +94,10 @@ struct QuizResultsView: View {
                         .foregroundColor(.secondary)
 
                     // Cards
-                    HStack(spacing: 2) {
+                    HStack(spacing: 4) {
                         ForEach(quizHand.hand.cards, id: \.id) { card in
                             Text(card.displayText)
-                                .font(.system(.caption, design: .monospaced))
+                                .font(.system(size: 16, weight: .semibold, design: .monospaced))
                                 .foregroundColor(card.suit.color)
                         }
                     }
@@ -134,48 +134,54 @@ struct QuizResultsView: View {
             // User's hold (already in original order)
             HStack {
                 Text("Your hold:")
+                    .font(.subheadline)
                     .foregroundColor(.secondary)
                 if quizHand.userHoldIndices.isEmpty {
                     Text("(none)")
+                        .font(.subheadline)
                         .italic()
                         .foregroundColor(.secondary)
                 } else {
-                    ForEach(quizHand.userHoldIndices, id: \.self) { index in
-                        let card = quizHand.hand.cards[index]
-                        Text(card.displayText)
-                            .foregroundColor(card.suit.color)
-                            .fontWeight(.bold)
+                    HStack(spacing: 4) {
+                        ForEach(quizHand.userHoldIndices, id: \.self) { index in
+                            let card = quizHand.hand.cards[index]
+                            Text(card.displayText)
+                                .font(.system(size: 16, weight: .bold, design: .monospaced))
+                                .foregroundColor(card.suit.color)
+                        }
                     }
                 }
             }
-            .font(.subheadline)
 
             // Correct hold (if different)
             if !quizHand.isCorrect {
                 HStack {
                     Text("Correct:")
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                     if correctHoldOriginal.isEmpty {
                         Text("Draw all")
+                            .font(.subheadline)
                             .italic()
                             .foregroundColor(.secondary)
                     } else {
-                        ForEach(correctHoldOriginal, id: \.self) { index in
-                            let card = quizHand.hand.cards[index]
-                            Text(card.displayText)
-                                .foregroundColor(card.suit.color)
-                                .fontWeight(.bold)
+                        HStack(spacing: 4) {
+                            ForEach(correctHoldOriginal, id: \.self) { index in
+                                let card = quizHand.hand.cards[index]
+                                Text(card.displayText)
+                                    .font(.system(size: 16, weight: .bold, design: .monospaced))
+                                    .foregroundColor(card.suit.color)
+                            }
                         }
                     }
                 }
-                .font(.subheadline)
             }
 
             // Top hold options
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("Top options:")
                     .foregroundColor(.secondary)
-                    .font(.caption)
+                    .font(.subheadline)
 
                 let userCanonicalHold = quizHand.hand.originalIndicesToCanonical(quizHand.userHoldIndices)
                 let allOptions = quizHand.strategyResult.sortedHoldOptionsPrioritizingUser(userCanonicalHold)
@@ -186,27 +192,31 @@ struct QuizResultsView: View {
 
                     HStack {
                         Text("\(rank).")
+                            .font(.subheadline)
                             .foregroundColor(.secondary)
-                            .frame(width: 20)
+                            .frame(width: 24)
 
                         if originalIndices.isEmpty {
                             Text("Draw all")
+                                .font(.subheadline)
                                 .italic()
                         } else {
-                            ForEach(originalIndices, id: \.self) { index in
-                                let card = quizHand.hand.cards[index]
-                                Text(card.displayText)
-                                    .foregroundColor(card.suit.color)
+                            HStack(spacing: 4) {
+                                ForEach(originalIndices, id: \.self) { index in
+                                    let card = quizHand.hand.cards[index]
+                                    Text(card.displayText)
+                                        .font(.system(size: 14, weight: .medium, design: .monospaced))
+                                        .foregroundColor(card.suit.color)
+                                }
                             }
                         }
 
                         Spacer()
 
                         Text(String(format: "%.4f", option.ev))
-                            .font(.caption)
+                            .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
-                    .font(.caption)
                 }
             }
         }

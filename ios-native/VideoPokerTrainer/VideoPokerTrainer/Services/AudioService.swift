@@ -97,18 +97,13 @@ class AudioService: ObservableObject {
     }
 
     func play(_ sound: SoundEffect) {
-        NSLog("🔊 AudioService.play(%@) called - isEnabled: %@", sound.rawValue, isEnabled ? "true" : "false")
-        guard isEnabled else {
-            NSLog("🔊 AudioService: Sound disabled, skipping")
-            return
-        }
+        guard isEnabled else { return }
 
-        if let player = players[sound] {
+        // Play sound on background queue to avoid blocking UI during rapid gestures
+        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+            guard let player = self?.players[sound] else { return }
             player.currentTime = 0
-            let success = player.play()
-            NSLog("🔊 AudioService: Playing %@ - success: %@, volume: %.2f", sound.rawValue, success ? "true" : "false", player.volume)
-        } else {
-            NSLog("🔊 AudioService: No player found for %@", sound.rawValue)
+            player.play()
         }
     }
 }

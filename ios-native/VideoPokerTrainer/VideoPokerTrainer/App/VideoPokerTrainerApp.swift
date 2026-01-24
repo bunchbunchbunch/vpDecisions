@@ -23,6 +23,7 @@ struct VideoPokerTrainerApp: App {
                     AuthView()
                 }
             }
+            .preferredColorScheme(.dark)  // Always use dark mode for casino theme
             .sheet(isPresented: $showResetPassword) {
                 ResetPasswordView(viewModel: authViewModel)
             }

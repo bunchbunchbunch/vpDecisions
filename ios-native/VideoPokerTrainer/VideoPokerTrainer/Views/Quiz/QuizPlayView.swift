@@ -7,6 +7,7 @@ struct QuizPlayView: View {
     @State private var swipedCardIndices: Set<Int> = []
     @State private var isDragging = false
     @State private var dragStartLocation: CGPoint?
+    @State private var isLandscape = false
 
     var body: some View {
         Group {
@@ -19,10 +20,15 @@ struct QuizPlayView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar(isLandscape ? .hidden : .visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button("Quit") {
+                Button {
                     navigationPath.removeLast(navigationPath.count)
+                } label: {
+                    Text("Quit")
+                        .foregroundColor(.white)
                 }
             }
         }
@@ -80,12 +86,28 @@ struct QuizPlayView: View {
 
     private var quizView: some View {
         GeometryReader { geometry in
-            let isLandscape = geometry.size.width > geometry.size.height
+            let currentlyLandscape = geometry.size.width > geometry.size.height
 
-            if isLandscape {
-                landscapeQuizLayout(geometry: geometry)
-            } else {
-                portraitQuizLayout(geometry: geometry)
+            ZStack {
+                // Casino-style dark blue gradient background (matching PlayView)
+                LinearGradient(
+                    colors: [Color(hex: "0a0a1a"), Color(hex: "1a1a3a"), Color(hex: "0a0a1a")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+
+                if currentlyLandscape {
+                    landscapeQuizLayout(geometry: geometry)
+                } else {
+                    portraitQuizLayout(geometry: geometry)
+                }
+            }
+            .onChange(of: currentlyLandscape) { _, newValue in
+                isLandscape = newValue
+            }
+            .onAppear {
+                isLandscape = currentlyLandscape
             }
         }
     }
@@ -135,52 +157,83 @@ struct QuizPlayView: View {
     // MARK: - Landscape Quiz Layout
 
     private func landscapeQuizLayout(geometry: GeometryProxy) -> some View {
-        let leftWidth = geometry.size.width * 0.58
-        let rightWidth = geometry.size.width * 0.42 - 16
+        let leftWidth = geometry.size.width * 0.42
+        let rightWidth = geometry.size.width * 0.58 - 16
 
         return HStack(alignment: .top, spacing: 8) {
-            // Left side: Cards area with paytable above
-            VStack(spacing: 8) {
+            // Left side: Navigation header, progress, EV table
+            VStack(spacing: 6) {
+                // Inline navigation header
+                landscapeNavigationHeader
+
+                // Progress bar (compact)
+                landscapeProgressBar
+                    .tourTarget("progressBar")
+
+                // EV Options Table (scrollable)
+                if viewModel.showFeedback, let currentHand = viewModel.currentHand {
+                    ScrollView {
+                        evOptionsTable(for: currentHand)
+                            .tourTarget("evTable")
+                    }
+                }
+
+                Spacer(minLength: 0)
+            }
+            .frame(width: leftWidth)
+            .padding(.leading, 8)
+            .padding(.top, 4)
+
+            // Right side: Paytable, cards, and action button
+            VStack(spacing: 4) {
                 // Compact paytable at top
                 if let paytable = PayTable.allPayTables.first(where: { $0.id == viewModel.paytableId }) {
                     CompactPayTableView(paytable: paytable)
                         .padding(.horizontal, 4)
                 }
 
-                // Cards area - takes remaining height
-                landscapeCardsArea(width: leftWidth - 16, height: geometry.size.height * 0.65)
+                // Cards area - maximize height
+                landscapeCardsArea(width: rightWidth - 8, height: geometry.size.height * 0.55)
                     .tourTarget("quizCardsArea")
 
-                Spacer()
-            }
-            .frame(width: leftWidth)
-            .padding(.leading, 8)
+                Spacer(minLength: 4)
 
-            // Right side: Progress, EV table, and action button
-            VStack(spacing: 8) {
-                // Progress bar (compact)
-                landscapeProgressBar
-                    .tourTarget("progressBar")
-
-                // EV Options Table (scrollable)
-                ScrollView {
-                    if viewModel.showFeedback, let currentHand = viewModel.currentHand {
-                        evOptionsTable(for: currentHand)
-                            .tourTarget("evTable")
-                    }
-                }
-
-                Spacer()
-
-                // Action button (fixed at bottom)
+                // Action button at bottom
                 actionButton
                     .tourTarget("submitButton")
-                    .padding(.bottom, 8)
+                    .padding(.horizontal, 4)
+                    .padding(.bottom, 2)
             }
             .frame(width: rightWidth)
             .padding(.trailing, 8)
         }
-        .padding(.top, 8)
+    }
+
+    // MARK: - Landscape Navigation Header
+
+    private var landscapeNavigationHeader: some View {
+        HStack {
+            // Quit button
+            Button {
+                navigationPath.removeLast(navigationPath.count)
+            } label: {
+                Text("Quit")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+            }
+
+            Spacer()
+
+            // Game name
+            if let paytable = PayTable.allPayTables.first(where: { $0.id == viewModel.paytableId }) {
+                Text(paytable.name)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(Color(hex: "FFD700"))
+                    .lineLimit(1)
+            }
+        }
+        .padding(.horizontal, 4)
+        .padding(.vertical, 4)
     }
 
     // MARK: - Landscape Progress Bar (compact)
@@ -191,18 +244,19 @@ struct QuizPlayView: View {
                 Text(viewModel.progressText)
                     .font(.subheadline)
                     .fontWeight(.semibold)
+                    .foregroundColor(.white)
 
                 Spacer()
 
                 Text("\(viewModel.correctCount) correct")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.7))
             }
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(Color(.systemGray5))
+                        .fill(Color.white.opacity(0.2))
 
                     RoundedRectangle(cornerRadius: 3)
                         .fill(Color(hex: "667eea"))
@@ -224,9 +278,15 @@ struct QuizPlayView: View {
         let cardHeight = cardWidth / cardAspectRatio
 
         return ZStack {
-            // Green felt background
+            // Green felt background (matching PlayView)
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(hex: "2d5016"))
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: "1a4d1a"), Color(hex: "0d3d0d"), Color(hex: "1a4d1a")],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
                 .shadow(radius: 3)
 
             VStack(spacing: 4) {
@@ -277,9 +337,15 @@ struct QuizPlayView: View {
 
     private func cardsAreaView(geometry: GeometryProxy) -> some View {
         ZStack {
-            // Green felt background
+            // Green felt background (matching PlayView)
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(hex: "2d5016"))
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: "1a4d1a"), Color(hex: "0d3d0d"), Color(hex: "1a4d1a")],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
                 .shadow(radius: 5)
 
             // Cards (fixed vertical position)
@@ -378,18 +444,19 @@ struct QuizPlayView: View {
             HStack {
                 Text(viewModel.progressText)
                     .font(.headline)
+                    .foregroundColor(.white)
 
                 Spacer()
 
                 Text("\(viewModel.correctCount) correct")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.7))
             }
             .padding(.horizontal)
 
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(Color(.systemGray5))
+                        .fill(Color.white.opacity(0.2))
 
                     RoundedRectangle(cornerRadius: 4)
                         .fill(Color(hex: "667eea"))

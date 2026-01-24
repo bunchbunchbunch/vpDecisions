@@ -21,6 +21,9 @@ struct PlayView: View {
     // Exit confirmation
     @State private var showExitConfirmation = false
 
+    // Orientation tracking for conditional toolbar
+    @State private var isLandscape = false
+
     // Win counting animation
     @State private var animatedWinAmount: Double = 0
     @State private var animatedBalanceAmount: Double = 0
@@ -84,6 +87,7 @@ struct PlayView: View {
                 }
             }
         }
+        .toolbar(isLandscape ? .hidden : .visible, for: .navigationBar)
         .sheet(isPresented: $showSettings) {
             PlaySettingsSheet(viewModel: viewModel, isPresented: $showSettings)
         }
@@ -291,7 +295,7 @@ struct PlayView: View {
 
     private var mainContent: some View {
         GeometryReader { geometry in
-            let isLandscape = geometry.size.width > geometry.size.height
+            let currentlyLandscape = geometry.size.width > geometry.size.height
 
             ZStack {
                 // Casino-style dark blue gradient background
@@ -302,11 +306,17 @@ struct PlayView: View {
                 )
                 .ignoresSafeArea()
 
-                if isLandscape {
+                if currentlyLandscape {
                     landscapeLayout(geometry: geometry)
                 } else {
                     portraitLayout(geometry: geometry)
                 }
+            }
+            .onChange(of: currentlyLandscape) { _, newValue in
+                isLandscape = newValue
+            }
+            .onAppear {
+                isLandscape = currentlyLandscape
             }
         }
     }
@@ -384,6 +394,9 @@ struct PlayView: View {
         HStack(spacing: 8) {
             // Left side: Info panel
             VStack(spacing: 6) {
+                // Landscape navigation header
+                landscapeNavigationHeader
+
                 // Multi-hand grid or 100-play tally (compact in landscape)
                 if viewModel.settings.lineCount == .oneHundred {
                     HundredPlayTallyView(
@@ -417,10 +430,10 @@ struct PlayView: View {
             }
             .frame(width: geometry.size.width * 0.4 - 16)
             .padding(.leading, 8)
-            .padding(.top, 8)
+            .padding(.top, 4)
 
             // Right side: Cards area and action button
-            VStack(spacing: 8) {
+            VStack(spacing: 4) {
                 // Compact Paytable Display at top right
                 compactPaytableBar
                     .padding(.horizontal, 4)
@@ -435,23 +448,76 @@ struct PlayView: View {
                         .padding(.horizontal, 4)
                 }
 
-                Spacer(minLength: 0)
+                Spacer(minLength: 4)
 
                 // Action button at bottom right
                 casinoButtonBar(isLandscape: true)
                     .padding(.horizontal, 4)
-                    .padding(.bottom, 4)
+                    .padding(.bottom, 2)
             }
             .frame(width: geometry.size.width * 0.6)
         }
     }
 
+    // MARK: - Landscape Navigation Header
+
+    private var landscapeNavigationHeader: some View {
+        HStack {
+            // Back button
+            Button {
+                if viewModel.phase == .dealt {
+                    showExitConfirmation = true
+                } else {
+                    Task {
+                        await viewModel.endSession()
+                    }
+                    dismiss()
+                }
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+
+            Spacer()
+
+            // Game name
+            Text(viewModel.currentPaytable?.name ?? "Video Poker")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(Color(hex: "FFD700"))
+                .lineLimit(1)
+
+            Spacer()
+
+            // Stats and Settings buttons
+            HStack(spacing: 12) {
+                Button {
+                    showStats = true
+                } label: {
+                    Image(systemName: "chart.bar.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.white)
+                }
+
+                Button {
+                    showSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.white)
+                }
+            }
+        }
+        .padding(.horizontal, 4)
+        .padding(.vertical, 4)
+    }
+
     // MARK: - Landscape Machine Frame (optimized for horizontal layout)
 
     private func landscapeMachineFrame(geometry: GeometryProxy) -> some View {
-        // Calculate card area dimensions for landscape - ensure width > height
-        let availableWidth = geometry.size.width * 0.55  // 55% of screen width for card area
-        let cardAreaHeight: CGFloat = min(geometry.size.height * 0.45, 140)  // Limit height to force horizontal cards
+        // Calculate card area dimensions for landscape
+        // Need room for: top indicator, cards (with -10 offset when held), HELD label, bottom tip
+        let cardAreaHeight: CGFloat = min(geometry.size.height * 0.50, 160)
 
         return ZStack {
             // Green felt
@@ -464,16 +530,23 @@ struct PlayView: View {
                     )
                 )
 
-            VStack(spacing: 2) {
-                // Dealt winner indicator
+            VStack(spacing: 0) {
+                // Dealt winner indicator - reserve space even when empty
                 if viewModel.phase == .dealt, let handName = viewModel.dealtWinnerName {
                     Text(handName.uppercased())
                         .font(.system(size: 10, weight: .black))
                         .foregroundColor(Color(hex: "FFD700"))
-                        .padding(.top, 2)
+                        .padding(.top, 4)
+                        .padding(.bottom, 2)
+                } else {
+                    // Reserve space for consistency
+                    Text(" ")
+                        .font(.system(size: 10, weight: .black))
+                        .padding(.top, 4)
+                        .padding(.bottom, 2)
                 }
 
-                // Cards with win badge overlay - HORIZONTAL layout with fixed height
+                // Cards with win badge overlay - HORIZONTAL layout
                 ZStack(alignment: .bottom) {
                     if !viewModel.dealtCards.isEmpty {
                         HStack(spacing: 4) {
@@ -490,7 +563,6 @@ struct PlayView: View {
                                 }
                             }
                         }
-                        .frame(height: cardAreaHeight - 40)  // Fixed height for cards
                         .padding(.horizontal, 8)
                     } else {
                         // Empty card placeholders
@@ -505,7 +577,6 @@ struct PlayView: View {
                                     )
                             }
                         }
-                        .frame(height: cardAreaHeight - 40)
                         .padding(.horizontal, 8)
                     }
 
@@ -525,14 +596,15 @@ struct PlayView: View {
                             .font(.system(size: 9, weight: .bold))
                     }
                     .foregroundColor(Color(hex: "AAAAAA"))
-                    .padding(.bottom, 2)
+                    .padding(.top, 2)
+                    .padding(.bottom, 4)
                 } else {
                     Text(" ")
                         .font(.system(size: 9))
-                        .padding(.bottom, 2)
+                        .padding(.top, 2)
+                        .padding(.bottom, 4)
                 }
             }
-            .padding(.vertical, 2)
         }
         .frame(height: cardAreaHeight)  // Constrain overall height
         .background(
@@ -937,7 +1009,6 @@ struct PlayView: View {
     private func casinoButtonBar(isLandscape: Bool) -> some View {
         let buttonHeight: CGFloat = isLandscape ? 44 : 56
         let titleFontSize: CGFloat = isLandscape ? 16 : 20
-        let subtitleFontSize: CGFloat = isLandscape ? 10 : 12
 
         // Main DEAL/DRAW button (centered, full width)
         return Button {
@@ -955,15 +1026,9 @@ struct PlayView: View {
                 }
             }
         } label: {
-            VStack(spacing: 2) {
-                Text(actionButtonLabel)
-                    .font(.system(size: titleFontSize, weight: .black))
-                if viewModel.phase == .betting || viewModel.phase == .result {
-                    Text(formatCurrency(viewModel.settings.totalBetDollars))
-                        .font(.system(size: subtitleFontSize, weight: .medium))
-                }
-            }
-            .foregroundColor(.white)
+            Text(actionButtonLabel)
+                .font(.system(size: titleFontSize, weight: .black))
+                .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .frame(height: buttonHeight)
             .background(
@@ -1037,14 +1102,15 @@ struct PlayView: View {
     private func mainHandWinBadge(result: PlayHandResult) -> some View {
         if let handName = result.handName, result.payout > 0 {
             let badgeColors = winBadgeColors(for: handName)
+            let textColor = winBadgeTextColor(for: handName)
             let payoutDollars = Double(result.payout) * viewModel.settings.denomination.rawValue
             HStack(spacing: 6) {
                 Text(handName.uppercased())
                     .font(.system(size: 12, weight: .black))
-                    .foregroundColor(.white)
+                    .foregroundColor(textColor)
                 Text("+\(formatCurrency(payoutDollars))")
                     .font(.system(size: 12, weight: .black, design: .monospaced))
-                    .foregroundColor(.white)
+                    .foregroundColor(textColor)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
@@ -1059,6 +1125,16 @@ struct PlayView: View {
                     )
             )
             .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
+        }
+    }
+
+    private func winBadgeTextColor(for handName: String) -> Color {
+        // Use black text for light-colored badges for better readability
+        switch handName {
+        case "Two Pair", "Three of a Kind":
+            return .black
+        default:
+            return .white
         }
     }
 
@@ -1141,7 +1217,8 @@ struct PlayView: View {
                                     ForEach(optionCards, id: \.id) { card in
                                         Text(card.displayText)
                                             .font(.system(size: 16, weight: isBest ? .bold : .medium))
-                                            .foregroundColor(card.suit.textColor(for: colorScheme))
+                                            // Always use dark mode colors since EV table has dark background
+                                            .foregroundColor(card.suit.textColor(for: .dark))
                                     }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)

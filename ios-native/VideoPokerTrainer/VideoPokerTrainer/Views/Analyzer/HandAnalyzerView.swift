@@ -14,70 +14,12 @@ struct HandAnalyzerView: View {
             let isLandscape = geometry.size.width > geometry.size.height
 
             ZStack {
-                VStack(spacing: 0) {
-                    // Compact gradient header
-                    analyzerHeader
-
-                    // Paytable picker at top
-                    paytablePickerBar
-                        .tourTarget("analyzerGameSelector")
-
-                    Divider()
-
-                    if isLandscape {
-                        // Landscape: side by side layout
-                        HStack(alignment: .top, spacing: 0) {
-                            // Left: Selected cards + Card grid
-                            VStack(spacing: 0) {
-                                selectedCardsBar
-                                    .tourTarget("selectedCardsBar")
-                                Divider()
-                                cardGrid
-                                    .tourTarget("cardGrid")
-                            }
-                            .frame(width: geometry.size.width * 0.55)
-
-                            Divider()
-
-                            // Right: Results
-                            if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
-                                resultsTable(hand: hand, result: result)
-                                    .tourTarget("resultsTable")
-                                    .frame(width: geometry.size.width * 0.45)
-                            } else {
-                                VStack {
-                                    Spacer()
-                                    Text("Select 5 cards to see analysis")
-                                        .foregroundColor(.secondary)
-                                    Spacer()
-                                }
-                                .frame(width: geometry.size.width * 0.45)
-                            }
-                        }
-                    } else {
-                        // Portrait: vertical layout
-                        // Selected cards display
-                        selectedCardsBar
-                            .tourTarget("selectedCardsBar")
-
-                        Divider()
-
-                        // Card grid
-                        cardGrid
-                            .tourTarget("cardGrid")
-
-                        // Results table (inline, similar to quiz mode)
-                        if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
-                            Divider()
-                            resultsTable(hand: hand, result: result)
-                                .tourTarget("resultsTable")
-                        }
-                    }
-
-                    // Bottom bar with just error message
-                    if let error = viewModel.errorMessage {
-                        bottomErrorBar(error: error)
-                    }
+                if isLandscape {
+                    // Landscape: compact side by side layout
+                    landscapeLayout(geometry: geometry)
+                } else {
+                    // Portrait: vertical layout
+                    portraitLayout(geometry: geometry)
                 }
 
                 // Loading overlay when preparing paytable
@@ -91,6 +33,370 @@ struct HandAnalyzerView: View {
         .sheet(isPresented: $showPaytable) {
             AnalyzerPaytableSheet(paytable: viewModel.selectedPaytable, isPresented: $showPaytable)
         }
+    }
+
+    // MARK: - Portrait Layout
+
+    private func portraitLayout(geometry: GeometryProxy) -> some View {
+        VStack(spacing: 0) {
+            // Compact header bar (no large chip header)
+            portraitHeaderBar
+                .tourTarget("analyzerGameSelector")
+
+            Divider()
+
+            // Selected cards display
+            selectedCardsBar
+                .tourTarget("selectedCardsBar")
+
+            Divider()
+
+            // Card grid - 8 rows of 7 cards
+            portraitCardGrid
+                .tourTarget("cardGrid")
+
+            // Results table (inline, similar to quiz mode)
+            if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
+                Divider()
+                resultsTable(hand: hand, result: result)
+                    .tourTarget("resultsTable")
+            }
+
+            // Bottom bar with just error message
+            if let error = viewModel.errorMessage {
+                bottomErrorBar(error: error)
+            }
+        }
+    }
+
+    // MARK: - Portrait Header Bar (compact)
+
+    private var portraitHeaderBar: some View {
+        HStack(spacing: 8) {
+            // Game selector - compact
+            Menu {
+                ForEach(PayTable.popularPaytables, id: \.id) { paytable in
+                    Button {
+                        selectedPaytableId = paytable.id
+                        viewModel.selectedPaytable = paytable
+                    } label: {
+                        HStack {
+                            Text(paytable.name)
+                            if selectedPaytableId == paytable.id {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(viewModel.selectedPaytable.name)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color(hex: "667eea"))
+                .cornerRadius(8)
+            }
+
+            Spacer()
+
+            // Paytable button
+            Button {
+                showPaytable = true
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "list.bullet.rectangle")
+                        .font(.system(size: 12))
+                    Text("Paytable")
+                        .font(.system(size: 12))
+                }
+                .foregroundColor(Color(hex: "3498db"))
+            }
+
+            // Clear button
+            if !viewModel.selectedCards.isEmpty {
+                Button("Clear") {
+                    viewModel.clear()
+                }
+                .font(.system(size: 14))
+                .foregroundColor(.red)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color(.systemBackground))
+    }
+
+    // MARK: - Portrait Card Grid (8 rows of 7 cards)
+
+    private var portraitCardGrid: some View {
+        let suitOrder: [Suit] = [.clubs, .diamonds, .spades, .hearts]
+        let firstRowRanks: [Rank] = [.two, .three, .four, .five, .six, .seven, .eight]
+        let secondRowRanks: [Rank] = [.nine, .ten, .jack, .queen, .king, .ace]
+
+        return GeometryReader { geometry in
+            let cardWidth = (geometry.size.width - 24) / 7  // 7 cards per row with padding
+            let cardHeight = cardWidth * 1.4  // Aspect ratio for cards
+
+            ScrollView {
+                VStack(spacing: 4) {
+                    ForEach(suitOrder, id: \.self) { suit in
+                        // First row: 2-8
+                        HStack(spacing: 2) {
+                            ForEach(firstRowRanks, id: \.self) { rank in
+                                portraitCardGridCell(rank: rank, suit: suit, width: cardWidth, height: cardHeight)
+                            }
+                        }
+
+                        // Second row: 9-A + card back
+                        HStack(spacing: 2) {
+                            ForEach(secondRowRanks, id: \.self) { rank in
+                                portraitCardGridCell(rank: rank, suit: suit, width: cardWidth, height: cardHeight)
+                            }
+
+                            // Card back placeholder
+                            Image("1B")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: cardWidth, height: cardHeight)
+                                .cornerRadius(4)
+                                .opacity(0.5)
+                        }
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+            }
+        }
+    }
+
+    private func portraitCardGridCell(rank: Rank, suit: Suit, width: CGFloat, height: CGFloat) -> some View {
+        let card = Card(rank: rank, suit: suit)
+        let isSelected = viewModel.isCardSelected(card)
+        let isDisabled = viewModel.selectedCards.count >= 5 && !isSelected
+
+        return Button {
+            viewModel.toggleCard(card)
+        } label: {
+            VStack(spacing: 0) {
+                Text(rank.display)
+                    .font(.system(size: 16, weight: .bold))
+                Text(suit.symbol)
+                    .font(.system(size: 14))
+            }
+            .foregroundColor(isDisabled ? .gray : suit.color)
+            .frame(width: width, height: height)
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(isSelected ? Color.yellow.opacity(0.3) : Color(.systemGray6))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(isSelected ? Color.yellow : Color.clear, lineWidth: 2)
+            )
+        }
+        .disabled(isDisabled)
+    }
+
+    // MARK: - Landscape Layout
+
+    private func landscapeLayout(geometry: GeometryProxy) -> some View {
+        HStack(spacing: 0) {
+            // Left: Game selector + Selected cards + Card grid
+            VStack(spacing: 0) {
+                // Compact header with game selector
+                landscapeHeaderBar
+                    .tourTarget("analyzerGameSelector")
+
+                Divider()
+
+                // Compact selected cards
+                landscapeSelectedCardsBar
+                    .tourTarget("selectedCardsBar")
+
+                Divider()
+
+                // Compact card grid - no ScrollView needed if compact enough
+                landscapeCardGrid
+                    .tourTarget("cardGrid")
+            }
+            .frame(width: geometry.size.width * 0.52)
+
+            Divider()
+
+            // Right: Results
+            if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
+                resultsTable(hand: hand, result: result)
+                    .tourTarget("resultsTable")
+                    .frame(width: geometry.size.width * 0.48)
+            } else {
+                VStack {
+                    Spacer()
+                    Text("Select 5 cards")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+                .frame(width: geometry.size.width * 0.48)
+            }
+        }
+    }
+
+    // MARK: - Landscape Header Bar (compact)
+
+    private var landscapeHeaderBar: some View {
+        HStack(spacing: 8) {
+            // Game selector - compact
+            Menu {
+                ForEach(PayTable.popularPaytables, id: \.id) { paytable in
+                    Button {
+                        selectedPaytableId = paytable.id
+                        viewModel.selectedPaytable = paytable
+                    } label: {
+                        HStack {
+                            Text(paytable.name)
+                            if selectedPaytableId == paytable.id {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(viewModel.selectedPaytable.name)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color(hex: "667eea"))
+                .cornerRadius(6)
+            }
+
+            Spacer()
+
+            // Paytable button
+            Button {
+                showPaytable = true
+            } label: {
+                Image(systemName: "list.bullet.rectangle")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "3498db"))
+            }
+
+            // Clear button
+            if !viewModel.selectedCards.isEmpty {
+                Button("Clear") {
+                    viewModel.clear()
+                }
+                .font(.system(size: 13))
+                .foregroundColor(.red)
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(Color(.systemBackground))
+    }
+
+    // MARK: - Landscape Selected Cards Bar (compact)
+
+    private var landscapeSelectedCardsBar: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<5) { index in
+                if index < viewModel.selectedCards.count {
+                    let card = viewModel.selectedCards[index]
+                    // Compact card display
+                    VStack(spacing: 0) {
+                        Text(card.rank.display)
+                            .font(.system(size: 14, weight: .bold))
+                        Text(card.suit.symbol)
+                            .font(.system(size: 12))
+                    }
+                    .foregroundColor(card.suit.color)
+                    .frame(width: 32, height: 36)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(.systemGray6))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(Color.yellow, lineWidth: 2)
+                    )
+                } else {
+                    // Empty placeholder
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color(.systemGray5))
+                        .frame(width: 32, height: 36)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color(.systemGray4), lineWidth: 1)
+                        )
+                }
+            }
+
+            Spacer()
+
+            Text("\(viewModel.selectedCards.count)/5")
+                .font(.system(size: 12))
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color(.systemBackground))
+    }
+
+    // MARK: - Landscape Card Grid (compact)
+
+    private var landscapeCardGrid: some View {
+        VStack(spacing: 1) {
+            ForEach(allSuits, id: \.self) { suit in
+                HStack(spacing: 1) {
+                    ForEach(allRanks, id: \.self) { rank in
+                        landscapeCardGridCell(rank: rank, suit: suit)
+                    }
+                }
+            }
+        }
+        .padding(4)
+        .background(Color(.systemBackground))
+    }
+
+    private func landscapeCardGridCell(rank: Rank, suit: Suit) -> some View {
+        let card = Card(rank: rank, suit: suit)
+        let isSelected = viewModel.isCardSelected(card)
+        let isDisabled = viewModel.selectedCards.count >= 5 && !isSelected
+
+        return Button {
+            viewModel.toggleCard(card)
+        } label: {
+            VStack(spacing: 0) {
+                Text(rank.display)
+                    .font(.system(size: 11, weight: .bold))
+                Text(suit.symbol)
+                    .font(.system(size: 9))
+            }
+            .foregroundColor(isDisabled ? .gray : suit.color)
+            .frame(width: 22, height: 28)
+            .background(
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(isSelected ? Color.yellow.opacity(0.3) : Color(.systemGray6))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 3)
+                    .stroke(isSelected ? Color.yellow : Color.clear, lineWidth: 1.5)
+            )
+        }
+        .disabled(isDisabled)
     }
 
     // MARK: - Preparing Paytable Overlay

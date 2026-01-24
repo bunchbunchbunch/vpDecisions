@@ -59,26 +59,36 @@ struct PlayStartView: View {
     // MARK: - Landscape Layout
 
     private func landscapeLayout(geometry: GeometryProxy) -> some View {
-        HStack(alignment: .top, spacing: 20) {
+        let availableHeight = geometry.size.height - 16  // Account for top/bottom padding
+
+        return HStack(alignment: .top, spacing: 20) {
             // Left column: Header + Game selection + Lines
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 0) {
                     compactHeaderSection
+                    Spacer(minLength: 10)
                     popularGamesSection
+                    Spacer(minLength: 10)
                     allGamesSection
+                    Spacer(minLength: 10)
                     linesSection
+                    Spacer(minLength: 8)
                 }
+                .frame(minHeight: availableHeight)
             }
             .frame(width: (geometry.size.width - 48) * 0.55)
 
             // Right column: Denomination, feedback toggle, and start
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 0) {
                     denominationSection
+                    Spacer(minLength: 10)
                     optimalFeedbackToggle
-                    Spacer(minLength: 8)
+                    Spacer(minLength: 16)
                     startButtonSection
+                    Spacer(minLength: 8)
                 }
+                .frame(minHeight: availableHeight)
             }
             .frame(width: (geometry.size.width - 48) * 0.45)
         }
