@@ -3,11 +3,17 @@ import SwiftUI
 struct HandAnalyzerView: View {
     @StateObject private var viewModel = AnalyzerViewModel()
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedFamily: GameFamily = .jacksOrBetter
     @State private var selectedPaytableId: String = PayTable.jacksOrBetter96.id
     @State private var showPaytable = false
 
     let allSuits: [Suit] = [.hearts, .diamonds, .clubs, .spades]
     let allRanks: [Rank] = Rank.allCases
+
+    /// Paytables available for the currently selected family
+    private var paytablesForSelectedFamily: [PayTable] {
+        PayTable.paytables(for: selectedFamily)
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -72,16 +78,50 @@ struct HandAnalyzerView: View {
     // MARK: - Portrait Header Bar (compact)
 
     private var portraitHeaderBar: some View {
-        HStack(spacing: 8) {
-            // Game selector - compact
+        HStack(spacing: 6) {
+            // Game family selector
             Menu {
-                ForEach(PayTable.popularPaytables, id: \.id) { paytable in
+                ForEach(GameFamily.allCases) { family in
+                    Button {
+                        selectedFamily = family
+                        // Auto-select first paytable in the new family
+                        if let firstPaytable = PayTable.paytables(for: family).first {
+                            selectedPaytableId = firstPaytable.id
+                            viewModel.selectedPaytable = firstPaytable
+                        }
+                    } label: {
+                        HStack {
+                            Text(family.displayName)
+                            if selectedFamily == family {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(selectedFamily.shortName)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Color(hex: "667eea"))
+                .cornerRadius(8)
+            }
+
+            // Variant selector
+            Menu {
+                ForEach(paytablesForSelectedFamily, id: \.id) { paytable in
                     Button {
                         selectedPaytableId = paytable.id
                         viewModel.selectedPaytable = paytable
                     } label: {
                         HStack {
-                            Text(paytable.name)
+                            Text(paytable.variantName)
                             if selectedPaytableId == paytable.id {
                                 Image(systemName: "checkmark")
                             }
@@ -90,17 +130,16 @@ struct HandAnalyzerView: View {
                 }
             } label: {
                 HStack(spacing: 4) {
-                    Text(viewModel.selectedPaytable.name)
+                    Text(viewModel.selectedPaytable.variantName)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.white)
-                        .lineLimit(1)
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 10))
+                        .font(.system(size: 9))
                         .foregroundColor(.white.opacity(0.7))
                 }
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 10)
                 .padding(.vertical, 8)
-                .background(Color(hex: "667eea"))
+                .background(Color(hex: "5a6fd6"))
                 .cornerRadius(8)
             }
 
@@ -124,7 +163,7 @@ struct HandAnalyzerView: View {
                 Button("Clear") {
                     viewModel.clear()
                 }
-                .font(.system(size: 14))
+                .font(.system(size: 17, weight: .medium))
                 .foregroundColor(.red)
             }
         }
@@ -142,7 +181,7 @@ struct HandAnalyzerView: View {
 
         return GeometryReader { geometry in
             let cardWidth = (geometry.size.width - 24) / 7  // 7 cards per row with padding
-            let cardHeight = cardWidth * 1.4  // Aspect ratio for cards
+            let cardHeight = cardWidth * 1.2  // Compact aspect ratio for cards
 
             ScrollView {
                 VStack(spacing: 4) {
@@ -184,11 +223,11 @@ struct HandAnalyzerView: View {
         return Button {
             viewModel.toggleCard(card)
         } label: {
-            VStack(spacing: 0) {
+            VStack(spacing: -2) {
                 Text(rank.display)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 22, weight: .bold))
                 Text(suit.symbol)
-                    .font(.system(size: 14))
+                    .font(.system(size: 20))
             }
             .foregroundColor(isDisabled ? .gray : suit.color)
             .frame(width: width, height: height)
@@ -251,16 +290,49 @@ struct HandAnalyzerView: View {
     // MARK: - Landscape Header Bar (compact)
 
     private var landscapeHeaderBar: some View {
-        HStack(spacing: 8) {
-            // Game selector - compact
+        HStack(spacing: 6) {
+            // Game family selector
             Menu {
-                ForEach(PayTable.popularPaytables, id: \.id) { paytable in
+                ForEach(GameFamily.allCases) { family in
+                    Button {
+                        selectedFamily = family
+                        if let firstPaytable = PayTable.paytables(for: family).first {
+                            selectedPaytableId = firstPaytable.id
+                            viewModel.selectedPaytable = firstPaytable
+                        }
+                    } label: {
+                        HStack {
+                            Text(family.displayName)
+                            if selectedFamily == family {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 3) {
+                    Text(selectedFamily.shortName)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 8))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .background(Color(hex: "667eea"))
+                .cornerRadius(6)
+            }
+
+            // Variant selector
+            Menu {
+                ForEach(paytablesForSelectedFamily, id: \.id) { paytable in
                     Button {
                         selectedPaytableId = paytable.id
                         viewModel.selectedPaytable = paytable
                     } label: {
                         HStack {
-                            Text(paytable.name)
+                            Text(paytable.variantName)
                             if selectedPaytableId == paytable.id {
                                 Image(systemName: "checkmark")
                             }
@@ -268,18 +340,17 @@ struct HandAnalyzerView: View {
                     }
                 }
             } label: {
-                HStack(spacing: 4) {
-                    Text(viewModel.selectedPaytable.name)
-                        .font(.system(size: 13, weight: .medium))
+                HStack(spacing: 3) {
+                    Text(viewModel.selectedPaytable.variantName)
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.white)
-                        .lineLimit(1)
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 10))
+                        .font(.system(size: 8))
                         .foregroundColor(.white.opacity(0.7))
                 }
-                .padding(.horizontal, 10)
+                .padding(.horizontal, 8)
                 .padding(.vertical, 6)
-                .background(Color(hex: "667eea"))
+                .background(Color(hex: "5a6fd6"))
                 .cornerRadius(6)
             }
 
@@ -299,7 +370,7 @@ struct HandAnalyzerView: View {
                 Button("Clear") {
                     viewModel.clear()
                 }
-                .font(.system(size: 13))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.red)
             }
         }
@@ -465,44 +536,34 @@ struct HandAnalyzerView: View {
     // MARK: - Selected Cards Bar
 
     private var selectedCardsBar: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 12) {
-                ForEach(0..<5) { index in
-                    if index < viewModel.selectedCards.count {
-                        let card = viewModel.selectedCards[index]
-                        CardView(card: card, isSelected: false, showAsWild: viewModel.selectedPaytable.isDeucesWild)
-                            .frame(width: 60, height: 84)
-                    } else {
-                        // Card back placeholder - match CardView structure exactly
-                        VStack(spacing: 4) {
-                            Image("1B")
-                                .resizable()
-                                .aspectRatio(2.5/3.5, contentMode: .fit)
-                                .cornerRadius(8)
-                                .shadow(color: Color.black.opacity(0.2),
-                                        radius: 4,
-                                        x: 0,
-                                        y: 2)
-
-                            // Invisible spacer to match HELD label space in CardView
-                            Text("HELD")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .opacity(0)
-                        }
+        HStack(spacing: 12) {
+            ForEach(0..<5) { index in
+                if index < viewModel.selectedCards.count {
+                    let card = viewModel.selectedCards[index]
+                    CardView(card: card, isSelected: false, showAsWild: viewModel.selectedPaytable.isDeucesWild)
                         .frame(width: 60, height: 84)
-                    }
-                }
-            }
+                } else {
+                    // Card back placeholder - match CardView structure exactly
+                    VStack(spacing: 4) {
+                        Image("1B")
+                            .resizable()
+                            .aspectRatio(2.5/3.5, contentMode: .fit)
+                            .cornerRadius(8)
+                            .shadow(color: Color.black.opacity(0.2),
+                                    radius: 4,
+                                    x: 0,
+                                    y: 2)
 
-            if !viewModel.selectedCards.isEmpty {
-                Button("Clear") {
-                    viewModel.clear()
+                        // Invisible spacer to match HELD label space in CardView
+                        Text("HELD")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .opacity(0)
+                    }
+                    .frame(width: 60, height: 84)
                 }
-                .font(.subheadline)
-                .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
         .padding()

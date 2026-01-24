@@ -72,8 +72,10 @@ struct QuizResultsView: View {
     // MARK: - Hand Review Row
 
     private func handReviewRow(index: Int, quizHand: QuizHand) -> some View {
-        VStack(spacing: 0) {
-            // Main row
+        let isDeucesWild = PayTable.allPayTables.first { $0.id == viewModel.paytableId }?.isDeucesWild ?? false
+
+        return VStack(spacing: 0) {
+            // Main row with card images
             Button {
                 withAnimation {
                     if expandedHandIndex == index {
@@ -83,30 +85,35 @@ struct QuizResultsView: View {
                     }
                 }
             } label: {
-                HStack {
-                    // Status icon
-                    Image(systemName: quizHand.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
-                        .foregroundColor(quizHand.isCorrect ? .green : .red)
+                VStack(spacing: 8) {
+                    // Header row with status and hand number
+                    HStack {
+                        Image(systemName: quizHand.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(quizHand.isCorrect ? .green : .red)
 
-                    // Hand number
-                    Text("#\(index + 1)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        Text("Hand #\(index + 1)")
+                            .font(.headline)
+                            .foregroundColor(.primary)
 
-                    // Cards
-                    HStack(spacing: 4) {
-                        ForEach(quizHand.hand.cards, id: \.id) { card in
-                            Text(card.displayText)
-                                .font(.system(size: 16, weight: .semibold, design: .monospaced))
-                                .foregroundColor(card.suit.color)
-                        }
+                        Spacer()
+
+                        Image(systemName: expandedHandIndex == index ? "chevron.down" : "chevron.right")
+                            .foregroundColor(.secondary)
                     }
 
-                    Spacer()
-
-                    // Expand icon
-                    Image(systemName: expandedHandIndex == index ? "chevron.down" : "chevron.right")
-                        .foregroundColor(.secondary)
+                    // Card images - large and prominent
+                    HStack(spacing: 6) {
+                        ForEach(Array(quizHand.hand.cards.enumerated()), id: \.element.id) { cardIndex, card in
+                            let isHeld = quizHand.userHoldIndices.contains(cardIndex)
+                            CardView(
+                                card: card,
+                                isSelected: isHeld,
+                                showAsWild: isDeucesWild
+                            )
+                            .frame(width: 56)
+                        }
+                    }
                 }
                 .padding()
                 .background(Color(.systemBackground))
@@ -119,7 +126,7 @@ struct QuizResultsView: View {
             }
         }
         .background(Color(.systemGray6))
-        .cornerRadius(8)
+        .cornerRadius(12)
         .padding(.horizontal)
     }
 
@@ -128,25 +135,27 @@ struct QuizResultsView: View {
         let canonicalBestIndices = quizHand.strategyResult.bestHoldIndices
         let correctHoldOriginal = quizHand.hand.canonicalIndicesToOriginal(canonicalBestIndices)
 
-        return VStack(alignment: .leading, spacing: 12) {
+        return VStack(alignment: .leading, spacing: 16) {
             Divider()
 
             // User's hold (already in original order)
             HStack {
                 Text("Your hold:")
-                    .font(.subheadline)
+                    .font(.body)
+                    .fontWeight(.medium)
                     .foregroundColor(.secondary)
+                    .frame(width: 90, alignment: .leading)
                 if quizHand.userHoldIndices.isEmpty {
-                    Text("(none)")
-                        .font(.subheadline)
+                    Text("Draw all")
+                        .font(.body)
                         .italic()
                         .foregroundColor(.secondary)
                 } else {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         ForEach(quizHand.userHoldIndices, id: \.self) { index in
                             let card = quizHand.hand.cards[index]
                             Text(card.displayText)
-                                .font(.system(size: 16, weight: .bold, design: .monospaced))
+                                .font(.system(size: 20, weight: .bold, design: .monospaced))
                                 .foregroundColor(card.suit.color)
                         }
                     }
@@ -157,19 +166,21 @@ struct QuizResultsView: View {
             if !quizHand.isCorrect {
                 HStack {
                     Text("Correct:")
-                        .font(.subheadline)
+                        .font(.body)
+                        .fontWeight(.medium)
                         .foregroundColor(.secondary)
+                        .frame(width: 90, alignment: .leading)
                     if correctHoldOriginal.isEmpty {
                         Text("Draw all")
-                            .font(.subheadline)
+                            .font(.body)
                             .italic()
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.green)
                     } else {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 6) {
                             ForEach(correctHoldOriginal, id: \.self) { index in
                                 let card = quizHand.hand.cards[index]
                                 Text(card.displayText)
-                                    .font(.system(size: 16, weight: .bold, design: .monospaced))
+                                    .font(.system(size: 20, weight: .bold, design: .monospaced))
                                     .foregroundColor(card.suit.color)
                             }
                         }
@@ -178,10 +189,11 @@ struct QuizResultsView: View {
             }
 
             // Top hold options
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 10) {
                 Text("Top options:")
                     .foregroundColor(.secondary)
-                    .font(.subheadline)
+                    .font(.body)
+                    .fontWeight(.medium)
 
                 let userCanonicalHold = quizHand.hand.originalIndicesToCanonical(quizHand.userHoldIndices)
                 let allOptions = quizHand.strategyResult.sortedHoldOptionsPrioritizingUser(userCanonicalHold)
@@ -192,20 +204,20 @@ struct QuizResultsView: View {
 
                     HStack {
                         Text("\(rank).")
-                            .font(.subheadline)
+                            .font(.body)
                             .foregroundColor(.secondary)
-                            .frame(width: 24)
+                            .frame(width: 28)
 
                         if originalIndices.isEmpty {
                             Text("Draw all")
-                                .font(.subheadline)
+                                .font(.body)
                                 .italic()
                         } else {
-                            HStack(spacing: 4) {
+                            HStack(spacing: 6) {
                                 ForEach(originalIndices, id: \.self) { index in
                                     let card = quizHand.hand.cards[index]
                                     Text(card.displayText)
-                                        .font(.system(size: 14, weight: .medium, design: .monospaced))
+                                        .font(.system(size: 18, weight: .semibold, design: .monospaced))
                                         .foregroundColor(card.suit.color)
                                 }
                             }
@@ -214,7 +226,7 @@ struct QuizResultsView: View {
                         Spacer()
 
                         Text(String(format: "%.4f", option.ev))
-                            .font(.subheadline)
+                            .font(.body)
                             .foregroundColor(.secondary)
                     }
                 }

@@ -69,21 +69,25 @@ struct SimulationResultsView: View {
 
     private var overallResultsCard: some View {
         VStack(spacing: 16) {
-            Text("OVERALL RESULTS")
+            Text("PER SIMULATION")
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if let results = viewModel.results {
+                let runsCount = results.runs.count
+                let handsPerRun = runsCount > 0 ? results.totalHandsPlayed / runsCount : 0
+                let wageredPerRun = runsCount > 0 ? results.overallTotalBet / Double(runsCount) : 0
+
                 VStack(spacing: 12) {
-                    resultRow(label: "Total Hands", value: formatNumber(results.totalHandsPlayed))
-                    resultRow(label: "Total Wagered", value: formatCurrency(results.overallTotalBet))
-                    resultRow(label: "Total Won", value: formatCurrency(results.overallTotalWon))
+                    resultRow(label: "Hands per Simulation", value: formatNumber(handsPerRun))
+                    resultRow(label: "Wagered per Simulation", value: formatCurrency(wageredPerRun))
+                    resultRow(label: "Number of Simulations", value: formatNumber(runsCount))
                     resultRow(
-                        label: "Net Result",
-                        value: formatCurrency(results.overallNetResult),
-                        valueColor: results.overallNetResult >= 0 ? .green : .red
+                        label: "Average Net Result",
+                        value: formatCurrency(results.avgNetResult),
+                        valueColor: results.avgNetResult >= 0 ? .green : .red
                     )
 
                     Divider()

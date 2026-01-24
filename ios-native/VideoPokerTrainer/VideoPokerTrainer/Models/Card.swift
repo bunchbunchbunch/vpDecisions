@@ -18,15 +18,15 @@ enum Suit: String, CaseIterable, Codable {
     var color: Color {
         switch self {
         case .hearts, .diamonds: return Color(hex: "e74c3c")
-        case .clubs, .spades: return Color(hex: "2c3e50")
+        case .clubs, .spades: return .white
         }
     }
 
-    /// Adaptive color for text display - black suits show as white in dark mode
+    /// Adaptive color for text display - black suits always show as white
     func textColor(for colorScheme: ColorScheme) -> Color {
         switch self {
         case .hearts, .diamonds: return Color(hex: "e74c3c")
-        case .clubs, .spades: return colorScheme == .dark ? .white : Color(hex: "2c3e50")
+        case .clubs, .spades: return .white
         }
     }
 
