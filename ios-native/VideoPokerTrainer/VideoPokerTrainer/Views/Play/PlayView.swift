@@ -297,20 +297,21 @@ struct PlayView: View {
         GeometryReader { geometry in
             let currentlyLandscape = geometry.size.width > geometry.size.height
 
-            ZStack {
-                // Casino-style dark blue gradient background
+            Group {
+                if currentlyLandscape {
+                    landscapeLayout(geometry: geometry)
+                } else {
+                    portraitLayout(geometry: geometry)
+                }
+            }
+            .background {
+                // Casino-style dark blue gradient background - extends under safe areas
                 LinearGradient(
                     colors: [Color(hex: "0a0a1a"), Color(hex: "1a1a3a"), Color(hex: "0a0a1a")],
                     startPoint: .top,
                     endPoint: .bottom
                 )
                 .ignoresSafeArea()
-
-                if currentlyLandscape {
-                    landscapeLayout(geometry: geometry)
-                } else {
-                    portraitLayout(geometry: geometry)
-                }
             }
             .onChange(of: currentlyLandscape) { _, newValue in
                 isLandscape = newValue
@@ -391,43 +392,11 @@ struct PlayView: View {
     // MARK: - Landscape Layout
 
     private func landscapeLayout(geometry: GeometryProxy) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 0) {
             // Left side: Navigation + Multi-hand grid + Strategy
-            VStack(spacing: 4) {
-                // Navigation header at top
-                landscapeNavigationHeader
-
-                // Multi-hand grid area (only for multi-line play)
-                if viewModel.settings.lineCount == .oneHundred {
-                    HundredPlayTallyView(
-                        tallyResults: viewModel.phase == .result ? viewModel.hundredPlayTally : [],
-                        denomination: viewModel.settings.denomination.rawValue
-                    )
-                    .frame(maxHeight: 80)
-                } else if viewModel.settings.lineCount != .one {
-                    MultiHandGrid(
-                        lineCount: viewModel.settings.lineCount,
-                        results: gridResults,
-                        phase: viewModel.phase,
-                        denomination: viewModel.settings.denomination.rawValue,
-                        showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
-                    )
-                    .frame(maxHeight: 65)
-                }
-
-                // Strategy area - fills remaining space
-                if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
-                    ScrollView {
-                        landscapeEvOptionsTable
-                    }
-                } else {
-                    Spacer(minLength: 0)
-                }
-            }
-            .frame(width: geometry.size.width * 0.4 - 16)
-            .padding(.leading, 8)
-            .padding(.top, 4)
-            .padding(.bottom, 4)
+            // Uses safeAreaPadding to automatically handle Dynamic Island
+            landscapeLeftColumn
+                .frame(width: geometry.size.width * 0.4)
 
             // Right side: Paytable + Credits + Cards + Action button
             VStack(spacing: 4) {
@@ -458,6 +427,49 @@ struct PlayView: View {
             }
             .frame(width: geometry.size.width * 0.6)
         }
+    }
+
+    // MARK: - Landscape Left Column (redesigned)
+
+    private var landscapeLeftColumn: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                // Navigation header at top
+                landscapeNavigationHeader
+                    .padding(.horizontal, 8)
+
+                // Multi-hand grid area (for 5/10/100 line modes)
+                if viewModel.settings.lineCount == .oneHundred {
+                    HundredPlayTallyView(
+                        tallyResults: viewModel.phase == .result ? viewModel.hundredPlayTally : [],
+                        denomination: viewModel.settings.denomination.rawValue
+                    )
+                    .frame(maxHeight: 100)
+                    .padding(.horizontal, 8)
+                } else if viewModel.settings.lineCount != .one {
+                    MultiHandGrid(
+                        lineCount: viewModel.settings.lineCount,
+                        results: gridResults,
+                        phase: viewModel.phase,
+                        denomination: viewModel.settings.denomination.rawValue,
+                        showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
+                    )
+                    .padding(.horizontal, 8)
+                }
+
+                // Strategy/EV options table (when feedback is shown)
+                if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
+                    landscapeEvOptionsTable
+                        .padding(.horizontal, 8)
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(.top, 8)
+            .padding(.bottom, 8)
+        }
+        .safeAreaPadding(.leading)
+        .safeAreaPadding(.top)
     }
 
     // MARK: - Landscape Navigation Header

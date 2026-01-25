@@ -58,18 +58,20 @@ struct MiniHandView: View {
     }
 
     private var winOverlay: some View {
-        VStack {
+        let textColor = winBadgeTextColor(for: handName)
+
+        return VStack {
             Spacer()
             HStack(spacing: 4) {
                 if let handName = handName {
                     Text(shortHandName(handName))
                         .font(.system(size: max(8, cardWidth * 0.22), weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(textColor)
                         .lineLimit(1)
                 }
                 Text(formatPayout(payout))
                     .font(.system(size: max(9, cardWidth * 0.25), weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(textColor)
             }
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -86,6 +88,17 @@ struct MiniHandView: View {
             .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
         }
         .padding(.bottom, -8)
+    }
+
+    private func winBadgeTextColor(for handName: String?) -> Color {
+        // Use black text for light-colored badges for better readability
+        guard let handName = handName else { return .white }
+        switch handName {
+        case "Two Pair", "Three of a Kind":
+            return .black
+        default:
+            return .white
+        }
     }
 
     private func winBadgeColors(for handName: String?) -> [Color] {

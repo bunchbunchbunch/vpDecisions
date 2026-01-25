@@ -157,8 +157,15 @@ struct QuizPlayView: View {
     // MARK: - Landscape Quiz Layout
 
     private func landscapeQuizLayout(geometry: GeometryProxy) -> some View {
-        let leftWidth = geometry.size.width * 0.42
-        let rightWidth = geometry.size.width * 0.58 - 16
+        let leadingSafeArea = geometry.safeAreaInsets.leading
+        let availableWidth = geometry.size.width
+        let leftWidth = availableWidth * 0.42
+        let rightWidth = availableWidth * 0.58 - 16
+
+        // When Dynamic Island is on the leading side, add extra top padding for corner clearance
+        let hasDynamicIslandOnLeft = leadingSafeArea > 20
+        let cornerClearance: CGFloat = hasDynamicIslandOnLeft ? 24 : 4
+        let effectiveTopPadding = cornerClearance
 
         return HStack(alignment: .top, spacing: 8) {
             // Left side: Navigation header, progress, EV table
@@ -180,10 +187,10 @@ struct QuizPlayView: View {
                     Spacer(minLength: 0)
                 }
             }
-            .frame(width: leftWidth)
-            .padding(.leading, 8)
-            .padding(.top, 4)
+            .padding(.leading, max(leadingSafeArea, 8))
+            .padding(.top, effectiveTopPadding)
             .padding(.bottom, 4)
+            .frame(width: leftWidth)
 
             // Right side: Cards and action button (paytable hidden in landscape)
             VStack(spacing: 4) {
@@ -265,13 +272,6 @@ struct QuizPlayView: View {
     // MARK: - Landscape Cards Area
 
     private func landscapeCardsArea(width: CGFloat, height: CGFloat) -> some View {
-        // Calculate card dimensions - cards are 2.5:3.5 aspect ratio
-        // In landscape, we want cards to fit horizontally with some padding
-        let cardAspectRatio: CGFloat = 2.5 / 3.5
-        let availableCardsWidth = width - 24  // padding
-        let cardWidth = (availableCardsWidth - 24) / 5  // 5 cards with spacing
-        let cardHeight = cardWidth / cardAspectRatio
-
         return ZStack {
             // Green felt background (matching PlayView)
             RoundedRectangle(cornerRadius: 12)
@@ -294,12 +294,15 @@ struct QuizPlayView: View {
 
                 Spacer()
 
-                // Cards in horizontal row - explicitly sized with swipe gesture
+                // Cards in horizontal row - let cards fill naturally (matching PlayView)
                 if let currentHand = viewModel.currentHand {
                     let isDeucesWild = PayTable.allPayTables.first { $0.id == viewModel.paytableId }?.isDeucesWild ?? false
 
                     GeometryReader { cardGeometry in
-                        HStack(spacing: 6) {
+                        let cardSpacing: CGFloat = 4
+                        let cardWidth = (cardGeometry.size.width - (cardSpacing * 4)) / 5
+
+                        HStack(spacing: cardSpacing) {
                             ForEach(Array(currentHand.hand.cards.enumerated()), id: \.element.id) { index, card in
                                 CardView(
                                     card: card,
@@ -308,7 +311,6 @@ struct QuizPlayView: View {
                                 ) {
                                     viewModel.toggleCard(index)
                                 }
-                                .frame(width: cardWidth)
                             }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -317,10 +319,7 @@ struct QuizPlayView: View {
                                 .onChanged { value in
                                     guard !viewModel.showFeedback else { return }
 
-                                    let cardSpacing: CGFloat = 6
-                                    let totalCardsWidth = cardWidth * 5 + cardSpacing * 4
-                                    let startX = (cardGeometry.size.width - totalCardsWidth) / 2
-                                    let xPosition = value.location.x - startX
+                                    let xPosition = value.location.x
                                     let cardIndex = Int(xPosition / (cardWidth + cardSpacing))
 
                                     if !isDragging {
@@ -349,7 +348,6 @@ struct QuizPlayView: View {
                                 }
                         )
                     }
-                    .frame(height: cardHeight)
                 }
 
                 Spacer()
@@ -364,6 +362,7 @@ struct QuizPlayView: View {
                         .transition(.opacity)
                 }
             }
+            .padding(.horizontal, 8)
         }
         .frame(width: width, height: height)
     }

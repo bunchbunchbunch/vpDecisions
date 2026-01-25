@@ -27,13 +27,14 @@ struct HundredPlayTallyView: View {
     private func compactTallyRow(result: HundredPlayTallyResult) -> some View {
         let subtotalDollars = Double(result.subtotal) * denomination
         let badgeColors = winBadgeColors(for: result.handName)
+        let textColor = winBadgeTextColor(for: result.handName)
 
         HStack(spacing: 6) {
             // Hand name badge
             Text(abbreviatedHandName(result.handName))
                 .font(.caption2)
                 .fontWeight(.semibold)
-                .foregroundColor(.white)
+                .foregroundColor(textColor)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
                 .background(
@@ -83,6 +84,16 @@ struct HundredPlayTallyView: View {
         case "Four 2-4 + A-4": return "4 2-4+A"
         case "Four 5-K": return "4 5-K"
         default: return name
+        }
+    }
+
+    private func winBadgeTextColor(for handName: String) -> Color {
+        // Use black text for light-colored badges for better readability
+        switch handName {
+        case "Two Pair", "Three of a Kind":
+            return .black
+        default:
+            return .white
         }
     }
 
