@@ -170,39 +170,34 @@ struct QuizPlayView: View {
                 landscapeProgressBar
                     .tourTarget("progressBar")
 
-                // EV Options Table (scrollable)
+                // EV Options Table (scrollable) - expands to fill remaining space
                 if viewModel.showFeedback, let currentHand = viewModel.currentHand {
                     ScrollView {
                         evOptionsTable(for: currentHand)
                             .tourTarget("evTable")
                     }
+                } else {
+                    Spacer(minLength: 0)
                 }
-
-                Spacer(minLength: 0)
             }
             .frame(width: leftWidth)
             .padding(.leading, 8)
             .padding(.top, 4)
+            .padding(.bottom, 4)
 
-            // Right side: Paytable, cards, and action button
+            // Right side: Cards and action button (paytable hidden in landscape)
             VStack(spacing: 4) {
-                // Compact paytable at top
-                if let paytable = PayTable.allPayTables.first(where: { $0.id == viewModel.paytableId }) {
-                    CompactPayTableView(paytable: paytable)
-                        .padding(.horizontal, 4)
-                }
+                Spacer(minLength: 0)
 
-                // Cards area - maximize height
-                landscapeCardsArea(width: rightWidth - 8, height: geometry.size.height * 0.55)
+                // Cards area - directly above button
+                landscapeCardsArea(width: rightWidth - 8, height: geometry.size.height * 0.60)
                     .tourTarget("quizCardsArea")
-
-                Spacer(minLength: 4)
 
                 // Action button at bottom
                 actionButton
                     .tourTarget("submitButton")
                     .padding(.horizontal, 4)
-                    .padding(.bottom, 2)
+                    .padding(.bottom, 4)
             }
             .frame(width: rightWidth)
             .padding(.trailing, 8)
@@ -299,22 +294,62 @@ struct QuizPlayView: View {
 
                 Spacer()
 
-                // Cards in horizontal row - explicitly sized
+                // Cards in horizontal row - explicitly sized with swipe gesture
                 if let currentHand = viewModel.currentHand {
                     let isDeucesWild = PayTable.allPayTables.first { $0.id == viewModel.paytableId }?.isDeucesWild ?? false
 
-                    HStack(spacing: 6) {
-                        ForEach(Array(currentHand.hand.cards.enumerated()), id: \.element.id) { index, card in
-                            CardView(
-                                card: card,
-                                isSelected: viewModel.selectedIndices.contains(index),
-                                showAsWild: isDeucesWild
-                            ) {
-                                viewModel.toggleCard(index)
+                    GeometryReader { cardGeometry in
+                        HStack(spacing: 6) {
+                            ForEach(Array(currentHand.hand.cards.enumerated()), id: \.element.id) { index, card in
+                                CardView(
+                                    card: card,
+                                    isSelected: viewModel.selectedIndices.contains(index),
+                                    showAsWild: isDeucesWild
+                                ) {
+                                    viewModel.toggleCard(index)
+                                }
+                                .frame(width: cardWidth)
                             }
-                            .frame(width: cardWidth)
                         }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .simultaneousGesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { value in
+                                    guard !viewModel.showFeedback else { return }
+
+                                    let cardSpacing: CGFloat = 6
+                                    let totalCardsWidth = cardWidth * 5 + cardSpacing * 4
+                                    let startX = (cardGeometry.size.width - totalCardsWidth) / 2
+                                    let xPosition = value.location.x - startX
+                                    let cardIndex = Int(xPosition / (cardWidth + cardSpacing))
+
+                                    if !isDragging {
+                                        isDragging = true
+                                        dragStartLocation = value.location
+                                        swipedCardIndices = []
+                                    }
+
+                                    if cardIndex >= 0 && cardIndex < 5 && !swipedCardIndices.contains(cardIndex) {
+                                        guard let startLocation = dragStartLocation else { return }
+                                        let dragDistance = hypot(
+                                            value.location.x - startLocation.x,
+                                            value.location.y - startLocation.y
+                                        )
+
+                                        if dragDistance > 10 || !swipedCardIndices.isEmpty {
+                                            swipedCardIndices.insert(cardIndex)
+                                            viewModel.toggleCard(cardIndex)
+                                        }
+                                    }
+                                }
+                                .onEnded { _ in
+                                    swipedCardIndices = []
+                                    isDragging = false
+                                    dragStartLocation = nil
+                                }
+                        )
                     }
+                    .frame(height: cardHeight)
                 }
 
                 Spacer()

@@ -247,22 +247,14 @@ struct HandAnalyzerView: View {
 
     private func landscapeLayout(geometry: GeometryProxy) -> some View {
         HStack(spacing: 0) {
-            // Left: Game selector + Selected cards + Card grid
+            // Left: Combined header + Card grid that fills the space
             VStack(spacing: 0) {
-                // Compact header with game selector
-                landscapeHeaderBar
+                // Single compact row with game selectors + selected cards + clear
+                landscapeCombinedHeader
                     .tourTarget("analyzerGameSelector")
 
-                Divider()
-
-                // Compact selected cards
-                landscapeSelectedCardsBar
-                    .tourTarget("selectedCardsBar")
-
-                Divider()
-
-                // Compact card grid - no ScrollView needed if compact enough
-                landscapeCardGrid
+                // Card grid fills all remaining space
+                landscapeExpandedCardGrid(geometry: geometry)
                     .tourTarget("cardGrid")
             }
             .frame(width: geometry.size.width * 0.52)
@@ -287,7 +279,192 @@ struct HandAnalyzerView: View {
         }
     }
 
-    // MARK: - Landscape Header Bar (compact)
+    // MARK: - Landscape Combined Header (game selectors + selected cards in one row)
+
+    private var landscapeCombinedHeader: some View {
+        HStack(spacing: 6) {
+            // Game family selector
+            Menu {
+                ForEach(GameFamily.allCases) { family in
+                    Button {
+                        selectedFamily = family
+                        if let firstPaytable = PayTable.paytables(for: family).first {
+                            selectedPaytableId = firstPaytable.id
+                            viewModel.selectedPaytable = firstPaytable
+                        }
+                    } label: {
+                        HStack {
+                            Text(family.displayName)
+                            if selectedFamily == family {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 2) {
+                    Text(selectedFamily.shortName)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.white)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 7))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+                .padding(.horizontal, 6)
+                .padding(.vertical, 4)
+                .background(Color(hex: "667eea"))
+                .cornerRadius(4)
+            }
+
+            // Variant selector
+            Menu {
+                ForEach(paytablesForSelectedFamily, id: \.id) { paytable in
+                    Button {
+                        selectedPaytableId = paytable.id
+                        viewModel.selectedPaytable = paytable
+                    } label: {
+                        HStack {
+                            Text(paytable.variantName)
+                            if selectedPaytableId == paytable.id {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 2) {
+                    Text(viewModel.selectedPaytable.variantName)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.white)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 7))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+                .padding(.horizontal, 6)
+                .padding(.vertical, 4)
+                .background(Color(hex: "5a6fd6"))
+                .cornerRadius(4)
+            }
+
+            // Selected cards inline
+            HStack(spacing: 3) {
+                ForEach(0..<5) { index in
+                    if index < viewModel.selectedCards.count {
+                        let card = viewModel.selectedCards[index]
+                        Text("\(card.rank.display)\(card.suit.symbol)")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(card.suit.color)
+                            .frame(width: 24, height: 20)
+                            .background(
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color.yellow.opacity(0.2))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 3)
+                                    .stroke(Color.yellow, lineWidth: 1)
+                            )
+                    } else {
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color(.systemGray5))
+                            .frame(width: 24, height: 20)
+                    }
+                }
+            }
+            .tourTarget("selectedCardsBar")
+
+            Spacer()
+
+            // Paytable button
+            Button {
+                showPaytable = true
+            } label: {
+                Image(systemName: "list.bullet.rectangle")
+                    .font(.system(size: 12))
+                    .foregroundColor(Color(hex: "3498db"))
+            }
+
+            // Clear button
+            if !viewModel.selectedCards.isEmpty {
+                Button("Clear") {
+                    viewModel.clear()
+                }
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.red)
+            }
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 4)
+        .background(Color(.systemBackground))
+    }
+
+    // MARK: - Landscape Expanded Card Grid (fills available space)
+
+    private func landscapeExpandedCardGrid(geometry: GeometryProxy) -> some View {
+        let leftWidth = geometry.size.width * 0.52
+        let headerHeight: CGFloat = 32  // Approximate header height
+        let availableHeight = geometry.size.height - headerHeight
+        let availableWidth = leftWidth - 8  // Account for padding
+
+        // Calculate optimal card size to fill the space
+        // 13 cards wide (A-K), 4 cards tall (4 suits)
+        let cardWidth = (availableWidth - 12) / 13  // 12 = spacing between cards
+        let cardHeight = (availableHeight - 6) / 4   // 6 = spacing between rows
+
+        // Use the smaller dimension to maintain reasonable proportions
+        let finalCardWidth = min(cardWidth, cardHeight * 0.85)
+        let finalCardHeight = min(cardHeight, cardWidth * 1.2)
+
+        return VStack(spacing: 2) {
+            ForEach(allSuits, id: \.self) { suit in
+                HStack(spacing: 1) {
+                    ForEach(allRanks, id: \.self) { rank in
+                        landscapeExpandedCardCell(
+                            rank: rank,
+                            suit: suit,
+                            width: finalCardWidth,
+                            height: finalCardHeight
+                        )
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
+    }
+
+    private func landscapeExpandedCardCell(rank: Rank, suit: Suit, width: CGFloat, height: CGFloat) -> some View {
+        let card = Card(rank: rank, suit: suit)
+        let isSelected = viewModel.isCardSelected(card)
+        let isDisabled = viewModel.selectedCards.count >= 5 && !isSelected
+
+        // Dynamic font sizes based on card size
+        let rankFontSize = max(10, min(18, height * 0.4))
+        let suitFontSize = max(8, min(16, height * 0.35))
+
+        return Button {
+            viewModel.toggleCard(card)
+        } label: {
+            VStack(spacing: 0) {
+                Text(rank.display)
+                    .font(.system(size: rankFontSize, weight: .bold))
+                Text(suit.symbol)
+                    .font(.system(size: suitFontSize))
+            }
+            .foregroundColor(isDisabled ? .gray : suit.color)
+            .frame(width: width, height: height)
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(isSelected ? Color.yellow.opacity(0.3) : Color(.systemGray6))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(isSelected ? Color.yellow : Color.clear, lineWidth: 2)
+            )
+        }
+        .disabled(isDisabled)
+    }
+
+    // MARK: - Landscape Header Bar (compact) - kept for reference
 
     private var landscapeHeaderBar: some View {
         HStack(spacing: 6) {

@@ -65,8 +65,30 @@ class QuizViewModel: ObservableObject {
         loadingProgress = 0
         hands = []
 
-        // Preload the paytable binary file
-        _ = await StrategyService.shared.preparePaytable(paytableId: paytableId)
+        // Preload the paytable binary file - auto-downloads if needed
+        isPreparingPaytable = true
+
+        let success = await StrategyService.shared.preparePaytable(paytableId: paytableId) { [weak self] status in
+            guard let self = self else { return }
+            self.preparationMessage = status.message
+
+            switch status {
+            case .checking, .downloading:
+                self.isPreparingPaytable = true
+            case .ready:
+                self.isPreparingPaytable = false
+            case .failed:
+                self.isPreparingPaytable = false
+            }
+        }
+
+        isPreparingPaytable = false
+
+        // If preparation failed, exit early
+        if !success {
+            isLoading = false
+            return
+        }
 
         var foundHands: [QuizHand] = []
         var attempts = 0

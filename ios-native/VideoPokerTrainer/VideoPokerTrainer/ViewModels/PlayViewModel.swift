@@ -111,25 +111,41 @@ class PlayViewModel: ObservableObject {
         NSLog("🎰 Orphaned hand detected - bet refunded: $%.2f", savedHand.betAmount)
     }
 
-    /// Prepares the current paytable for use (decompresses if needed)
+    /// Prepares the current paytable for use - auto-downloads if needed
     func prepareCurrentPaytable() async {
         let paytableId = settings.selectedPaytableId
-        let paytableName = currentPaytable?.name ?? "strategy data"
 
-        // Reset failure state
+        // Reset state
         preparationFailed = false
+        isPreparingPaytable = true
+        preparationMessage = "Checking strategy data..."
 
-        // Check if strategy data is available
-        let hasData = await StrategyService.shared.hasOfflineData(paytableId: paytableId)
-        if !hasData {
-            preparationMessage = "Strategy not available for \(paytableName)"
-            preparationFailed = true
-            isPreparingPaytable = true
-            return
+        // Use callback-based preparePaytable that auto-downloads if needed
+        let success = await StrategyService.shared.preparePaytable(paytableId: paytableId) { [weak self] status in
+            guard let self = self else { return }
+
+            self.preparationMessage = status.message
+
+            switch status {
+            case .checking, .downloading:
+                self.isPreparingPaytable = true
+                self.preparationFailed = false
+            case .ready:
+                self.isPreparingPaytable = false
+                self.preparationFailed = false
+            case .failed:
+                self.isPreparingPaytable = true
+                self.preparationFailed = true
+            }
         }
 
-        // Preload the binary file for faster lookups
-        _ = await StrategyService.shared.preparePaytable(paytableId: paytableId)
+        // Ensure final state is correct
+        if success {
+            isPreparingPaytable = false
+            preparationFailed = false
+        } else {
+            preparationFailed = true
+        }
     }
 
     // MARK: - Game Actions

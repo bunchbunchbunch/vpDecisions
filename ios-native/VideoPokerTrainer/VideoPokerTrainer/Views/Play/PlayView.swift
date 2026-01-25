@@ -392,18 +392,18 @@ struct PlayView: View {
 
     private func landscapeLayout(geometry: GeometryProxy) -> some View {
         HStack(spacing: 8) {
-            // Left side: Info panel
-            VStack(spacing: 6) {
-                // Landscape navigation header
+            // Left side: Navigation + Multi-hand grid + Strategy
+            VStack(spacing: 4) {
+                // Navigation header at top
                 landscapeNavigationHeader
 
-                // Multi-hand grid or 100-play tally (compact in landscape)
+                // Multi-hand grid area (only for multi-line play)
                 if viewModel.settings.lineCount == .oneHundred {
                     HundredPlayTallyView(
                         tallyResults: viewModel.phase == .result ? viewModel.hundredPlayTally : [],
                         denomination: viewModel.settings.denomination.rawValue
                     )
-                    .frame(maxHeight: 100)
+                    .frame(maxHeight: 80)
                 } else if viewModel.settings.lineCount != .one {
                     MultiHandGrid(
                         lineCount: viewModel.settings.lineCount,
@@ -412,48 +412,49 @@ struct PlayView: View {
                         denomination: viewModel.settings.denomination.rawValue,
                         showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
                     )
-                    .frame(maxHeight: 80)
+                    .frame(maxHeight: 65)
                 }
 
-                // Credits bar (compact)
-                creditsBar(isLandscape: true)
-
-                // EV Options Table (if showing)
+                // Strategy area - fills remaining space
                 if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
                     ScrollView {
-                        evOptionsTable
+                        landscapeEvOptionsTable
                     }
-                    .frame(maxHeight: 80)
+                } else {
+                    Spacer(minLength: 0)
                 }
-
-                Spacer(minLength: 0)
             }
             .frame(width: geometry.size.width * 0.4 - 16)
             .padding(.leading, 8)
             .padding(.top, 4)
+            .padding(.bottom, 4)
 
-            // Right side: Cards area and action button
+            // Right side: Paytable + Credits + Cards + Action button
             VStack(spacing: 4) {
                 // Compact Paytable Display at top right
                 compactPaytableBar
                     .padding(.horizontal, 4)
 
-                // Machine frame with cards - main focus
-                landscapeMachineFrame(geometry: geometry)
+                // Credits bar (balance/bet/win) underneath paytable
+                creditsBar(isLandscape: true)
                     .padding(.horizontal, 4)
 
-                // Result info (when in result phase)
+                Spacer(minLength: 0)
+
+                // Result info (correct/incorrect) above play area
                 if viewModel.phase == .result {
                     resultInfoBar
                         .padding(.horizontal, 4)
                 }
 
-                Spacer(minLength: 4)
+                // Machine frame with cards - main focus, directly above deal button
+                landscapeMachineFrame(geometry: geometry)
+                    .padding(.horizontal, 4)
 
                 // Action button at bottom right
                 casinoButtonBar(isLandscape: true)
                     .padding(.horizontal, 4)
-                    .padding(.bottom, 2)
+                    .padding(.bottom, 4)
             }
             .frame(width: geometry.size.width * 0.6)
         }
@@ -517,7 +518,7 @@ struct PlayView: View {
     private func landscapeMachineFrame(geometry: GeometryProxy) -> some View {
         // Calculate card area dimensions for landscape
         // Need room for: top indicator, cards (with -10 offset when held), HELD label, bottom tip
-        let cardAreaHeight: CGFloat = min(geometry.size.height * 0.50, 160)
+        let cardAreaHeight: CGFloat = min(geometry.size.height * 0.55, 180)
 
         return ZStack {
             // Green felt
@@ -549,19 +550,56 @@ struct PlayView: View {
                 // Cards with win badge overlay - HORIZONTAL layout
                 ZStack(alignment: .bottom) {
                     if !viewModel.dealtCards.isEmpty {
-                        HStack(spacing: 4) {
-                            ForEach(Array(viewModel.dealtCards.enumerated()), id: \.element.id) { index, card in
-                                let displayCard = displayCardForIndex(index)
-                                CardView(
-                                    card: displayCard,
-                                    isSelected: viewModel.selectedIndices.contains(index),
-                                    showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
-                                ) {
-                                    if viewModel.phase == .dealt {
-                                        viewModel.toggleCard(index)
+                        GeometryReader { cardGeometry in
+                            HStack(spacing: 4) {
+                                ForEach(Array(viewModel.dealtCards.enumerated()), id: \.element.id) { index, card in
+                                    let displayCard = displayCardForIndex(index)
+                                    CardView(
+                                        card: displayCard,
+                                        isSelected: viewModel.selectedIndices.contains(index),
+                                        showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
+                                    ) {
+                                        if viewModel.phase == .dealt {
+                                            viewModel.toggleCard(index)
+                                        }
                                     }
                                 }
                             }
+                            .simultaneousGesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onChanged { value in
+                                        guard viewModel.phase == .dealt else { return }
+
+                                        let cardSpacing: CGFloat = 4
+                                        let cardWidth = (cardGeometry.size.width - (cardSpacing * 4)) / 5
+                                        let xPosition = value.location.x
+                                        let cardIndex = Int(xPosition / (cardWidth + cardSpacing))
+
+                                        if !isDragging {
+                                            isDragging = true
+                                            dragStartLocation = value.location
+                                            swipedCardIndices = []
+                                        }
+
+                                        if cardIndex >= 0 && cardIndex < 5 && !swipedCardIndices.contains(cardIndex) {
+                                            guard let startLocation = dragStartLocation else { return }
+                                            let dragDistance = hypot(
+                                                value.location.x - startLocation.x,
+                                                value.location.y - startLocation.y
+                                            )
+
+                                            if dragDistance > 10 || !swipedCardIndices.isEmpty {
+                                                swipedCardIndices.insert(cardIndex)
+                                                viewModel.toggleCard(cardIndex)
+                                            }
+                                        }
+                                    }
+                                    .onEnded { _ in
+                                        swipedCardIndices = []
+                                        isDragging = false
+                                        dragStartLocation = nil
+                                    }
+                            )
                         }
                         .padding(.horizontal, 8)
                     } else {
@@ -635,8 +673,8 @@ struct PlayView: View {
     // MARK: - Credits Bar
 
     private func creditsBar(isLandscape: Bool) -> some View {
-        let fontSize: CGFloat = isLandscape ? 16 : 22
-        let labelSize: CGFloat = isLandscape ? 9 : 10
+        let fontSize: CGFloat = isLandscape ? 14 : 22
+        let labelSize: CGFloat = isLandscape ? 8 : 10
 
         return HStack {
             // Balance display (in dollars) - tap to add funds
@@ -686,8 +724,8 @@ struct PlayView: View {
                     .foregroundColor(Color(hex: "FFD700"))
             }
         }
-        .padding(.horizontal, isLandscape ? 12 : 16)
-        .padding(.vertical, isLandscape ? 6 : 10)
+        .padding(.horizontal, isLandscape ? 8 : 16)
+        .padding(.vertical, isLandscape ? 4 : 10)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.black.opacity(0.6))
@@ -696,8 +734,8 @@ struct PlayView: View {
                         .stroke(Color(hex: "333355"), lineWidth: 1)
                 )
         )
-        .padding(.horizontal, isLandscape ? 4 : 8)
-        .padding(.top, isLandscape ? 2 : 4)
+        .padding(.horizontal, isLandscape ? 2 : 8)
+        .padding(.top, isLandscape ? 0 : 4)
     }
 
     private var balanceDollarsDisplay: String {
@@ -1163,7 +1201,7 @@ struct PlayView: View {
         }
     }
 
-    // MARK: - EV Options Table
+    // MARK: - EV Options Table (Portrait - Top 3 only)
 
     private var evOptionsTable: some View {
         Group {
@@ -1172,7 +1210,7 @@ struct PlayView: View {
                 let userHold = Array(viewModel.selectedIndices).sorted()
                 let userCanonicalHold = hand.originalIndicesToCanonical(userHold)
                 let options = result.sortedHoldOptionsPrioritizingUser(userCanonicalHold)
-                // Limit to top 3 options for readability
+                // Limit to top 3 options for readability in portrait
                 let topOptions = Array(options.prefix(3))
 
                 VStack(spacing: 6) {
@@ -1196,52 +1234,126 @@ struct PlayView: View {
 
                     // Table rows (top 3 only)
                     ForEach(Array(topOptions.enumerated()), id: \.offset) { index, option in
-                        let optionOriginalIndices = hand.canonicalIndicesToOriginal(option.indices)
-                        let optionCards = optionOriginalIndices.map { viewModel.dealtCards[$0] }
-                        let rank = result.rankForOption(at: index, inUserPrioritizedList: options)
-                        let isBest = rank == 1
-                        let isUserSelection = userCanonicalHold.sorted() == option.indices.sorted()
-
-                        HStack(spacing: 6) {
-                            Text("\(rank)")
-                                .font(.system(size: 16, weight: isBest ? .bold : .medium, design: .monospaced))
-                                .frame(width: 28, alignment: .leading)
-
-                            if optionCards.isEmpty {
-                                Text("Draw all")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .italic()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            } else {
-                                HStack(spacing: 4) {
-                                    ForEach(optionCards, id: \.id) { card in
-                                        Text(card.displayText)
-                                            .font(.system(size: 16, weight: isBest ? .bold : .medium))
-                                            // Always use dark mode colors since EV table has dark background
-                                            .foregroundColor(card.suit.textColor(for: .dark))
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-
-                            let dollarEv = option.ev * viewModel.settings.totalBetDollars
-                            Text(formatCurrency(dollarEv))
-                                .font(.system(size: 16, weight: isBest ? .bold : .medium, design: .monospaced))
-                                .frame(width: 85, alignment: .trailing)
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 10)
-                        .background(
-                            isUserSelection
-                                ? (isBest ? Color(hex: "00aa00").opacity(0.3) : Color(hex: "FFA726").opacity(0.3))
-                                : (isBest ? Color(hex: "667eea").opacity(0.2) : Color.black.opacity(0.2))
+                        evOptionRow(
+                            hand: hand,
+                            option: option,
+                            index: index,
+                            options: options,
+                            result: result,
+                            userCanonicalHold: userCanonicalHold,
+                            isCompact: false
                         )
-                        .cornerRadius(6)
                     }
                 }
             }
         }
+    }
+
+    // MARK: - EV Options Table (Landscape - All options, scrollable)
+
+    private var landscapeEvOptionsTable: some View {
+        Group {
+            if let result = viewModel.strategyResult {
+                let hand = Hand(cards: viewModel.dealtCards)
+                let userHold = Array(viewModel.selectedIndices).sorted()
+                let userCanonicalHold = hand.originalIndicesToCanonical(userHold)
+                let options = result.sortedHoldOptionsPrioritizingUser(userCanonicalHold)
+
+                VStack(spacing: 4) {
+                    // Table header (compact for landscape)
+                    HStack {
+                        Text("#")
+                            .font(.system(size: 11, weight: .bold))
+                            .frame(width: 22, alignment: .leading)
+                        Text("HOLD")
+                            .font(.system(size: 11, weight: .bold))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("EV")
+                            .font(.system(size: 11, weight: .bold))
+                            .frame(width: 65, alignment: .trailing)
+                    }
+                    .foregroundColor(Color(hex: "888888"))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(Color.black.opacity(0.3))
+                    .cornerRadius(4)
+
+                    // All options (scrollable)
+                    ForEach(Array(options.enumerated()), id: \.offset) { index, option in
+                        evOptionRow(
+                            hand: hand,
+                            option: option,
+                            index: index,
+                            options: options,
+                            result: result,
+                            userCanonicalHold: userCanonicalHold,
+                            isCompact: true
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - EV Option Row (Shared)
+
+    @ViewBuilder
+    private func evOptionRow(
+        hand: Hand,
+        option: (bitmask: Int, ev: Double, indices: [Int]),
+        index: Int,
+        options: [(bitmask: Int, ev: Double, indices: [Int])],
+        result: StrategyResult,
+        userCanonicalHold: [Int],
+        isCompact: Bool
+    ) -> some View {
+        let optionOriginalIndices = hand.canonicalIndicesToOriginal(option.indices)
+        let optionCards = optionOriginalIndices.map { viewModel.dealtCards[$0] }
+        let rank = result.rankForOption(at: index, inUserPrioritizedList: options)
+        let isBest = rank == 1
+        let isUserSelection = userCanonicalHold.sorted() == option.indices.sorted()
+
+        let fontSize: CGFloat = isCompact ? 13 : 16
+        let rankWidth: CGFloat = isCompact ? 22 : 28
+        let evWidth: CGFloat = isCompact ? 65 : 85
+        let hPadding: CGFloat = isCompact ? 8 : 12
+        let vPadding: CGFloat = isCompact ? 6 : 10
+
+        HStack(spacing: isCompact ? 4 : 6) {
+            Text("\(rank)")
+                .font(.system(size: fontSize, weight: isBest ? .bold : .medium, design: .monospaced))
+                .frame(width: rankWidth, alignment: .leading)
+
+            if optionCards.isEmpty {
+                Text("Draw all")
+                    .font(.system(size: fontSize, weight: .medium))
+                    .italic()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(spacing: isCompact ? 2 : 4) {
+                    ForEach(optionCards, id: \.id) { card in
+                        Text(card.displayText)
+                            .font(.system(size: fontSize, weight: isBest ? .bold : .medium))
+                            .foregroundColor(card.suit.textColor(for: .dark))
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            let dollarEv = option.ev * viewModel.settings.totalBetDollars
+            Text(formatCurrency(dollarEv))
+                .font(.system(size: fontSize, weight: isBest ? .bold : .medium, design: .monospaced))
+                .frame(width: evWidth, alignment: .trailing)
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, hPadding)
+        .padding(.vertical, vPadding)
+        .background(
+            isUserSelection
+                ? (isBest ? Color(hex: "00aa00").opacity(0.3) : Color(hex: "FFA726").opacity(0.3))
+                : (isBest ? Color(hex: "667eea").opacity(0.2) : Color.black.opacity(0.2))
+        )
+        .cornerRadius(isCompact ? 4 : 6)
     }
 
     // MARK: - Helpers

@@ -14,6 +14,38 @@ enum StrategyDownloadStatus: Equatable {
     }
 }
 
+// MARK: - Paytable Loading Status (for auto-download flow)
+
+enum PaytableLoadingStatus: Equatable {
+    case checking
+    case downloading(progress: Double)
+    case ready
+    case failed(String)
+
+    var isLoading: Bool {
+        switch self {
+        case .checking, .downloading:
+            return true
+        case .ready, .failed:
+            return false
+        }
+    }
+
+    var message: String {
+        switch self {
+        case .checking:
+            return "Checking strategy data..."
+        case .downloading(let progress):
+            let percent = Int(progress * 100)
+            return "Downloading strategy... \(percent)%"
+        case .ready:
+            return "Ready"
+        case .failed(let error):
+            return error
+        }
+    }
+}
+
 // MARK: - Downloadable Paytable Info
 
 struct DownloadablePaytable: Identifiable, Codable, Equatable {
@@ -84,6 +116,123 @@ actor StrategyService {
     /// Returns true if ready, false if not available
     func preparePaytable(paytableId: String) async -> Bool {
         return await BinaryStrategyStoreV2.shared.preload(paytableId: paytableId)
+    }
+
+    /// Prepare a paytable with status callbacks - auto-downloads if not available locally
+    /// Returns true if ready, false if failed
+    func preparePaytable(
+        paytableId: String,
+        onStatusChange: @escaping @MainActor (PaytableLoadingStatus) -> Void
+    ) async -> Bool {
+        // Report checking status
+        await MainActor.run { onStatusChange(.checking) }
+
+        // Check if already available locally
+        let hasLocal = await BinaryStrategyStoreV2.shared.hasStrategyFile(paytableId: paytableId)
+
+        if hasLocal {
+            // Preload it and report ready
+            let preloaded = await BinaryStrategyStoreV2.shared.preload(paytableId: paytableId)
+            await MainActor.run { onStatusChange(preloaded ? .ready : .failed("Failed to load strategy")) }
+            return preloaded
+        }
+
+        // Not available locally - download it
+        NSLog("📥 Strategy not found locally for %@, starting download...", paytableId)
+        await MainActor.run { onStatusChange(.downloading(progress: 0)) }
+
+        do {
+            let downloaded = try await downloadStrategyWithProgress(paytableId: paytableId) { progress in
+                Task { @MainActor in
+                    onStatusChange(.downloading(progress: progress))
+                }
+            }
+
+            if !downloaded {
+                await MainActor.run { onStatusChange(.failed("Download failed")) }
+                return false
+            }
+
+            // Downloaded successfully - preload and report ready
+            let preloaded = await BinaryStrategyStoreV2.shared.preload(paytableId: paytableId)
+            if preloaded {
+                await MainActor.run { onStatusChange(.ready) }
+                return true
+            } else {
+                await MainActor.run { onStatusChange(.failed("Failed to load downloaded strategy")) }
+                return false
+            }
+
+        } catch {
+            NSLog("❌ Failed to download strategy for %@: %@", paytableId, error.localizedDescription)
+            await MainActor.run { onStatusChange(.failed("Download failed: \(error.localizedDescription)")) }
+            return false
+        }
+    }
+
+    /// Internal download method that doesn't interfere with actor state during download
+    private func downloadStrategyWithProgress(
+        paytableId: String,
+        progressHandler: @escaping @Sendable (Double) -> Void
+    ) async throws -> Bool {
+        // Check if already downloaded
+        if await BinaryStrategyStoreV2.shared.hasStrategyFile(paytableId: paytableId) {
+            return true
+        }
+
+        let filename = "strategy_\(paytableId.replacingOccurrences(of: "-", with: "_")).vpstrat2"
+        let urlString = Self.storageBaseURL + filename
+
+        guard let url = URL(string: urlString) else {
+            throw StrategyDownloadError.invalidURL
+        }
+
+        NSLog("📥 Starting download: %@", filename)
+
+        // Create download request
+        let (asyncBytes, response) = try await URLSession.shared.bytes(from: url)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw StrategyDownloadError.downloadFailed("Invalid response")
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            NSLog("❌ Download failed with status %d for %@", httpResponse.statusCode, filename)
+            throw StrategyDownloadError.downloadFailed("Server returned \(httpResponse.statusCode)")
+        }
+
+        let expectedLength = httpResponse.expectedContentLength
+        var receivedData = Data()
+        if expectedLength > 0 {
+            receivedData.reserveCapacity(Int(expectedLength))
+        }
+
+        var bytesReceived: Int64 = 0
+        for try await byte in asyncBytes {
+            receivedData.append(byte)
+            bytesReceived += 1
+
+            if expectedLength > 0 && bytesReceived % 1000 == 0 {
+                let progress = Double(bytesReceived) / Double(expectedLength)
+                progressHandler(progress)
+            }
+        }
+
+        // Final progress update
+        progressHandler(1.0)
+
+        // Save to cache directory
+        let strategiesDir = await BinaryStrategyStoreV2.shared.getStrategiesDirectory()
+
+        // Create directory if needed
+        try FileManager.default.createDirectory(at: strategiesDir, withIntermediateDirectories: true)
+
+        let filePath = strategiesDir.appendingPathComponent(filename)
+        try receivedData.write(to: filePath)
+
+        NSLog("✅ Downloaded and saved: %@ (%d bytes)", filename, receivedData.count)
+
+        return true
     }
 
     /// Get all available paytables with bundled strategy data

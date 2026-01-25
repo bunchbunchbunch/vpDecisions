@@ -145,6 +145,7 @@ struct SimulationProgress {
     var currentHand: Int = 0
     var handsPerRun: Int = 0
     var startTime: Date?
+    var statusMessage: String?
 
     var overallProgress: Double {
         guard totalRuns > 0, handsPerRun > 0 else { return 0 }

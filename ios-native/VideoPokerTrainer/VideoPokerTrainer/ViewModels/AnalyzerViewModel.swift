@@ -87,19 +87,33 @@ class AnalyzerViewModel: ObservableObject {
         isAnalyzing = false
     }
 
-    /// Prepares the current paytable for use (preloads binary file)
+    /// Prepares the current paytable for use - auto-downloads if needed
     private func preparePaytableIfNeeded() async {
         let paytableId = selectedPaytable.id
 
-        // Check if strategy data is available
-        let hasData = await StrategyService.shared.hasOfflineData(paytableId: paytableId)
-        if !hasData {
-            isPreparingPaytable = true
-            preparationMessage = "Strategy not available for \(selectedPaytable.name)"
-            return
+        isPreparingPaytable = true
+        preparationMessage = "Checking strategy data..."
+
+        let success = await StrategyService.shared.preparePaytable(paytableId: paytableId) { [weak self] status in
+            guard let self = self else { return }
+
+            self.preparationMessage = status.message
+
+            switch status {
+            case .checking, .downloading:
+                self.isPreparingPaytable = true
+            case .ready:
+                self.isPreparingPaytable = false
+            case .failed(let error):
+                self.isPreparingPaytable = false
+                self.errorMessage = error
+            }
         }
 
-        // Preload the binary file for faster lookups
-        _ = await StrategyService.shared.preparePaytable(paytableId: paytableId)
+        // Ensure final state is correct
+        isPreparingPaytable = false
+        if !success && errorMessage == nil {
+            errorMessage = "Failed to load strategy data"
+        }
     }
 }

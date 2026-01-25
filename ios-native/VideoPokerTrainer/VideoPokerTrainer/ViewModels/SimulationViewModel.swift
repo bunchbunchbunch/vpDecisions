@@ -66,10 +66,29 @@ class SimulationViewModel: ObservableObject {
             startTime: Date()
         )
 
-        // Preload strategy data
-        let prepared = await StrategyService.shared.preparePaytable(paytableId: config.paytableId)
-        if !prepared {
-            errorMessage = "Failed to load strategy data"
+        // Preload strategy data - auto-downloads if needed
+        let success = await StrategyService.shared.preparePaytable(paytableId: config.paytableId) { [weak self] status in
+            guard let self = self else { return }
+
+            switch status {
+            case .checking:
+                self.progress.statusMessage = "Checking strategy data..."
+            case .downloading(let downloadProgress):
+                let percent = Int(downloadProgress * 100)
+                self.progress.statusMessage = "Downloading strategy... \(percent)%"
+            case .ready:
+                self.progress.statusMessage = nil
+            case .failed(let error):
+                self.errorMessage = error
+            }
+        }
+
+        progress.statusMessage = nil
+
+        if !success {
+            if errorMessage == nil {
+                errorMessage = "Failed to load strategy data"
+            }
             isRunning = false
             phase = .configuration
             return
