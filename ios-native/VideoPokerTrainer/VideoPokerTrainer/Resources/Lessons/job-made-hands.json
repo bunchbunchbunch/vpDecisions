@@ -1,0 +1,153 @@
+{
+  "id": "job-made-hands",
+  "title": "Made Hands",
+  "description": "Learn when to hold winning hands and when to break them for better draws.",
+  "order": 1,
+  "passingScore": 8,
+  "sections": [
+    {
+      "id": "concept-1",
+      "type": "concept",
+      "title": "What is a Made Hand?",
+      "content": "A made hand is any 5-card combination that already pays out. In Jacks or Better, this includes:\n\n• Jacks or Better (pair of J, Q, K, or A)\n• Two Pair\n• Three of a Kind\n• Straight\n• Flush\n• Full House\n• Four of a Kind\n• Straight Flush\n• Royal Flush\n\nWhen you're dealt a made hand, you need to decide: should you keep it, or break it for a better draw?",
+      "exampleHand": null
+    },
+    {
+      "id": "concept-2",
+      "type": "concept",
+      "title": "The Golden Rule",
+      "content": "Never break a made hand unless you have a higher expected value (EV) draw.\n\nIn most cases, you should hold your made hand. But there are specific exceptions where breaking a hand is mathematically correct.",
+      "exampleHand": null
+    },
+    {
+      "id": "example-1",
+      "type": "example",
+      "title": "Keep the Flush",
+      "content": "You have a flush with a 4-card royal draw. Should you break it?",
+      "exampleHand": {
+        "cards": ["Ah", "Kh", "Qh", "Jh", "5h"],
+        "correctHold": [0, 1, 2, 3, 4],
+        "explanation": "Keep all 5 cards. A flush pays 6 coins, and the 4-to-royal draw only has a 1-in-47 chance of hitting. The EV of keeping the flush is higher."
+      }
+    },
+    {
+      "id": "example-2",
+      "type": "example",
+      "title": "Break the Flush for a Royal",
+      "content": "What about this flush with a 4-card royal?",
+      "exampleHand": {
+        "cards": ["Th", "Jh", "Qh", "Kh", "2h"],
+        "correctHold": [0, 1, 2, 3],
+        "explanation": "Break the flush! Hold the 4-to-royal (T-J-Q-K). Unlike the previous example, you have 4 consecutive high cards. The royal pays 800 coins (4000 with max bet), making the draw worthwhile."
+      }
+    },
+    {
+      "id": "tip-1",
+      "type": "tip",
+      "title": "Key Exception",
+      "content": "Always break a flush or straight to draw to a royal if you have 4 to the royal. The royal's massive payout (800:1) justifies the risk.",
+      "exampleHand": null
+    },
+    {
+      "id": "example-3",
+      "type": "example",
+      "title": "Two Pair - Never Break It",
+      "content": "You have two pair. Should you ever break it?",
+      "exampleHand": {
+        "cards": ["As", "Ah", "Ks", "Kh", "7c"],
+        "correctHold": [0, 1, 2, 3],
+        "explanation": "Keep both pairs. Two pair pays 2 coins and has a 1-in-12 chance of improving to a full house. Never break two pair."
+      }
+    },
+    {
+      "id": "example-4",
+      "type": "example",
+      "title": "Three of a Kind",
+      "content": "What about three of a kind with a 4-flush draw?",
+      "exampleHand": {
+        "cards": ["7h", "7d", "7c", "Kh", "Qh"],
+        "correctHold": [0, 1, 2],
+        "explanation": "Keep the three 7s. Three of a kind pays 3 coins and can improve to a full house (1-in-16) or four of a kind (1-in-47). The 4-flush draw isn't worth breaking trips."
+      }
+    },
+    {
+      "id": "concept-3",
+      "type": "concept",
+      "title": "Summary: When to Hold Made Hands",
+      "content": "• Always hold: Two Pair, Three of a Kind, Full House, Four of a Kind\n• Usually hold: Flush, Straight\n• Break for: 4-to-Royal (from flush or straight)\n• Never break: Straight Flush or Royal Flush",
+      "exampleHand": null
+    }
+  ],
+  "practiceHands": [
+    {
+      "id": "ph-1",
+      "cards": ["Jh", "Qh", "Kh", "Ah", "5h"],
+      "correctHold": [0, 1, 2, 3, 4],
+      "category": "made_hands",
+      "explanation": "Keep the flush. The 4-to-royal doesn't have the ten, so you can't make a royal."
+    },
+    {
+      "id": "ph-2",
+      "cards": ["Th", "Jh", "Qh", "Kh", "3h"],
+      "correctHold": [0, 1, 2, 3],
+      "category": "four_to_royal",
+      "explanation": "Break the flush for the 4-to-royal. You can catch the Ace for a royal."
+    },
+    {
+      "id": "ph-3",
+      "cards": ["8s", "8h", "8c", "Ad", "Kd"],
+      "correctHold": [0, 1, 2],
+      "category": "three_of_a_kind",
+      "explanation": "Hold the three 8s. Never break three of a kind."
+    },
+    {
+      "id": "ph-4",
+      "cards": ["Qs", "Qh", "7s", "7d", "2c"],
+      "correctHold": [0, 1, 2, 3],
+      "category": "two_pair",
+      "explanation": "Hold both pairs. Two pair should never be broken."
+    },
+    {
+      "id": "ph-5",
+      "cards": ["5h", "6h", "7h", "8h", "9h"],
+      "correctHold": [0, 1, 2, 3, 4],
+      "category": "made_hands",
+      "explanation": "Keep the straight flush! This is a made hand worth 50 coins."
+    },
+    {
+      "id": "ph-6",
+      "cards": ["Tc", "Jc", "Qc", "Kc", "9s"],
+      "correctHold": [0, 1, 2, 3],
+      "category": "four_to_royal",
+      "explanation": "Hold the 4-to-royal. You have T-J-Q-K suited, draw for the Ace."
+    },
+    {
+      "id": "ph-7",
+      "cards": ["As", "Ad", "Kc", "Kh", "Ks"],
+      "correctHold": [0, 1, 2, 3, 4],
+      "category": "made_hands",
+      "explanation": "Keep the full house. This pays 9 coins - never break it."
+    },
+    {
+      "id": "ph-8",
+      "cards": ["4d", "5d", "6d", "7d", "8d"],
+      "correctHold": [0, 1, 2, 3, 4],
+      "category": "made_hands",
+      "explanation": "Keep the straight flush. Always hold any straight flush."
+    },
+    {
+      "id": "ph-9",
+      "cards": ["Jc", "Jd", "Jh", "5s", "5c"],
+      "correctHold": [0, 1, 2, 3, 4],
+      "category": "made_hands",
+      "explanation": "Hold the full house. Jacks full of 5s pays 9 coins."
+    },
+    {
+      "id": "ph-10",
+      "cards": ["2c", "3c", "4c", "5c", "Ac"],
+      "correctHold": [0, 1, 2, 3, 4],
+      "category": "made_hands",
+      "explanation": "Keep the flush. Even with the Ace, you don't have a royal draw."
+    }
+  ]
+}

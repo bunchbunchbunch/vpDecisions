@@ -11,6 +11,11 @@ enum AppScreen: Hashable {
     case playStart
     case playGame
     case simulationStart
+    // Training Mode
+    case trainingHub
+    case lessonDetail(lessonId: String)
+    case drillPlay(drillId: String)
+    case reviewQueue
 }
 
 struct HomeView: View {
@@ -304,6 +309,38 @@ struct HomeView: View {
                 }
                 .tourTarget("analyzerButton")
             }
+
+            // VP Academy / Training Hub
+            Button {
+                navigationPath.append(AppScreen.trainingHub)
+            } label: {
+                HStack {
+                    Image(systemName: "graduationcap.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(AppTheme.Colors.mintGreen)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("VP Academy")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                        Text("Lessons, drills, and review your mistakes.")
+                            .font(.system(size: 11))
+                            .foregroundColor(AppTheme.Colors.textSecondary)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14))
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(AppTheme.Colors.cardBackground)
+                )
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -428,6 +465,14 @@ struct HomeView: View {
             PlayView(navigationPath: $navigationPath)
         case .simulationStart:
             SimulationStartView(navigationPath: $navigationPath)
+        case .trainingHub:
+            TrainingHubView(navigationPath: $navigationPath, paytableId: selectedPaytable.id)
+        case .lessonDetail(let lessonId):
+            LessonDetailView(lessonId: lessonId, navigationPath: $navigationPath)
+        case .drillPlay(let drillId):
+            DrillPlayView(drillId: drillId, navigationPath: $navigationPath)
+        case .reviewQueue:
+            ReviewQueueView(navigationPath: $navigationPath, paytableId: selectedPaytable.id)
         }
     }
 }

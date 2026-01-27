@@ -1,0 +1,182 @@
+{
+  "id": "job-high-cards",
+  "title": "High Cards vs Draws",
+  "description": "Master the art of choosing between high cards and drawing hands.",
+  "order": 2,
+  "passingScore": 8,
+  "sections": [
+    {
+      "id": "concept-1",
+      "type": "concept",
+      "title": "High Cards in Jacks or Better",
+      "content": "In Jacks or Better, high cards (J, Q, K, A) are valuable because pairing them creates a paying hand. When you have no made hand, high cards are often your best option.\n\nBut sometimes you have competing draws. Should you keep high cards or go for a flush/straight draw?",
+      "exampleHand": null
+    },
+    {
+      "id": "concept-2",
+      "type": "concept",
+      "title": "The Hierarchy",
+      "content": "General ranking from best to worst when you don't have a made hand:\n\n1. 4-to-Royal\n2. 4-to-Flush\n3. 4-to-Open-Ended Straight\n4. High Pair (J, Q, K, A)\n5. 3-to-Royal\n6. 4-to-Inside Straight (3+ high cards)\n7. Low Pair\n8. 3-to-Flush with 2 high cards\n9. 2 suited high cards\n10. Single high card",
+      "exampleHand": null
+    },
+    {
+      "id": "example-1",
+      "type": "example",
+      "title": "4-Flush Beats High Cards",
+      "content": "You have a 4-flush and two high cards. Which do you hold?",
+      "exampleHand": {
+        "cards": ["2h", "5h", "9h", "Kh", "Qs"],
+        "correctHold": [0, 1, 2, 3],
+        "explanation": "Hold the 4-flush (2h-5h-9h-Kh). A 4-flush draw has about a 1-in-5 chance of hitting, which beats holding K-Q unsuited."
+      }
+    },
+    {
+      "id": "example-2",
+      "type": "example",
+      "title": "Low Pair vs 4-Flush",
+      "content": "You have a low pair and a 4-flush. What's the play?",
+      "exampleHand": {
+        "cards": ["4d", "4h", "7h", "9h", "Qh"],
+        "correctHold": [1, 2, 3, 4],
+        "explanation": "Hold the 4-flush. A 4-flush beats a low pair because the flush has better EV. Break the pair of 4s."
+      }
+    },
+    {
+      "id": "tip-1",
+      "type": "tip",
+      "title": "Remember",
+      "content": "A 4-flush always beats a low pair. But a HIGH pair (J, Q, K, A) beats a 4-flush. Know the difference!",
+      "exampleHand": null
+    },
+    {
+      "id": "example-3",
+      "type": "example",
+      "title": "High Pair vs 4-Flush",
+      "content": "Now you have a HIGH pair and a 4-flush. Different situation!",
+      "exampleHand": {
+        "cards": ["Jd", "Jh", "3h", "6h", "9h"],
+        "correctHold": [0, 1],
+        "explanation": "Hold the pair of Jacks. A high pair beats a 4-flush because it already pays 1 coin and can improve to trips, full house, or quads."
+      }
+    },
+    {
+      "id": "example-4",
+      "type": "example",
+      "title": "3-Royal is Special",
+      "content": "What about a 3-to-royal draw?",
+      "exampleHand": {
+        "cards": ["Kh", "Qh", "Jh", "4c", "7d"],
+        "correctHold": [0, 1, 2],
+        "explanation": "Hold the 3-to-royal (K-Q-J suited). A 3-to-royal beats holding just two high cards because of the royal flush potential."
+      }
+    },
+    {
+      "id": "example-5",
+      "type": "example",
+      "title": "Open-Ended Straight Draw",
+      "content": "Should you hold an open-ended straight or high cards?",
+      "exampleHand": {
+        "cards": ["5c", "6d", "7s", "8h", "Ac"],
+        "correctHold": [0, 1, 2, 3],
+        "explanation": "Hold the open-ended straight (5-6-7-8). You can catch either a 4 or 9 to complete the straight. Better than holding just the Ace."
+      }
+    },
+    {
+      "id": "concept-3",
+      "type": "concept",
+      "title": "Inside vs Open-Ended",
+      "content": "An open-ended straight draw (like 5-6-7-8) has 8 outs.\nAn inside straight draw (like 5-6-8-9) has only 4 outs.\n\nThis makes open-ended draws much more valuable. Inside straights are usually only worth holding if they contain 3+ high cards.",
+      "exampleHand": null
+    },
+    {
+      "id": "example-6",
+      "type": "example",
+      "title": "Inside Straight with High Cards",
+      "content": "Is this inside straight worth holding?",
+      "exampleHand": {
+        "cards": ["Tc", "Jd", "Qs", "Kh", "3c"],
+        "correctHold": [0, 1, 2, 3],
+        "explanation": "Hold T-J-Q-K. This inside straight has 4 high cards. Even if you miss the Ace, you might pair up for Jacks or Better."
+      }
+    },
+    {
+      "id": "tip-2",
+      "type": "tip",
+      "title": "Quick Reference",
+      "content": "• 4-flush beats low pair, loses to high pair\n• 3-royal beats 2 high cards\n• Open-ended straight beats single high card\n• Inside straight needs 3+ high cards to be worth holding",
+      "exampleHand": null
+    }
+  ],
+  "practiceHands": [
+    {
+      "id": "ph-1",
+      "cards": ["3h", "7h", "Jh", "Qh", "5s"],
+      "correctHold": [0, 1, 2, 3],
+      "category": "four_to_flush",
+      "explanation": "Hold the 4-flush. It beats holding just J-Q."
+    },
+    {
+      "id": "ph-2",
+      "cards": ["Ks", "Kd", "4h", "7h", "9h"],
+      "correctHold": [0, 1],
+      "category": "high_pairs",
+      "explanation": "Hold the Kings. A high pair beats a 4-flush."
+    },
+    {
+      "id": "ph-3",
+      "cards": ["6s", "6c", "2d", "8d", "Jd"],
+      "correctHold": [2, 3, 4],
+      "category": "four_to_flush",
+      "explanation": "Hold the 4-flush. Low pair loses to a 4-flush draw."
+    },
+    {
+      "id": "ph-4",
+      "cards": ["Th", "Jh", "Qh", "3c", "7d"],
+      "correctHold": [0, 1, 2],
+      "category": "three_to_royal",
+      "explanation": "Hold the 3-to-royal (T-J-Q suited)."
+    },
+    {
+      "id": "ph-5",
+      "cards": ["4c", "5d", "6s", "7h", "Ks"],
+      "correctHold": [0, 1, 2, 3],
+      "category": "open_ended_straight",
+      "explanation": "Hold the open-ended straight draw. Better than the lone King."
+    },
+    {
+      "id": "ph-6",
+      "cards": ["Ac", "Kd", "Qs", "3h", "7c"],
+      "correctHold": [0, 1, 2],
+      "category": "high_cards",
+      "explanation": "Hold A-K-Q. Three high cards give you multiple chances to pair up."
+    },
+    {
+      "id": "ph-7",
+      "cards": ["Jc", "Qc", "Kc", "2d", "5h"],
+      "correctHold": [0, 1, 2],
+      "category": "three_to_royal",
+      "explanation": "Hold the 3-to-royal (J-Q-K clubs)."
+    },
+    {
+      "id": "ph-8",
+      "cards": ["9c", "Td", "Js", "Qh", "3c"],
+      "correctHold": [0, 1, 2, 3],
+      "category": "inside_straight",
+      "explanation": "Hold 9-T-J-Q. This inside straight has 3 high cards."
+    },
+    {
+      "id": "ph-9",
+      "cards": ["2d", "4d", "7d", "Qd", "Ac"],
+      "correctHold": [0, 1, 2, 3],
+      "category": "four_to_flush",
+      "explanation": "Hold the 4-flush. Beats the single Ace."
+    },
+    {
+      "id": "ph-10",
+      "cards": ["As", "Kh", "3c", "6d", "9s"],
+      "correctHold": [0, 1],
+      "category": "high_cards",
+      "explanation": "Hold A-K. Two unsuited high cards beat discarding everything."
+    }
+  ]
+}

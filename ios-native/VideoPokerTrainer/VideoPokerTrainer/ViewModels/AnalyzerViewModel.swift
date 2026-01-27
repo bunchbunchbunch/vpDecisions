@@ -14,6 +14,12 @@ class AnalyzerViewModel: ObservableObject {
     @Published var isPreparingPaytable = false
     @Published var preparationMessage = "Loading strategy data..."
 
+    // Ultimate X mode
+    @Published var isUltimateXMode = false
+    @Published var ultimateXPlayCount: UltimateXPlayCount = .ten
+    @Published var ultimateXMultiplier: Int = 1
+    @Published var ultimateXResult: UltimateXStrategyResult?
+
     var canAnalyze: Bool {
         selectedCards.count == 5
     }
@@ -21,6 +27,11 @@ class AnalyzerViewModel: ObservableObject {
     var hand: Hand? {
         guard selectedCards.count == 5 else { return nil }
         return Hand(cards: selectedCards)
+    }
+
+    /// Whether Ultimate X strategy differs from base strategy
+    var ultimateXStrategyDiffers: Bool {
+        ultimateXResult?.strategyDiffers ?? false
     }
 
     func toggleCard(_ card: Card) {
@@ -45,8 +56,40 @@ class AnalyzerViewModel: ObservableObject {
     func clear() {
         selectedCards = []
         strategyResult = nil
+        ultimateXResult = nil
         showResults = false
         errorMessage = nil
+    }
+
+    /// Toggle Ultimate X mode
+    func toggleUltimateXMode() {
+        isUltimateXMode.toggle()
+        // Re-analyze if we have cards selected
+        if selectedCards.count == 5 {
+            Task {
+                await analyze()
+            }
+        }
+    }
+
+    /// Update the Ultimate X multiplier and re-analyze
+    func setUltimateXMultiplier(_ multiplier: Int) {
+        ultimateXMultiplier = max(1, min(multiplier, UltimateXMultiplierTable.maxMultiplier))
+        if isUltimateXMode && selectedCards.count == 5 {
+            Task {
+                await analyze()
+            }
+        }
+    }
+
+    /// Update the Ultimate X play count and re-analyze
+    func setUltimateXPlayCount(_ playCount: UltimateXPlayCount) {
+        ultimateXPlayCount = playCount
+        if isUltimateXMode && selectedCards.count == 5 {
+            Task {
+                await analyze()
+            }
+        }
     }
 
     func analyze() async {
@@ -54,6 +97,7 @@ class AnalyzerViewModel: ObservableObject {
 
         isAnalyzing = true
         errorMessage = nil
+        ultimateXResult = nil
 
         // Check if offline and game not available
         let isOnline = await MainActor.run { NetworkMonitor.shared.isOnline }
@@ -70,10 +114,21 @@ class AnalyzerViewModel: ObservableObject {
         await preparePaytableIfNeeded()
 
         do {
+            // Always get base strategy result
             strategyResult = try await StrategyService.shared.lookup(
                 hand: hand,
                 paytableId: selectedPaytable.id
             )
+
+            // If Ultimate X mode is enabled, also get adjusted strategy
+            if isUltimateXMode {
+                ultimateXResult = try await UltimateXStrategyService.shared.lookup(
+                    hand: hand,
+                    paytableId: selectedPaytable.id,
+                    currentMultiplier: ultimateXMultiplier,
+                    playCount: ultimateXPlayCount
+                )
+            }
 
             if strategyResult != nil {
                 showResults = true
