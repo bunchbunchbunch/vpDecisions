@@ -60,68 +60,8 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 4 | Ks Kd 7h 3h 2h | Ks Kd | High pair is better than 3 to a flush |
 | 5 | 4c 4d Ah Qh 9c | 4c 4d | Low pair is better than AQ unsuited |
 
----
 
-## Lesson 3: Straight Draws - Level 1
-
-*John reviewed*
-**Key concept:** Not all straight draws are equal. An open-ended straight draw can be completed on either end (8 outs), while an inside straight draw needs one specific rank (4 outs). This distinction matters — open-ended draws are roughly twice as likely to hit.
-
-**What the player should learn:**
-- Open-ended straight draw (e.g., 7-8-9-T): Keep open-ended straight draw over high card
-- Inside straight draw (e.g., 5-6-_-8-9): only 4 cards fill the gap, much weaker.  Never keep it with all low cards.
-- Any pair is better than an open-ended straight draw.
-
-
-**Common mistakes to avoid:**
-- Treating inside straight draws as valuable (they're usually not)
-- Breaking a low pair for an inside straight draw
-- Not recognizing that A-2-3-4 is an inside draw, not open-ended
-
-**Practice Hands:**
-
-| # | Hand | Correct Hold | Lesson |
-|---|------|-------------|--------|
-| 1 | Jh Ts 9d 8c 3h | Jh Ts 9d 8c | Open-ended with a high card — good draw |
-| 2 | 9h 8d 7c 6s Ks | 9h 8d 7c 6s | Open-ended — the K isn't helping |
-| 3 | 5h 5d 8s 6c 7d | 5h 5d | Low pair is better than open-ended with no high cards |
-| 4 | Jh Td Js 8c 9h | Jh Js | Keep the high pair |
-| 5 | 8h 7d 5c 4s Kd | Kd | Inside draw (8-7-_-5-4) loses to a single high card |
-| 6 | 6s 6d Jh Tc 9d | 6s 6d | Low pair is better than an inside straight draw |
-| 7 | Th 9d 8c 6s 2d | Draw All | Never keep an inside straight draw |
-| 8 | Ah 2d 3c 4s 9h | Ah | A-2-3-4 is an inside draw — just keep the Ace |
-
----
-
-## Lesson 4: The 4-Card Flush — A Powerful Draw
-*John Reviewed*
-**Key concept:** Four cards to a flush is one of the strongest drawing hands in the game. You have roughly a 1-in-5 chance of completing it (9 remaining suited cards out of 47). A 4-flush is better than a low pair but not a high pair.
-
-**What the player should learn:**
-- 4 to a flush is better than low pair: keep flush draw
-- A high pair is better than 4 to a flush: keep high pair (JJ+)
-
-**Common mistakes to avoid:**
-- Keeping a low pair instead of drawing to the 4-flush
-- Keeping two off-suit high cards instead of the 4-flush
-- Breaking a high pair for a 4-flush (the high pair is better)
-
-**Practice Hands:**
-
-| # | Hand | Correct Hold | Lesson |
-|---|------|-------------|--------|
-| 1 | Ah 9h 6h 3h Kc | Ah 9h 6h 3h | 4 to a flush — discard the off-suit King |
-| 2 | 8h 5h 3h 2h 8d | 8h 5h 3h 2h | 4 to a flush is better the pair of 8s |
-| 3 | Qh 9h 7h 4h Ks | Qh 9h 7h 4h | 4 to a flush is better than the off-suit KQ |
-| 4 | Kh Th 6h 2h Qs | Kh Th 6h 2h | 4 flush is better than a single high card (Q) |
-| 5 | Jh 8h 4h 2h 5c | Jh 8h 4h 2h | 4 to a flush — even though J is high, the flush draw is much better |
-| 6 | Qs Qd 8h 5h 3h | Qs Qd | High pair Queens is better than 3 to a flush — only 3 suited cards |
-| 7 | Ts 6s 4s 2s 6d | Ts 7s 4s 2s | 4 to a flush is better than a low pair of 6s |
-| 8 | Jd Jh 9h 7h 4h | Jd Js | High pair of Jacks is better than 4 to a flush |
-
----
-
-## Lesson 5: Unsuited High Card Showdowns
+## Lesson 3: Unsuited High Card Showdowns
 *John Reviewed*
 
 
@@ -155,7 +95,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 6: High Card Hands — The Subtleties
+## Lesson 4: High Card Hands — The Subtleties
 *John Reviewed*
 **Key concept:** When you have no pair and no strong draw, the specific high cards you hold matter more than you'd think. Suited is better than unsuited. And counterintuitively, QJ is better than AQ because QJ can participate in more straights.
 
@@ -189,7 +129,115 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 7: Three to a Royal — When to Break Good Hands
+## Lesson 5: Straight Draws - Level 1
+
+*John reviewed*
+**Key concept:** Not all straight draws are equal. An open-ended straight draw can be completed on either end (8 outs), while an inside straight draw needs one specific rank (4 outs). This distinction matters — open-ended draws are roughly twice as likely to hit.
+
+**What the player should learn:**
+- Open-ended straight draw (e.g., 7-8-9-T): Keep open-ended straight draw over high card
+- Inside straight draw (e.g., 5-6-_-8-9): only 4 cards fill the gap, much weaker.  Never keep it with all low cards.
+- Any pair is better than an open-ended straight draw.
+
+
+**Common mistakes to avoid:**
+- Treating inside straight draws as valuable (they're usually not)
+- Breaking a low pair for an inside straight draw
+- Not recognizing that A-2-3-4 is an inside draw, not open-ended
+
+**Practice Hands:**
+
+| # | Hand | Correct Hold | Lesson |
+|---|------|-------------|--------|
+| 1 | Jh Ts 9d 8c 3h | Jh Ts 9d 8c | Open-ended with a high card — good draw |
+| 2 | 9h 8d 7c 6s Ks | 9h 8d 7c 6s | Open-ended — the K isn't helping |
+| 3 | 5h 5d 8s 6c 7d | 5h 5d | Low pair is better than open-ended with no high cards |
+| 4 | Jh Td Js 8c 9h | Jh Js | Keep the high pair |
+| 5 | 8h 7d 5c 4s Kd | Kd | Inside draw (8-7-_-5-4) loses to a single high card |
+| 6 | 6s 6d Jh Tc 9d | 6s 6d | Low pair is better than an inside straight draw |
+| 7 | Th 9d 8c 6s 2d | Draw All | Never keep an inside straight draw |
+| 8 | Ah 2d 3c 4s 9h | Ah | A-2-3-4 is an inside draw — just keep the Ace |
+
+---
+
+## Lesson 6: Straight Draws - Level 2 - 4 to Broadway — Inside Straights with High Cards
+*John Reviewed*
+**Key concept:** Normally, inside straight draws are weak. But when all 4 cards are Broadway cards (Ten through Ace), the draw gets extra value: every card can pair up for a paying hand (Jacks or Better), and you're drawing to a straight. 
+
+**What the player should learn:**
+- AKQT, AKJT, AQJT are inside straights with 3+ high cards. In these scenarios, if you have two suited high cards keep it (i.e. AKs is better than AKQT).  If two cards are suited with a Ten, then keep all four (i.e. AKJT is better than ATs).
+- These 4-card Broadway holds rank above holding just 2 unsuited high cards
+- AKQJ.  Keep all four unless you have suited QJ.
+- 
+**Common mistakes to avoid:**
+- Holding only QJ offsuit from AKQJ (the 4-card inside straight is better than 2 high cards)
+- Treating all inside straights the same — Broadway inside straights are special because of high card payout potential
+
+**Practice Hands:**
+
+| # | Hand | Correct Hold | Lesson |
+|---|------|-------------|--------|
+| 1 | As Kd Qh Tc 6s | As Kd Qh Tc | AKQT inside straight — hold all 4 (needs J) |
+| 2 | As Kd Jh Tc 5s | As Kd Jh Tc | AKJT inside straight — hold all 4 (needs Q) |
+| 3 | Ah Qd Jc Ts 6h | Ah Qd Jc Ts | AQJT inside straight — hold all 4 (needs K) |
+| 4 | As Kd Qs Tc 6s | As Qs | AQ suited is better than AKQT |
+| 5 | As Kh Jh Tc 5s | As Kh Jh Tc | KJ suites is better than AKJT |
+| 6 | Ah Qd Jc Th 6c | Ah Qd Jc Th | AQJT is better than JT suited |
+| 7 | As Kd Qd Jc 2c | As Kd Qd Jc | AKQJ is better than KQ suited |
+| 8 | As Kd Qc Jc 5s | As Kd Qc Jc | QJ suited is better than AKQJ |
+
+## Lesson 7: Straight Draws - Level 3 - Other Inside Straight Draws with High Cards.
+*John Reviewed*
+**Key concept:** Normally, if you have two high cards and an inside straight draw you keep the high cards and don’t go for the inside straight, but there is an exception. 
+
+**What the player should learn:**
+- In hands that contain two high cards and an inside straight draw like KQT9 or QJT8, you just keep the two high cards. 
+- If you have 3 high cards and an inside straight draw, you keep the inside straight draw.  The only example of this is KQJ9.
+- 
+**Common mistakes to avoid:**
+- Just keeping KQJ if you have KQJ9.
+- Going for the inside straight draw with hands like QJT8.
+
+**Practice Hands:**
+
+| # | Hand | Correct Hold | Lesson |
+|---|------|-------------|--------|
+| 1 | Kd Qh Tc 9h 6s | Kd Qh | KQ is better than the inside straight draw. |
+| 2 | 8s Jd Qh Tc 5s | Jd Qh | QJ is better than the inside straight draw. |
+| 3 | 9h Qd Jc Ks 6h | 9h Qd Jc Ks | KQJ9 is better than KQJ |
+
+
+## Lesson 8: The 4-Card Flush — A Powerful Draw
+*John Reviewed*
+**Key concept:** Four cards to a flush is one of the strongest drawing hands in the game. You have roughly a 1-in-5 chance of completing it (9 remaining suited cards out of 47). A 4-flush is better than a low pair but not a high pair.
+
+**What the player should learn:**
+- 4 to a flush is better than low pair: keep flush draw
+- A high pair is better than 4 to a flush: keep high pair (JJ+)
+
+**Common mistakes to avoid:**
+- Keeping a low pair instead of drawing to the 4-flush
+- Keeping two off-suit high cards instead of the 4-flush
+- Breaking a high pair for a 4-flush (the high pair is better)
+
+**Practice Hands:**
+
+| # | Hand | Correct Hold | Lesson |
+|---|------|-------------|--------|
+| 1 | Ah 9h 6h 3h Kc | Ah 9h 6h 3h | 4 to a flush — discard the off-suit King |
+| 2 | 8h 5h 3h 2h 8d | 8h 5h 3h 2h | 4 to a flush is better the pair of 8s |
+| 3 | Qh 9h 7h 4h Ks | Qh 9h 7h 4h | 4 to a flush is better than the off-suit KQ |
+| 4 | Kh Th 6h 2h Qs | Kh Th 6h 2h | 4 flush is better than a single high card (Q) |
+| 5 | Jh 8h 4h 2h 5c | Jh 8h 4h 2h | 4 to a flush — even though J is high, the flush draw is much better |
+| 6 | Qs Qd 8h 5h 3h | Qs Qd | High pair Queens is better than 3 to a flush — only 3 suited cards |
+| 7 | Ts 6s 4s 2s 6d | Ts 7s 4s 2s | 4 to a flush is better than a low pair of 6s |
+| 8 | Jd Jh 9h 7h 4h | Jd Js | High pair of Jacks is better than 4 to a flush |
+
+---
+
+---
+
+## Lesson 9: Three to a Royal — When to Break Good Hands
 *John Reviewed* 
 **Key concept:** Three to a Royal Flush (3 cards T-or-higher of the same suit) is so powerful that it's correct to break a low pair and 4 to a straight.  However, a high pair is better than 3 to the royal.
 
@@ -219,15 +267,15 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 8: Garbage Hands & Full Strategy Review
-
+## Lesson 10: Garbage Hands & Full Strategy Review
+*John Reviewed*
 **Key concept:** Sometimes you're dealt nothing — no pair, no draw, no high cards. Knowing when to throw away all 5 cards is a skill. This lesson also puts everything together.
 
 **What the player should learn:**
 - If you have nothing useful, discard all 5 and draw fresh
 - A single high card (J, Q, K, A) is still better than keeping random low cards
 - Don't keep 3 unsuited low cards hoping for a straight or flush — it won't happen often enough
-- Review the full holding hierarchy from Lesson 1 through Lesson 7
+- Review the full holding hierarchy from Lesson 1 through Lesson 9
 
 **Common mistakes to avoid:**
 - Keeping random suited low cards (e.g., 7h 4h 2h) — 3 to a flush is almost never worth it
@@ -242,134 +290,13 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 2 | 9h 7d 5c 3s 2h | Nothing | No pair, no draw, no high card — toss it |
 | 3 | Jh 4d 3c 2s 8h | Jh | Lone Jack — better than garbage |
 | 4 | Qh 9h 7d 4c 2s | Qh | Lone Queen — only high card in the hand |
-| 5 | 7h 7d Kc 6s 2c | 7h 7d | Review: low pair is better than a single high card |
-| 6 | Kd Td 8s 5c 2h | Kd Td | Suited K-T has flush + straight potential |
-| 7 | As Kh Qd Jc 4h | Kh Qd Jc | 4 unsuited high cards — keep the best 3, drop the Ace |
-| 8 | 9d 7c 5h 3s 2d | Nothing | Garbage — fresh 5 cards is the best play |
-| 9 | Th 6h 4h 3c 2s | Th | A Ten is NOT a high card in JoB — but slightly better than all garbage |
-| 10 | Ah Kh 9d 6c 3s | Ah Kh | Suited AK — the suit makes this worth holding together |
+| 5 | 9d 7c 5h 3s 2d | Nothing | Garbage — fresh 5 cards is the best play |
 
 ---
 
-## Lesson 9: 3 to a Royal vs. 4 to a Flush — The Counterintuitive Break
-
-**Key concept:** When you have 3 suited high cards (a 3-Royal draw) plus a 4th suited low card (making a 4-flush), you should break the 4-flush and keep only the 3-Royal. Throwing away a suited card feels wrong, but the Royal draw's massive payout makes it correct.
-
-**What the player should learn:**
-- If your 4-flush contains 3 cards that are Ten-or-higher of the same suit, hold only those 3 (the 3-Royal)
-- 3 to a Royal ranks ABOVE 4 to a flush in the strategy hierarchy
-- The Royal's 800:1 payout justifies discarding a suited card that would give you a better flush chance
-- If you only have 2 or fewer Royal cards in your 4-flush, keep all 4 suited cards
-
-**Common mistakes to avoid:**
-- Keeping the 4-flush because "I already have 4 suited cards, why throw one away?"
-- Not spotting the 3-Royal hiding inside a 4-flush
-- Confusing this with 4 to a Royal (which is even stronger — always hold 4 to a Royal)
-
-**Practice Hands:**
-
-| # | Hand | Correct Hold | Lesson |
-|---|------|-------------|--------|
-| 1 | Kh Qh Th 7h 3c | Kh Qh Th | 3 to a Royal — drop the 7h, don't keep the 4-flush |
-| 2 | Ah Kh Th 9h 5c | Ah Kh Th | 3 to a Royal is better than the 4-flush (Ah Kh Th 9h) |
-| 3 | Qh Jh Th 4h 8c | Qh Jh Th | 3 to a Royal — the 4h is tempting but wrong to keep |
-| 4 | Kh 9h 6h 3h Qc | Kh 9h 6h 3h | 4 to a flush — only 1 Royal card (K), no 3-Royal available |
-| 5 | Ah Kh Qh 5h Jd | Ah Kh Qh | 3 to a Royal (AKQ) — drop the 5h AND the Jd |
-| 6 | Jh 8h 5h 2h Kc | Jh 8h 5h 2h | 4 to a flush — only 1 Royal card (J), keep the flush draw |
-| 7 | Ah Qh Th 6h 9c | Ah Qh Th | 3 to a Royal — break the 4-flush |
-| 8 | Kh Jh Th 3h 9d | Kh Jh Th | 3 to a Royal (KJT) — drop the 3h |
-| 9 | Qh 9h 7h 4h Ks | Qh 9h 7h 4h | 4 to a flush — only 1 Royal card (Q), keep all 4 suited |
-| 10 | Ah Kh Jh 2h 5c | Ah Kh Jh | 3 to a Royal (AKJ) — drop the 2h |
-
----
-
-## Lesson 10: Suited High Cards — The Power of the Suit
-
-**Key concept:** When two high cards share a suit, they become dramatically stronger than the same cards unsuited. A suited combo has flush potential on top of pair and straight potential. Suited AK is a strong hold, even though unsuited AK is one of the weakest high card combos.
-
-**What the player should learn:**
-- Suited high cards always beat the same cards unsuited
-- AK suited is a strong hold (flush + straight potential) — unlike AK unsuited which is weak
-- QJ suited is the best suited 2-card combo
-- Suited 2-card combos beat unsuited 2-card combos even when the unsuited combo has "better" ranks
-- Example: Kh Jh (suited) is better than Qs Jd (unsuited QJ)
-
-**Common mistakes to avoid:**
-- Treating suited AK the same as unsuited AK (suited is much stronger)
-- Breaking a suited high card combo to hold an unsuited one with "better" individual cards
-- Not checking if your high cards share a suit before deciding what to hold
-
-**Practice Hands:**
-
-| # | Hand | Correct Hold | Lesson |
-|---|------|-------------|--------|
-| 1 | Ah Kh 9c 5d 3s | Ah Kh | Suited AK — strong hold (unlike unsuited AK) |
-| 2 | Qh Jh 8c 5d 3s | Qh Jh | Suited QJ — the best suited 2-card combo |
-| 3 | Kh Jh 9c 5d 2s | Kh Jh | Suited KJ — much stronger than unsuited KJ |
-| 4 | Ah Kh Qd 7c 3s | Ah Kh | Suited AK is better than the unsuited Q — the suit wins |
-| 5 | Ks Qh Jh 8c 3d | Qh Jh | Suited QJ is better than unsuited K — suit trumps rank |
-| 6 | Ah Qh 9c 5d 3s | Ah Qh | Suited AQ — the suit makes the Ace worth keeping |
-| 7 | Kh Th 9c 6d 2s | Kh Th | Suited KT — even a Ten is worth holding when suited with a high card |
-| 8 | As Kd Qh Jh 5c | Qh Jh | Suited QJ is better than unsuited AK — suit > rank |
-| 9 | Jh Th 9c 5d 2s | Jh Th | Suited JT — straight flush potential plus flush plus straight |
-| 10 | Ah Kh Qs Jd 4c | Ah Kh | Suited AK is better than unsuited QJ — both are 2-card holds, suit wins |
-
----
-
-## Lesson 11: 4 to Broadway — Inside Straights with High Cards
-
-**Key concept:** Normally, inside straight draws are weak. But when all 4 cards are Broadway cards (Ten through Ace), the draw gets extra value: every card can pair up for a paying hand (Jacks or Better), and you're drawing to a straight. Hands like KQJT (open-ended) and AKQJ (inside) are stronger than you'd think.
-
-**What the player should learn:**
-- KQJT is an open-ended straight with 3 high cards — one of the strongest non-pair draws
-- AKQJ, AKQT, AKJT, AQJT are inside straights with 3+ high cards — hold all 4
-- These 4-card Broadway holds rank above holding just 2 unsuited high cards
-- The key is having 4 cards in straight sequence (or 1 gap) — if the cards don't connect, hold 2
-- KQJT open-ended is stronger than AKQJ inside, but both are holds
-
-**Common mistakes to avoid:**
-- Holding only QJ from AKQJ (the 4-card inside straight is better than 2 high cards)
-- Not recognizing KQJT as an open-ended straight (it can catch an A or 9)
-- Treating all inside straights the same — Broadway inside straights are special because of high card payout potential
-
-**Practice Hands:**
-
-| # | Hand | Correct Hold | Lesson |
-|---|------|-------------|--------|
-| 1 | Kd Qh Jc Ts 4d | Kd Qh Jc Ts | KQJT open-ended — one of the best straight draws |
-| 2 | As Kd Qh Jc 5s | As Kd Qh Jc | AKQJ inside straight — hold all 4, better than just QJ |
-| 3 | As Kd Qh Tc 6s | As Kd Qh Tc | AKQT inside straight — hold all 4 (needs J) |
-| 4 | As Kd Jh Tc 5s | As Kd Jh Tc | AKJT inside straight — hold all 4 (needs Q) |
-| 5 | Ah Qd Jc Ts 6h | Ah Qd Jc Ts | AQJT inside straight — hold all 4 (needs K) |
-| 6 | Kh Qd Js 8c 3h | Qd Js | KQJ with a gap (no T) — not a straight draw, just hold QJ |
-| 7 | Ah Kd Qs 8c 3h | Kd Qs | AKQ with a gap — not a straight draw, hold KQ |
-| 8 | Kd Qh Jc Ts 3s | Kd Qh Jc Ts | KQJT — even with a suited 3, the open-ended straight wins |
-| 9 | As Kd Qh Jc 2c | As Kd Qh Jc | AKQJ — 4 Broadway cards in sequence beat holding just 2 |
-| 10 | Ah Kd Jc 8s 4h | Kd Jc | AKJ with a gap — no straight draw, hold KJ and drop the Ace |
-
----
-
-## Lesson Progression Summary
-
-| # | Lesson | Core Concept | Difficulty |
-|---|--------|-------------|-----------|
-| 1 | Pat Hands | Keep paying hands; learn the 4-to-Royal exception | Easy |
-| 2 | Pairs | High pairs pay; low pairs still beat most draws | Easy |
-| 3 | Straight Draws | Open-ended vs. inside; Ace makes it inside | Medium |
-| 4 | Flush Draws | 4 to a flush is powerful; is better than low pairs | Medium |
-| 5 | Unsuited High Card Showdowns | QJ > KJ > KQ > AQ > AK; drop the Ace from 3 | Hard |
-| 6 | High Cards | Suited > unsuited; QJ > AK; drop the Ace | Hard |
-| 7 | 3 to a Royal | Break pairs, flushes, and straights for 3-Royal | Hard |
-| 8 | Garbage & Review | When to discard all 5; full strategy test | Mixed |
-| 9 | 3-Royal vs. 4-Flush | Break the 4-flush to keep 3 to a Royal | Hard |
-| 10 | Suited High Cards | Suited AK is strong; suited is better than unsuited | Medium |
-| 11 | 4 to Broadway | Inside straights with all high cards are special holds | Hard |
-| 12 | Royal Draws | 4 to Royal beats almost everything; 3 to Royal beats low pair & 4-flush | Hard |
-| 13 | Inside Straights with High Cards | More high cards = stronger inside straight draw | Medium |
-| 14 | The Lone High Card | Single J/Q/K/A beats garbage; Ten is not a high card | Easy |
 
 
-## Lesson 12: Royal Draws — Chasing the Jackpot
+## Lesson 11: Royal Draws — Chasing the Jackpot
 
 **Key concept:** Royal flush draws are the most valuable draws in the game because of the massive 800:1 payout (4000 coins at max bet). 4 to a Royal beats almost everything — you should break a flush, straight, two pair, trips, or even a full house for it. 3 to a Royal is also powerful: it beats a low pair and 4 to a flush.
 
@@ -402,7 +329,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 13: Inside Straights — When High Cards Make the Difference
+## Lesson 12: Inside Straights — When High Cards Make the Difference
 
 **Key concept:** Inside straight draws are usually weak (only 4 outs). But the number of high cards in the draw changes everything. An inside straight with 3 or 4 high cards is worth holding because each high card can pair for a paying hand. An inside straight with 0-1 high cards is almost never worth keeping.
 
@@ -434,7 +361,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 10 | 8h 7d 5c 4s 2h | Draw All | 8-7-_-5-4 inside straight with 0 high cards — pure garbage, draw 5 |
 
 
-## Lesson 14: The Lone High Card — Better Than Nothing
+## Lesson 13: The Lone High Card — Better Than Nothing
 
 **Key concept:** The most common situation in video poker is holding a single high card (J, Q, K, or A) surrounded by garbage. When your hand has no pair, no meaningful draw, and only one high card, that lone high card is your best play. Hold it and draw 4 new cards — you have a roughly 1-in-5 chance of pairing it for a Jacks or Better payout.
 
