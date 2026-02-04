@@ -77,9 +77,10 @@ struct TrainingGameSelectorView: View {
                 .frame(height: 120)
 
             VStack(spacing: 8) {
-                Image(systemName: "graduationcap.fill")
-                    .font(.system(size: 32))
-                    .foregroundColor(.white)
+                Image("chip-purple")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 50, height: 50)
 
                 Text("VP Academy")
                     .font(.title2)

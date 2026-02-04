@@ -165,8 +165,7 @@ struct HomeView: View {
 
                     // Simulation
                     FeatureCard(
-                        icon: "chart.line.uptrend.xyaxis",
-                        iconColor: AppTheme.Colors.mintGreen,
+                        chipImage: "chip-green",
                         title: "Simulation",
                         subtitle: "Run simulations."
                     ) {
@@ -317,8 +316,7 @@ struct HomeView: View {
             HStack(spacing: 12) {
                 // Simulation
                 FeatureCard(
-                    icon: "chart.line.uptrend.xyaxis",
-                    iconColor: AppTheme.Colors.mintGreen,
+                    chipImage: "chip-green",
                     title: "Simulation",
                     subtitle: "Run thousands of hands to see expected results."
                 ) {
@@ -327,8 +325,7 @@ struct HomeView: View {
 
                 // VP Academy
                 FeatureCard(
-                    icon: "graduationcap.fill",
-                    iconColor: AppTheme.Colors.mintGreen,
+                    chipImage: "chip-purple",
                     title: "VP Academy",
                     subtitle: "Lessons, drills, and review your mistakes."
                 ) {

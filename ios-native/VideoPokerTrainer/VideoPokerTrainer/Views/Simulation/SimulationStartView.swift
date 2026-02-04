@@ -109,9 +109,10 @@ struct SimulationStartView: View {
                 .frame(height: 140)
 
             VStack(spacing: 8) {
-                Image(systemName: "chart.line.uptrend.xyaxis")
-                    .font(.system(size: 44))
-                    .foregroundColor(.white)
+                Image("chip-green")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 50, height: 50)
 
                 Text("Simulation Mode")
                     .font(.title2)
