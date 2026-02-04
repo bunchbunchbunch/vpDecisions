@@ -160,8 +160,8 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 
 ---
-
 ## Lesson 6: Suited Ten + High Card — 2 to a Royal with a Ten
+*John Reviewed*
 
 **Key concept:** When a Ten is suited with a Jack, Queen, or King, the combo becomes a "2 to a Royal Flush" draw with flush and straight potential on top. TJ suited is the strongest (most straight combinations), TK suited is the weakest. AT suited is NOT a real hold — the Ace alone is always better because A+T share only one straight (AKQJT).
 
@@ -275,8 +275,37 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 2 | 8s Jd Qh Tc 5s | Jd Qh | QJ is better than the inside straight draw. |
 | 3 | 9h Qd Jc Ks 6h | 9h Qd Jc Ks | KQJ9 is better than KQJ |
 
+---
 
-## Lesson 10: The 4-Card Flush — A Powerful Draw
+## Lesson 10: The KQJT Exception — When an Outside Straight Beats a Pair
+*John Reviewed*
+**Key concept:** Lesson 7 taught that a pair beats an outside straight draw. KQJT is the one exception. With 3 high cards (K, Q, J) that each pay when paired plus 8 straight outs, KQJT. This only matters when the 5th card gives you a pair of Tens, since any other pair in this hand is a high pair (JJ, QQ, KK) which easily beats the straight draw.
+
+**What the player should learn:**
+- KQJT is the only 4-to-outside-straight that beats a low pair
+- If your hand is KQJTT (pair of tens + KQJT straight), break the pair and hold KQJT
+- If your hand has a high pair (JJ, QQ, or KK) alongside the KQJT cards, keep the high pair
+- If 3 of the KQJT cards are suited, check for 3-to-a-Royal first — that's even stronger
+
+**Common mistakes to avoid:**
+- Keeping a pair of Tens over KQJT — the Tens don't pay when paired, and the straight draw is stronger
+- Breaking a high pair of Jacks/Queens/Kings for the KQJT straight — the high pair always wins here
+- Missing a 3-to-Royal hiding inside the hand (e.g., KsQsJs with Td)
+
+**Practice Hands:**
+
+| # | Hand | Correct Hold | Lesson |
+|---|------|-------------|--------|
+| 1 | Th Td Jc Qd Ks | Td Jc Qd Ks | KQJT beats pair of Tens — the one exception to "pairs beat straights" |
+| 2 | Ts Tc Jd Qh Kc | Tc Jd Qh Kc | Same concept — break the Tens for the KQJT draw |
+| 3 | Jh Jd Kc Qs Ts | Jh Jd | High pair of Jacks beats KQJT — high pairs always win |
+| 4 | Qh Qd Kc Js Ts | Qh Qd | High pair of Queens beats KQJT |
+| 5 | Kh Kd Qc Jd Ts | Kh Kd | High pair of Kings beats KQJT |
+| 6 | Ks Qs Js Td Tc | Ks Qs Js | 3-to-Royal beats both KQJT and pair of Tens — always check for the Royal draw |
+
+---
+
+## Lesson 11: The 4-Card Flush — A Powerful Draw
 *John Reviewed*
 **Key concept:** Four cards to a flush is one of the strongest drawing hands in the game. You have roughly a 1-in-5 chance of completing it (9 remaining suited cards out of 47). A 4-flush is better than a low pair but not a high pair.
 
@@ -306,7 +335,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 11: Three to a Royal — When to Break Good Hands
+## Lesson 12: Three to a Royal — When to Break Good Hands
 *John Reviewed* 
 **Key concept:** Three to a Royal Flush (3 cards T-or-higher of the same suit) is so powerful that it's correct to break a low pair and 4 to a straight.  However, a high pair is better than 3 to the royal.
 
@@ -336,7 +365,93 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 12: Garbage Hands & Full Strategy Review
+## Lesson 13: Three to a Straight Flush — The Barely-There Draw (Type 3)
+*John Reviewed*
+
+**Key concept:** This is the first of three lessons on 3-to-a-straight-flush draws. Before diving in, two definitions: A **high card** is J, Q, K, or A — the cards that pay when paired in Jacks or Better. A **gap** is a missing rank between your held cards (e.g., 8-9-J has 1 gap where the T should be; 7-9-J has 2 gaps where the 8 and T should be). Type 3 is the weakest straight flush draw: 3 suited cards with **2 gaps and 0 high cards** (e.g., 3-5-7s, 4-6-8s). It barely beats throwing everything away — any single high card is a better hold.
+
+**What the player should learn:**
+- Type 3 = 3 suited cards with 2 gaps and no high cards (e.g., 3h 5h 7h, 4s 6s 8s)
+- Type 3 beats: garbage only — it's the last thing you'd hold before discarding all 5
+- Type 3 loses to: every single high card (J, Q, K, A)
+
+**Common mistakes to avoid:**
+- Holding a type 3 draw over a lone Jack, Queen, King, or Ace
+- Thinking "3 suited cards" must be good — type 3 is barely better than nothing
+
+**Practice Hands:**
+
+| # | Hand | Correct Hold | Lesson |
+|---|------|-------------|--------|
+| 1 | 3h 5h 7h 9d 2s | 3h 5h 7h | Type 3 with pure garbage — barely better than discarding all 5 |
+| 2 | 4h 6h 8h 9d 2s | 4h 6h 8h | Type 3 — hold the SF draw over nothing |
+| 3 | 3h 5h 7h 8d Jd | Jd | Lone Jack beats type 3 — any high card is better |
+| 4 | 4h 6h 8h Ad 3s | Ad | Lone Ace beats type 3 |
+
+---
+
+## Lesson 14: Three to a Straight Flush — The Middle Draw (Type 2)
+*John Reviewed*
+**Key concept:** Type 2 is the middle-strength straight flush draw. It covers three patterns: **1 gap with 0 high cards** (e.g., 6-7-9s), **2 gaps with 1 high card** (e.g., 7-9-Js), or **ace-low** (e.g., A-3-5s). These are much stronger than Type 3 — they beat lone high cards, unsuited high card combos, and even suited T+HC draws. But they still lose to suited KQ/KJ and above.
+
+**What the player should learn:**
+- Type 2 = 1 gap/0 high, 2 gaps/1 high, or ace-low suited
+- Type 2 beats: unsuited JQK, unsuited JQ, suited TJ, suited TQ, lone J/Q/K/A
+- Type 2 loses to: Any two suited high cards
+
+**Common mistakes to avoid:**
+- Confusing Type 2 with Type 1 — the gap/high-card balance matters
+- Holding suited TJ over a Type 2 draw — Type 2 is surprisingly stronger
+- Breaking a Type 2 draw for a single unsuited high card — the SF draw wins
+
+**Practice Hands:**
+
+| # | Hand | Correct Hold | Lesson |
+|---|------|-------------|--------|
+| 1 | 6h 7h 9h 4d 2s | 6h 7h 9h | Type 2: 1 gap, 0 high cards — basic hold |
+| 2 | 7h 9h Jh 5d 2s | 7h 9h Jh | Type 2: 2 gaps, 1 high card |
+| 3 | 6h 7h 9h Jd Qc | 6h 7h 9h | Type 2 beats unsuited JQ — the SF draw wins |
+| 4 | 6h 7h 9h Ts Js | 6h 7h 9h | Type 2 beats suited TJ |
+| 5 | 5s 6s 8s Ah Kh | Ah Kh | Suited KQ beats type 2 — the high cards outweigh the SF draw |
+| 6 | 7h 9h Jh Ks Qd | 7h 9h Jh | Type 2 beats KQ unsuited and KQJ9 straight draw |
+
+---
+
+## Lesson 15: Three to a Straight Flush — The Strong Draw (Type 1)
+*John Reviewed*
+**Key concept:** Type 1 is the strongest 3-to-a-straight-flush draw. The rule: **high cards >= gaps**. Consecutive suited cards (0 gaps) always qualify — like 5-6-7s or 7-8-9s. One-gap hands need at least 1 high card (e.g., 8-9-Js, 9-J-Qs). These are surprisingly powerful draws that beat most 2-card suited holdings, including suited AK.
+
+**What the player should learn:**
+- Type 1 = 3 suited cards where high card count >= gap count
+- Consecutive suited cards (e.g., 7-8-9) are always type 1 — 0 gaps, so any number of high cards works
+- 1-gap hands need at least 1 high card (e.g., 8-9-J suited, 9-J-Q suited)
+- Type 1 Straight Flush draws beat: suited QJ, suited KQ/KJ, suited AK/AQ/AJ, inside straights with 3-4 high, and everything below
+- Type 1 Straight Flush draws loses to: 4-to-outside straight, low pair, 4-to-flush, and everything above
+- Surprising: 7-8-9 suited (EV 0.630) beats suited AK (EV 0.589)
+
+**Common mistakes to avoid:**
+- Holding suited QJ instead of the 3-to-SF type 1 that includes one of those cards
+- Not recognizing that low consecutive suited cards (5-6-7) are still strong type 1 draws
+- Breaking the 3-to-SF to hold a lone high card
+
+**Practice Hands:**
+
+| # | Hand | Correct Hold | Lesson |
+|---|------|-------------|--------|
+| 1 | 7h 8h 9h 4d 2s | 7h 8h 9h | Consecutive suited — basic 3-to-SF type 1 |
+| 2 | 9h Jh Qh 5d 2s | 9h Jh Qh | Strongest type 1 — 1 gap, 2 high cards |
+| 3 | 8h 9h Jh 4d 2s | 8h 9h Jh | 1 gap, 1 high — still type 1 |
+| 4 | 5h 6h 7h 4d 2s | 5h 6h 7h 4d | Open-ended Straight Draw is better than Type 1 Straight Flush Draw |
+| 5 | 8h Jh Qh 5d 2s | 8h Jh Qh | 3-to-SF type 1 beats just holding QJ suited (the 8 adds SF potential) |
+| 6 | 7h 8h 9h Qs Ks | 7h 8h 9h | Type 1 beats suited KQ — surprising but verified (EV 0.630 vs 0.589) |
+| 7 | 7h 8h 9h Qs Js | 7h 8h 9h | Type 1 beats suited QJ — the SF draw is much stronger |
+| 8 | 5h 5d 7s 8s 9s | 5h 5d | Low pair still beats type 1 — pairs are bread and butter |
+| 9 | 9h Th Jh Qd 3s | 9h Th Jh Qd | 4-to-outside straight with one high card beats the 3-to-SF even with one high card — add the off-suit Q |
+| 10 | 7h 8h 9h 3h Kd | 7h 8h 9h 3h | 4-to-flush beats 3-to-SF — take the extra flush card |
+
+---
+
+## Lesson 16: Garbage Hands & Full Strategy Review
 *John Reviewed*
 **Key concept:** Sometimes you're dealt nothing — no pair, no draw, no high cards. Knowing when to throw away all 5 cards is a skill. This lesson also puts everything together.
 
@@ -344,7 +459,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 - If you have nothing useful, discard all 5 and draw fresh
 - A single high card (J, Q, K, A) is still better than keeping random low cards
 - Don't keep 3 unsuited low cards hoping for a straight or flush — it won't happen often enough
-- Review the full holding hierarchy from Lesson 1 through Lesson 11
+- Review the full holding hierarchy from Lesson 1 through Lesson 15
 
 **Common mistakes to avoid:**
 - Keeping random suited low cards (e.g., 7h 4h 2h) — 3 to a flush is almost never worth it
