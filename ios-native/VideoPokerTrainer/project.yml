@@ -20,6 +20,11 @@ targets:
       - path: VideoPokerTrainer/Resources
         includes:
           - "*.vpstrat2"
+    entitlements:
+      path: VideoPokerTrainer/VideoPokerTrainer.entitlements
+      properties:
+        com.apple.developer.applesignin:
+          - Default
     settings:
       base:
         INFOPLIST_FILE: VideoPokerTrainer/Info.plist

@@ -202,6 +202,11 @@ actor PendingAttemptsStore {
         executeSQL("DELETE FROM pending_attempts WHERE sync_status = 'synced';")
     }
 
+    /// Delete all attempts (used during account deletion)
+    func clearAllAttempts() {
+        executeSQL("DELETE FROM pending_attempts;")
+    }
+
     deinit {
         sqlite3_finalize(insertPendingStmt)
         sqlite3_finalize(getPendingStmt)

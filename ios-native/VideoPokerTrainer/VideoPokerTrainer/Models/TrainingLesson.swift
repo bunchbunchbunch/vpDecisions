@@ -44,11 +44,12 @@ struct TrainingLessonScore: Codable {
 }
 
 @MainActor
-final class TrainingProgressStore {
+final class TrainingProgressStore: ObservableObject {
     static let shared = TrainingProgressStore()
-    private let key = "training_lesson_progress_v1"
+    private let key = "training_lesson_progress_v2"
     private var cache: [Int: TrainingLessonScore] = [:]
     private var loaded = false
+    @Published private(set) var changeCount = 0
 
     private init() {}
 
@@ -80,6 +81,7 @@ final class TrainingProgressStore {
         }
         cache[lessonNumber] = existing
         save()
+        changeCount += 1
     }
 
     /// Returns the recommended next lesson (first incomplete, or 1 if none started)

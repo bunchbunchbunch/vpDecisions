@@ -93,7 +93,34 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 9 | Js 7h 5c 4d 2s | Js | Lone Jack — it looks like nothing but the Jack gives you a shot |
 | 10 | Kd 8c 6h 4s 2d | Kd | Lone King — pure garbage around it, hold the King and draw 4 |
 
-## Lesson 4: Unsuited High Card Showdowns
+## Lesson 4: Garbage Hands
+*John Reviewed*
+**Key concept:** Sometimes you're dealt nothing — no pair, no draw, no high cards. Knowing when to throw away all 5 cards is a skill. This lesson also puts everything together.
+
+**What the player should learn:**
+- If you have nothing useful, discard all 5 and draw fresh
+- A single high card (J, Q, K, A) is still better than keeping random low cards
+- Don't keep 3 unsuited low cards hoping for a straight or flush — it won't happen often enough
+- Review the full holding hierarchy from Lesson 1 through Lesson 15
+
+**Common mistakes to avoid:**
+- Keeping random suited low cards (e.g., 7h 4h 2h) — 3 to a flush is almost never worth it
+- Not recognizing true garbage (no pair, no draw, no high cards)
+- Getting "attached" to an almost-hand
+
+**Practice Hands:**
+
+| # | Hand | Correct Hold | Lesson |
+|---|------|-------------|--------|
+| 1 | 8c 6d 4h 3s 2c | Nothing | Pure garbage — discard all 5 |
+| 2 | 9h 7d 5c 3s 2h | Nothing | No pair, no draw, no high card — toss it |
+| 3 | Jh 4d 3c 2s 8h | Jh | Lone Jack — better than garbage |
+| 4 | Qh 9h 7d 4c 2s | Qh | Lone Queen — only high card in the hand |
+| 5 | 9d 7c 5h 3s 2d | Nothing | Garbage — fresh 5 cards is the best play |
+
+---
+
+## Lesson 5: Unsuited High Card Showdowns
 *John Reviewed*
 
 
@@ -127,7 +154,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 5: High Card Hands — The Subtleties
+## Lesson 6: High Card Hands — The Subtleties
 *John Reviewed*
 **Key concept:** When you have no pair and no strong draw, the specific high cards you hold matter more than you'd think. Suited is better than unsuited. And counterintuitively, QJ is better than AQ because QJ can participate in more straights.
 
@@ -159,7 +186,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 
 ---
-## Lesson 6: Suited Ten + High Card — 2 to a Royal with a Ten
+## Lesson 7: Suited Ten + High Card — 2 to a Royal with a Ten
 *John Reviewed*
 
 **Key concept:** When a Ten is suited with a Jack, Queen, or King, the combo becomes a "2 to a Royal Flush" draw with flush and straight potential on top. TJ suited is the strongest (most straight combinations), TK suited is the weakest. AT suited is NOT a real hold — the Ace alone is always better because A+T share only one straight (AKQJT).
@@ -197,7 +224,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 7: Straight Draws - Level 1
+## Lesson 8: Straight Draws - Level 1
 
 *John reviewed*
 **Key concept:** Not all straight draws are equal. An open-ended straight draw can be completed on either end (8 outs), while an inside straight draw needs one specific rank (4 outs). This distinction matters — open-ended draws are roughly twice as likely to hit.
@@ -228,7 +255,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 8: Straight Draws - Level 2 - 4 to Broadway — Inside Straights with High Cards
+## Lesson 9: Straight Draws - Level 2 - 4 to Broadway — Inside Straights with High Cards
 *John Reviewed*
 **Key concept:** Normally, inside straight draws are weak. But when all 4 cards are Broadway cards (Ten through Ace), the draw gets extra value: every card can pair up for a paying hand (Jacks or Better), and you're drawing to a straight. 
 
@@ -254,7 +281,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 7 | As Kd Qd Jc 2c | As Kd Qd Jc | AKQJ is better than KQ suited |
 | 8 | As Kd Qc Jc 5s | As Kd Qc Jc | QJ suited is better than AKQJ |
 
-## Lesson 9: Straight Draws - Level 3 - Other Inside Straight Draws with High Cards.
+## Lesson 10: Straight Draws - Level 3 - Other Inside Straight Draws with High Cards.
 *John Reviewed*
 **Key concept:** Normally, if you have two high cards and an inside straight draw you keep the high cards and don’t go for the inside straight, but there is an exception. 
 
@@ -276,7 +303,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 10: The KQJT Exception — When an Outside Straight Beats a Pair
+## Lesson 11: The KQJT Exception — When an Outside Straight Beats a Pair
 *John Reviewed*
 **Key concept:** Lesson 7 taught that a pair beats an outside straight draw. KQJT is the one exception. With 3 high cards (K, Q, J) that each pay when paired plus 8 straight outs, KQJT. This only matters when the 5th card gives you a pair of Tens, since any other pair in this hand is a high pair (JJ, QQ, KK) which easily beats the straight draw.
 
@@ -300,11 +327,10 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 3 | Jh Jd Kc Qs Ts | Jh Jd | High pair of Jacks beats KQJT — high pairs always win |
 | 4 | Qh Qd Kc Js Ts | Qh Qd | High pair of Queens beats KQJT |
 | 5 | Kh Kd Qc Jd Ts | Kh Kd | High pair of Kings beats KQJT |
-| 6 | Ks Qs Js Td Tc | Ks Qs Js | 3-to-Royal beats both KQJT and pair of Tens — always check for the Royal draw |
 
 ---
 
-## Lesson 11: The 4-Card Flush — A Powerful Draw
+## Lesson 12: The 4-Card Flush — A Powerful Draw
 *John Reviewed*
 **Key concept:** Four cards to a flush is one of the strongest drawing hands in the game. You have roughly a 1-in-5 chance of completing it (9 remaining suited cards out of 47). A 4-flush is better than a low pair but not a high pair.
 
@@ -326,7 +352,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 3 | Qh 9h 7h 4h Ks | Qh 9h 7h 4h | 4 to a flush is better than the off-suit KQ |
 | 4 | Kh Th 6h 2h Qs | Kh Th 6h 2h | 4 flush is better than a single high card (Q) |
 | 5 | Jh 8h 4h 2h 5c | Jh 8h 4h 2h | 4 to a flush — even though J is high, the flush draw is much better |
-| 6 | Qs Qd 8h 5h 3h | Qs Qd | High pair Queens is better than 3 to a flush — only 3 suited cards |
+| 6 | Qh Qd 8h 5h 3h | Qg Qd | High pair Queens is better than 4 to a flush |
 | 7 | Ts 6s 4s 2s 6d | Ts 7s 4s 2s | 4 to a flush is better than a low pair of 6s |
 | 8 | Jd Jh 9h 7h 4h | Jd Js | High pair of Jacks is better than 4 to a flush |
 
@@ -334,7 +360,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 12: Three to a Royal — When to Break Good Hands
+## Lesson 13: Three to a Royal — When to Break Good Hands
 *John Reviewed* 
 **Key concept:** Three to a Royal Flush (3 cards T-or-higher of the same suit) is so powerful that it's correct to break a low pair and 4 to a straight.  However, a high pair is better than 3 to the royal.
 
@@ -364,7 +390,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 13: Three to a Straight Flush — The Barely-There Draw (Type 3)
+## Lesson 14: Three to a Straight Flush — The Barely-There Draw (Type 3)
 *John Reviewed*
 
 **Key concept:** This is the first of three lessons on 3-to-a-straight-flush draws. Before diving in, two definitions: A **high card** is J, Q, K, or A — the cards that pay when paired in Jacks or Better. A **gap** is a missing rank between your held cards (e.g., 8-9-J has 1 gap where the T should be; 7-9-J has 2 gaps where the 8 and T should be). Type 3 is the weakest straight flush draw: 3 suited cards with **2 gaps and 0 high cards** (e.g., 3-5-7s, 4-6-8s). It barely beats throwing everything away — any single high card is a better hold.
@@ -389,7 +415,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 14: Three to a Straight Flush — The Middle Draw (Type 2)
+## Lesson 15: Three to a Straight Flush — The Middle Draw (Type 2)
 *John Reviewed*
 **Key concept:** Type 2 is the middle-strength straight flush draw. It covers three patterns: **1 gap with 0 high cards** (e.g., 6-7-9s), **2 gaps with 1 high card** (e.g., 7-9-Js), or **ace-low** (e.g., A-3-5s). These are much stronger than Type 3 — they beat lone high cards, unsuited high card combos, and even suited T+HC draws. But they still lose to suited KQ/KJ and above.
 
@@ -416,7 +442,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 15: Three to a Straight Flush — The Strong Draw (Type 1)
+## Lesson 16: Three to a Straight Flush — The Strong Draw (Type 1)
 *John Reviewed*
 **Key concept:** Type 1 is the strongest 3-to-a-straight-flush draw. The rule: **high cards >= gaps**. Consecutive suited cards (0 gaps) always qualify — like 5-6-7s or 7-8-9s. One-gap hands need at least 1 high card (e.g., 8-9-Js, 9-J-Qs). These are surprisingly powerful draws that beat most 2-card suited holdings, including suited AK.
 
@@ -449,35 +475,3 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 10 | 7h 8h 9h 3h Kd | 7h 8h 9h 3h | 4-to-flush beats 3-to-SF — take the extra flush card |
 
 ---
-
-## Lesson 16: Garbage Hands
-*John Reviewed*
-**Key concept:** Sometimes you're dealt nothing — no pair, no draw, no high cards. Knowing when to throw away all 5 cards is a skill. This lesson also puts everything together.
-
-**What the player should learn:**
-- If you have nothing useful, discard all 5 and draw fresh
-- A single high card (J, Q, K, A) is still better than keeping random low cards
-- Don't keep 3 unsuited low cards hoping for a straight or flush — it won't happen often enough
-- Review the full holding hierarchy from Lesson 1 through Lesson 15
-
-**Common mistakes to avoid:**
-- Keeping random suited low cards (e.g., 7h 4h 2h) — 3 to a flush is almost never worth it
-- Not recognizing true garbage (no pair, no draw, no high cards)
-- Getting "attached" to an almost-hand
-
-**Practice Hands:**
-
-| # | Hand | Correct Hold | Lesson |
-|---|------|-------------|--------|
-| 1 | 8c 6d 4h 3s 2c | Nothing | Pure garbage — discard all 5 |
-| 2 | 9h 7d 5c 3s 2h | Nothing | No pair, no draw, no high card — toss it |
-| 3 | Jh 4d 3c 2s 8h | Jh | Lone Jack — better than garbage |
-| 4 | Qh 9h 7d 4c 2s | Qh | Lone Queen — only high card in the hand |
-| 5 | 9d 7c 5h 3s 2d | Nothing | Garbage — fresh 5 cards is the best play |
-
----
-
-
-
-
-

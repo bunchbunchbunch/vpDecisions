@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 @MainActor
 class TrainingLessonListViewModel: ObservableObject {
@@ -7,6 +8,17 @@ class TrainingLessonListViewModel: ObservableObject {
     @Published var isLoading = true
 
     private let progressStore = TrainingProgressStore.shared
+    private var cancellables = Set<AnyCancellable>()
+
+    init() {
+        progressStore.$changeCount
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.refreshScores()
+            }
+            .store(in: &cancellables)
+    }
 
     func load() {
         lessons = TrainingLesson.allLessons

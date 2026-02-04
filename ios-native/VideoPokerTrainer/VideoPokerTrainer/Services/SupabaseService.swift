@@ -49,6 +49,10 @@ class SupabaseService: ObservableObject {
         try await client.auth.signOut()
     }
 
+    func deleteAccount() async throws {
+        try await client.rpc("delete_user_account").execute()
+    }
+
     func getCurrentSession() async -> Session? {
         try? await client.auth.session
     }
@@ -74,6 +78,12 @@ class SupabaseService: ObservableObject {
         return try client.auth.getOAuthSignInURL(
             provider: .google,
             redirectTo: redirectTo
+        )
+    }
+
+    func signInWithApple(idToken: String) async throws {
+        try await client.auth.signInWithIdToken(
+            credentials: .init(provider: .apple, idToken: idToken)
         )
     }
 

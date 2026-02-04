@@ -132,12 +132,40 @@ struct TrainingLessonResultsView: View {
                     .font(.system(size: 14))
                     .foregroundColor(AppTheme.Colors.textSecondary)
             }
-        } else {
-            // Try Again (primary CTA when not perfect, or last lesson perfect)
+        } else if isPerfect {
+            // Last lesson, perfect score — go back to lesson list
+            Button {
+                if navigationPath.count >= 2 {
+                    navigationPath.removeLast(2)
+                } else {
+                    navigationPath.removeLast(navigationPath.count)
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "list.bullet")
+                    Text("Lesson List")
+                }
+                .font(.system(size: 16, weight: .semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color(hex: "667eea"))
+
+            // Practice Again (secondary)
             Button {
                 viewModel.reset()
             } label: {
-                Text(isPerfect ? "Practice Again" : "Try Again")
+                Text("Practice Again")
+                    .font(.system(size: 14))
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+        } else {
+            // Not perfect — try again
+            Button {
+                viewModel.reset()
+            } label: {
+                Text("Try Again")
                     .font(.system(size: 16, weight: .semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)

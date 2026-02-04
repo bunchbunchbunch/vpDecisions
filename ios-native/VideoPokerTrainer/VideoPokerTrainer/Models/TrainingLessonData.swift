@@ -90,10 +90,36 @@ extension TrainingLesson {
         ]
     )
 
-    // MARK: - Lesson 4: Unsuited High Card Showdowns
+    // MARK: - Lesson 4: Garbage Hands
 
     static let lesson4 = TrainingLesson(
         number: 4,
+        title: "Garbage Hands & Full Strategy Review",
+        keyConcept: "Sometimes you're dealt nothing — no pair, no draw, no high cards. Knowing when to throw away all 5 cards is a skill. This lesson also puts everything together.",
+        whatToLearn: [
+            "If you have nothing useful, discard all 5 and draw fresh",
+            "A single high card (J, Q, K, A) is still better than keeping random low cards",
+            "Don't keep 3 unsuited low cards hoping for a straight or flush",
+            "Review the full holding hierarchy from Lesson 1 through Lesson 3"
+        ],
+        commonMistakes: [
+            "Keeping random suited low cards (e.g., 7h 4h 2h) — 3 to a flush is almost never worth it",
+            "Not recognizing true garbage (no pair, no draw, no high cards)",
+            "Getting \"attached\" to an almost-hand"
+        ],
+        practiceHands: [
+            TrainingPracticeHand(number: 1, cards: ["8c", "6d", "4h", "3s", "2c"], holdCards: [], explanation: "Pure garbage — discard all 5"),
+            TrainingPracticeHand(number: 2, cards: ["9h", "7d", "5c", "3s", "2h"], holdCards: [], explanation: "No pair, no draw, no high card — toss it"),
+            TrainingPracticeHand(number: 3, cards: ["Jh", "4d", "3c", "2s", "8h"], holdCards: ["Jh"], explanation: "Lone Jack — better than garbage"),
+            TrainingPracticeHand(number: 4, cards: ["Qh", "9h", "7d", "4c", "2s"], holdCards: ["Qh"], explanation: "Lone Queen — only high card in the hand"),
+            TrainingPracticeHand(number: 5, cards: ["9d", "7c", "5h", "3s", "2d"], holdCards: [], explanation: "Garbage — fresh 5 cards is the best play")
+        ]
+    )
+
+    // MARK: - Lesson 5: Unsuited High Card Showdowns
+
+    static let lesson5 = TrainingLesson(
+        number: 5,
         title: "Unsuited High Card Showdowns",
         keyConcept: "When you have multiple unsuited high cards and no better draw, which ones you keep matters. The hierarchy is QJ > KJ, KQ > AJ, AQ, AK. With 3 unsuited high cards, keep only the best 2 — and that usually means dropping the Ace or the King.",
         whatToLearn: [
@@ -121,10 +147,10 @@ extension TrainingLesson {
         ]
     )
 
-    // MARK: - Lesson 5: High Card Subtleties
+    // MARK: - Lesson 6: High Card Subtleties
 
-    static let lesson5 = TrainingLesson(
-        number: 5,
+    static let lesson6 = TrainingLesson(
+        number: 6,
         title: "High Card Hands — The Subtleties",
         keyConcept: "When you have no pair and no strong draw, the specific high cards you hold matter more than you'd think. Suited is better than unsuited. And counterintuitively, QJ is better than AQ because QJ can participate in more straights.",
         whatToLearn: [
@@ -152,10 +178,10 @@ extension TrainingLesson {
         ]
     )
 
-    // MARK: - Lesson 6: Suited Ten + High Card
+    // MARK: - Lesson 7: Suited Ten + High Card
 
-    static let lesson6 = TrainingLesson(
-        number: 6,
+    static let lesson7 = TrainingLesson(
+        number: 7,
         title: "Suited Ten + High Card — 2 to a Royal with a Ten",
         keyConcept: "When a Ten is suited with a Jack, Queen, or King, the combo becomes a \"2 to a Royal Flush\" draw with flush and straight potential on top. TJ suited is the strongest, TK suited is the weakest. AT suited is NOT a real hold — the Ace alone is always better.",
         whatToLearn: [
@@ -185,10 +211,10 @@ extension TrainingLesson {
         ]
     )
 
-    // MARK: - Lesson 7: Straight Draws Level 1
+    // MARK: - Lesson 8: Straight Draws Level 1
 
-    static let lesson7 = TrainingLesson(
-        number: 7,
+    static let lesson8 = TrainingLesson(
+        number: 8,
         title: "Straight Draws — Level 1",
         keyConcept: "Not all straight draws are equal. An open-ended straight draw can be completed on either end (8 outs), while an inside straight draw needs one specific rank (4 outs). Open-ended draws are roughly twice as likely to hit.",
         whatToLearn: [
@@ -213,10 +239,10 @@ extension TrainingLesson {
         ]
     )
 
-    // MARK: - Lesson 8: Inside Straights with Broadway Cards
+    // MARK: - Lesson 9: Inside Straights with Broadway Cards
 
-    static let lesson8 = TrainingLesson(
-        number: 8,
+    static let lesson9 = TrainingLesson(
+        number: 9,
         title: "Straight Draws — Level 2: 4 to Broadway",
         keyConcept: "Normally, inside straight draws are weak. But when all 4 cards are Broadway cards (Ten through Ace), the draw gets extra value: every card can pair up for a paying hand (Jacks or Better), and you're drawing to a straight.",
         whatToLearn: [
@@ -241,10 +267,10 @@ extension TrainingLesson {
         ]
     )
 
-    // MARK: - Lesson 9: Other Inside Straights with High Cards
+    // MARK: - Lesson 10: Other Inside Straights with High Cards
 
-    static let lesson9 = TrainingLesson(
-        number: 9,
+    static let lesson10 = TrainingLesson(
+        number: 10,
         title: "Straight Draws — Level 3: Other Inside Straights",
         keyConcept: "Normally, if you have two high cards and an inside straight draw you keep the high cards and don't go for the inside straight, but there is an exception.",
         whatToLearn: [
@@ -262,12 +288,12 @@ extension TrainingLesson {
         ]
     )
 
-    // MARK: - Lesson 10: The KQJT Exception
+    // MARK: - Lesson 11: The KQJT Exception
 
-    static let lesson10 = TrainingLesson(
-        number: 10,
+    static let lesson11 = TrainingLesson(
+        number: 11,
         title: "The KQJT Exception — When an Outside Straight Beats a Pair",
-        keyConcept: "Lesson 7 taught that a pair beats an outside straight draw. KQJT is the one exception. With 3 high cards (K, Q, J) that each pay when paired plus 8 straight outs, KQJT beats a pair of Tens. This only matters when the 5th card gives you a pair of Tens.",
+        keyConcept: "Lesson 8 taught that a pair beats an outside straight draw. KQJT is the one exception. With 3 high cards (K, Q, J) that each pay when paired plus 8 straight outs, KQJT beats a pair of Tens. This only matters when the 5th card gives you a pair of Tens.",
         whatToLearn: [
             "KQJT is the only 4-to-outside-straight that beats a low pair",
             "If your hand is KQJTT (pair of tens + KQJT straight), break the pair and hold KQJT",
@@ -284,15 +310,14 @@ extension TrainingLesson {
             TrainingPracticeHand(number: 2, cards: ["Ts", "Tc", "Jd", "Qh", "Kc"], holdCards: ["Tc", "Jd", "Qh", "Kc"], explanation: "Same concept — break the Tens for the KQJT draw"),
             TrainingPracticeHand(number: 3, cards: ["Jh", "Jd", "Kc", "Qs", "Ts"], holdCards: ["Jh", "Jd"], explanation: "High pair of Jacks beats KQJT — high pairs always win"),
             TrainingPracticeHand(number: 4, cards: ["Qh", "Qd", "Kc", "Js", "Ts"], holdCards: ["Qh", "Qd"], explanation: "High pair of Queens beats KQJT"),
-            TrainingPracticeHand(number: 5, cards: ["Kh", "Kd", "Qc", "Jd", "Ts"], holdCards: ["Kh", "Kd"], explanation: "High pair of Kings beats KQJT"),
-            TrainingPracticeHand(number: 6, cards: ["Ks", "Qs", "Js", "Td", "Tc"], holdCards: ["Ks", "Qs", "Js"], explanation: "3-to-Royal beats both KQJT and pair of Tens")
+            TrainingPracticeHand(number: 5, cards: ["Kh", "Kd", "Qc", "Jd", "Ts"], holdCards: ["Kh", "Kd"], explanation: "High pair of Kings beats KQJT")
         ]
     )
 
-    // MARK: - Lesson 11: The 4-Card Flush
+    // MARK: - Lesson 12: The 4-Card Flush
 
-    static let lesson11 = TrainingLesson(
-        number: 11,
+    static let lesson12 = TrainingLesson(
+        number: 12,
         title: "The 4-Card Flush — A Powerful Draw",
         keyConcept: "Four cards to a flush is one of the strongest drawing hands in the game. You have roughly a 1-in-5 chance of completing it (9 remaining suited cards out of 47). A 4-flush is better than a low pair but not a high pair.",
         whatToLearn: [
@@ -310,16 +335,16 @@ extension TrainingLesson {
             TrainingPracticeHand(number: 3, cards: ["Qh", "9h", "7h", "4h", "Ks"], holdCards: ["Qh", "9h", "7h", "4h"], explanation: "4 to a flush is better than the off-suit KQ"),
             TrainingPracticeHand(number: 4, cards: ["Kh", "Th", "6h", "2h", "Qs"], holdCards: ["Kh", "Th", "6h", "2h"], explanation: "4 flush is better than a single high card (Q)"),
             TrainingPracticeHand(number: 5, cards: ["Jh", "8h", "4h", "2h", "5c"], holdCards: ["Jh", "8h", "4h", "2h"], explanation: "4 to a flush — even though J is high, the flush draw is much better"),
-            TrainingPracticeHand(number: 6, cards: ["Qs", "Qd", "8h", "5h", "3h"], holdCards: ["Qs", "Qd"], explanation: "High pair Queens is better than 3 to a flush — only 3 suited cards"),
+            TrainingPracticeHand(number: 6, cards: ["Qh", "Qd", "8h", "5h", "3h"], holdCards: ["Qh", "Qd"], explanation: "High pair Queens is better than 4 to a flush"),
             TrainingPracticeHand(number: 7, cards: ["Ts", "6s", "4s", "2s", "6d"], holdCards: ["Ts", "6s", "4s", "2s"], explanation: "4 to a flush is better than a low pair of 6s"),
             TrainingPracticeHand(number: 8, cards: ["Jd", "Jh", "9h", "7h", "4h"], holdCards: ["Jd", "Jh"], explanation: "High pair of Jacks is better than 4 to a flush")
         ]
     )
 
-    // MARK: - Lesson 12: Three to a Royal
+    // MARK: - Lesson 13: Three to a Royal
 
-    static let lesson12 = TrainingLesson(
-        number: 12,
+    static let lesson13 = TrainingLesson(
+        number: 13,
         title: "Three to a Royal — When to Break Good Hands",
         keyConcept: "Three to a Royal Flush (3 cards T-or-higher of the same suit) is so powerful that it's correct to break a low pair and 4 to a straight. However, a high pair is better than 3 to the royal.",
         whatToLearn: [
@@ -345,10 +370,10 @@ extension TrainingLesson {
         ]
     )
 
-    // MARK: - Lesson 13: SF Type 3 (Weakest)
+    // MARK: - Lesson 14: SF Type 3 (Weakest)
 
-    static let lesson13 = TrainingLesson(
-        number: 13,
+    static let lesson14 = TrainingLesson(
+        number: 14,
         title: "Three to a Straight Flush — The Barely-There Draw (Type 3)",
         keyConcept: "A high card is J, Q, K, or A — the cards that pay when paired. A gap is a missing rank between your held cards (e.g., 8-9-J has 1 gap; 7-9-J has 2 gaps). Type 3 is the weakest straight flush draw: 3 suited cards with 2 gaps and 0 high cards (e.g., 3-5-7s, 4-6-8s). It barely beats throwing everything away.",
         whatToLearn: [
@@ -368,10 +393,10 @@ extension TrainingLesson {
         ]
     )
 
-    // MARK: - Lesson 14: SF Type 2 (Middle)
+    // MARK: - Lesson 15: SF Type 2 (Middle)
 
-    static let lesson14 = TrainingLesson(
-        number: 14,
+    static let lesson15 = TrainingLesson(
+        number: 15,
         title: "Three to a Straight Flush — The Middle Draw (Type 2)",
         keyConcept: "Type 2 is the middle-strength straight flush draw. It covers: 1 gap with 0 high cards (e.g., 6-7-9s), 2 gaps with 1 high card (e.g., 7-9-Js), or ace-low (e.g., A-3-5s). These beat lone high cards and unsuited combos, but lose to suited high card pairs.",
         whatToLearn: [
@@ -382,7 +407,7 @@ extension TrainingLesson {
         commonMistakes: [
             "Confusing Type 2 with Type 1 — the gap/high-card balance matters",
             "Holding suited TJ over a Type 2 draw — Type 2 is surprisingly stronger",
-            "Breaking a Type 2 draw for a single unsuited high card"
+            "Breaking a Type 2 draw for a single unsuited high card — the SF draw wins"
         ],
         practiceHands: [
             TrainingPracticeHand(number: 1, cards: ["6h", "7h", "9h", "4d", "2s"], holdCards: ["6h", "7h", "9h"], explanation: "Type 2: 1 gap, 0 high cards — basic hold"),
@@ -394,10 +419,10 @@ extension TrainingLesson {
         ]
     )
 
-    // MARK: - Lesson 15: SF Type 1 (Strongest)
+    // MARK: - Lesson 16: SF Type 1 (Strongest)
 
-    static let lesson15 = TrainingLesson(
-        number: 15,
+    static let lesson16 = TrainingLesson(
+        number: 16,
         title: "Three to a Straight Flush — The Strong Draw (Type 1)",
         keyConcept: "Type 1 is the strongest 3-to-a-straight-flush draw. The rule: high cards >= gaps. Consecutive suited cards (0 gaps) always qualify. One-gap hands need at least 1 high card (e.g., 8-9-Js). These are surprisingly powerful draws that beat most 2-card suited holdings, including suited AK.",
         whatToLearn: [
@@ -423,32 +448,6 @@ extension TrainingLesson {
             TrainingPracticeHand(number: 8, cards: ["5h", "5d", "7s", "8s", "9s"], holdCards: ["5h", "5d"], explanation: "Low pair still beats type 1 — pairs are bread and butter"),
             TrainingPracticeHand(number: 9, cards: ["9h", "Th", "Jh", "Qd", "3s"], holdCards: ["9h", "Th", "Jh", "Qd"], explanation: "4-to-outside straight beats the 3-to-SF — add the off-suit Q"),
             TrainingPracticeHand(number: 10, cards: ["7h", "8h", "9h", "3h", "Kd"], holdCards: ["7h", "8h", "9h", "3h"], explanation: "4-to-flush beats 3-to-SF — take the extra flush card")
-        ]
-    )
-
-    // MARK: - Lesson 16: Garbage Hands
-
-    static let lesson16 = TrainingLesson(
-        number: 16,
-        title: "Garbage Hands & Full Strategy Review",
-        keyConcept: "Sometimes you're dealt nothing — no pair, no draw, no high cards. Knowing when to throw away all 5 cards is a skill. This lesson also puts everything together.",
-        whatToLearn: [
-            "If you have nothing useful, discard all 5 and draw fresh",
-            "A single high card (J, Q, K, A) is still better than keeping random low cards",
-            "Don't keep 3 unsuited low cards hoping for a straight or flush",
-            "Review the full holding hierarchy from Lesson 1 through Lesson 15"
-        ],
-        commonMistakes: [
-            "Keeping random suited low cards (e.g., 7h 4h 2h) — 3 to a flush is almost never worth it",
-            "Not recognizing true garbage (no pair, no draw, no high cards)",
-            "Getting \"attached\" to an almost-hand"
-        ],
-        practiceHands: [
-            TrainingPracticeHand(number: 1, cards: ["8c", "6d", "4h", "3s", "2c"], holdCards: [], explanation: "Pure garbage — discard all 5"),
-            TrainingPracticeHand(number: 2, cards: ["9h", "7d", "5c", "3s", "2h"], holdCards: [], explanation: "No pair, no draw, no high card — toss it"),
-            TrainingPracticeHand(number: 3, cards: ["Jh", "4d", "3c", "2s", "8h"], holdCards: ["Jh"], explanation: "Lone Jack — better than garbage"),
-            TrainingPracticeHand(number: 4, cards: ["Qh", "9h", "7d", "4c", "2s"], holdCards: ["Qh"], explanation: "Lone Queen — only high card in the hand"),
-            TrainingPracticeHand(number: 5, cards: ["9d", "7c", "5h", "3s", "2d"], holdCards: [], explanation: "Garbage — fresh 5 cards is the best play")
         ]
     )
 }

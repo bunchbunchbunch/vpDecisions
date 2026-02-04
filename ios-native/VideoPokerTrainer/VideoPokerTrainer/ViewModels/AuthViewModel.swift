@@ -1,3 +1,4 @@
+import AuthenticationServices
 import Foundation
 import Supabase
 import UIKit
@@ -95,6 +96,21 @@ class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
+    func deleteAccount() async {
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            try await supabase.deleteAccount()
+            await PendingAttemptsStore.shared.clearAllAttempts()
+            try? await supabase.signOut()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
+    }
+
     func resetPassword(email: String) async {
         guard !email.isEmpty else {
             errorMessage = "Please enter your email"
@@ -178,6 +194,56 @@ class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
+    func signInWithApple() async {
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            let credential = try await performAppleSignIn()
+
+            guard let tokenData = credential.identityToken,
+                  let idToken = String(data: tokenData, encoding: .utf8) else {
+                errorMessage = "Failed to get identity token from Apple"
+                isLoading = false
+                return
+            }
+
+            try await supabase.signInWithApple(idToken: idToken)
+
+            // Save full name if available (only provided on first sign-in)
+            if let fullName = credential.fullName {
+                let name = PersonNameComponentsFormatter.localizedString(from: fullName, style: .default)
+                if !name.isEmpty {
+                    _ = try? await supabase.client.auth.update(
+                        user: UserAttributes(data: ["full_name": .string(name)])
+                    )
+                }
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
+    }
+
+    private func performAppleSignIn() async throws -> ASAuthorizationAppleIDCredential {
+        try await withCheckedThrowingContinuation { continuation in
+            let delegate = AppleSignInDelegate(continuation: continuation)
+            let provider = ASAuthorizationAppleIDProvider()
+            let request = provider.createRequest()
+            request.requestedScopes = [.fullName, .email]
+
+            let controller = ASAuthorizationController(authorizationRequests: [request])
+            controller.delegate = delegate
+            controller.presentationContextProvider = delegate
+
+            // Retain the delegate until the flow completes
+            objc_setAssociatedObject(controller, "delegate", delegate, .OBJC_ASSOCIATION_RETAIN)
+
+            controller.performRequests()
+        }
+    }
+
     func signInWithGoogle() async {
         isLoading = true
         errorMessage = nil
@@ -198,5 +264,51 @@ class AuthViewModel: ObservableObject {
             email: "bhsapcsturnin@gmail.com",
             password: "test1234"
         )
+    }
+}
+
+// MARK: - Apple Sign In Delegate
+
+private class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+    private let continuation: CheckedContinuation<ASAuthorizationAppleIDCredential, Error>
+    private var hasResumed = false
+
+    init(continuation: CheckedContinuation<ASAuthorizationAppleIDCredential, Error>) {
+        self.continuation = continuation
+    }
+
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = scene.windows.first else {
+            return ASPresentationAnchor()
+        }
+        return window
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        guard !hasResumed else { return }
+        hasResumed = true
+        if let credential = authorization.credential as? ASAuthorizationAppleIDCredential {
+            continuation.resume(returning: credential)
+        } else {
+            continuation.resume(throwing: AuthError.appleSignInFailed("Unexpected credential type"))
+        }
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        guard !hasResumed else { return }
+        hasResumed = true
+        continuation.resume(throwing: error)
+    }
+}
+
+private enum AuthError: LocalizedError {
+    case appleSignInFailed(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .appleSignInFailed(let message):
+            return "Apple Sign In failed: \(message)"
+        }
     }
 }

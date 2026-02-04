@@ -44,6 +44,24 @@ actor HandEvaluator {
     // MARK: - Jacks or Better Evaluation
 
     private func evaluateJacksOrBetter(hand: Hand, pairs: [Int], trips: [Int], quads: [Int]) -> DealtWinnerResult {
+        // Royal Flush
+        if isRoyalFlush(hand: hand) {
+            return DealtWinnerResult(
+                isWinner: true,
+                handName: "Royal Flush",
+                winningIndices: Array(0..<5)
+            )
+        }
+
+        // Straight Flush
+        if isStraightFlush(hand: hand) {
+            return DealtWinnerResult(
+                isWinner: true,
+                handName: "Straight Flush",
+                winningIndices: Array(0..<5)
+            )
+        }
+
         // Four of a kind
         if let quadRank = quads.first {
             let indices = getCardIndices(hand: hand, rank: quadRank)
@@ -123,6 +141,24 @@ actor HandEvaluator {
 
     private func evaluateTensOrBetter(hand: Hand, pairs: [Int], trips: [Int], quads: [Int]) -> DealtWinnerResult {
         // Same as Jacks or Better but minimum is Tens (T=10)
+
+        // Royal Flush
+        if isRoyalFlush(hand: hand) {
+            return DealtWinnerResult(
+                isWinner: true,
+                handName: "Royal Flush",
+                winningIndices: Array(0..<5)
+            )
+        }
+
+        // Straight Flush
+        if isStraightFlush(hand: hand) {
+            return DealtWinnerResult(
+                isWinner: true,
+                handName: "Straight Flush",
+                winningIndices: Array(0..<5)
+            )
+        }
 
         // Four of a kind
         if let quadRank = quads.first {

@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 
 struct AuthView: View {
@@ -180,33 +181,51 @@ struct AuthView: View {
 
                             // Social login buttons
                             HStack(spacing: 16) {
+                                // Apple
+                                Button {
+                                    Task {
+                                        await viewModel.signInWithApple()
+                                    }
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "apple.logo")
+                                            .font(.system(size: 20))
+                                        Text("Apple")
+                                            .font(.system(size: AppTheme.Typography.headline, weight: .semibold))
+                                    }
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: AppTheme.Layout.buttonHeight)
+                                    .background(Color.black)
+                                    .cornerRadius(AppTheme.Layout.cornerRadiusButton)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: AppTheme.Layout.cornerRadiusButton)
+                                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                    )
+                                }
+                                .disabled(viewModel.isLoading || !networkMonitor.isOnline)
+
                                 // Google
                                 Button {
                                     Task {
                                         await viewModel.signInWithGoogle()
                                     }
                                 } label: {
-                                    HStack {
-                                        Image(systemName: "g.circle.fill")
+                                    HStack(spacing: 8) {
+                                        Text("G")
+                                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                                            .foregroundColor(.red)
                                         Text("Google")
+                                            .font(.system(size: AppTheme.Typography.headline, weight: .semibold))
+                                            .foregroundColor(.black)
                                     }
-                                    .secondaryButton(isEnabled: networkMonitor.isOnline)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: AppTheme.Layout.buttonHeight)
+                                    .background(Color.white)
+                                    .cornerRadius(AppTheme.Layout.cornerRadiusButton)
                                 }
                                 .disabled(viewModel.isLoading || !networkMonitor.isOnline)
 
-                                // Magic Link
-                                Button {
-                                    Task {
-                                        await viewModel.signInWithMagicLink(email: email)
-                                    }
-                                } label: {
-                                    HStack {
-                                        Image(systemName: "link.circle.fill")
-                                        Text("Magic Link")
-                                    }
-                                    .secondaryButton(isEnabled: networkMonitor.isOnline && !email.isEmpty)
-                                }
-                                .disabled(email.isEmpty || viewModel.isLoading || !networkMonitor.isOnline)
                             }
 
                             #if DEBUG

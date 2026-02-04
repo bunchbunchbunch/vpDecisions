@@ -5,6 +5,8 @@ struct SettingsView: View {
     @StateObject private var audioService = AudioService.shared
     @StateObject private var hapticService = HapticService.shared
     @Environment(\.dismiss) private var dismiss
+    @State private var showDeleteConfirmation = false
+    @State private var showDeleteFinalConfirmation = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -32,6 +34,31 @@ struct SettingsView: View {
                                 ChangePasswordView(authViewModel: authViewModel)
                             } label: {
                                 SettingsRowContent(icon: "key", title: "Change Password", subtitle: "Update your password", showChevron: true)
+                            }
+
+                            Button {
+                                showDeleteConfirmation = true
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "trash")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(AppTheme.Colors.danger)
+                                        .frame(width: 24)
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Delete Account")
+                                            .font(.system(size: 15))
+                                            .foregroundColor(AppTheme.Colors.danger)
+
+                                        Text("Permanently delete your account and data")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(AppTheme.Colors.textSecondary)
+                                    }
+
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
                             }
                         }
 
@@ -192,6 +219,24 @@ struct SettingsView: View {
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(.white)
             }
+        }
+        .alert("Delete Account?", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Continue", role: .destructive) {
+                showDeleteFinalConfirmation = true
+            }
+        } message: {
+            Text("This will permanently delete your account, hand history, mastery scores, and all associated data. This action cannot be undone.")
+        }
+        .alert("Are you sure?", isPresented: $showDeleteFinalConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete My Account", role: .destructive) {
+                Task {
+                    await authViewModel.deleteAccount()
+                }
+            }
+        } message: {
+            Text("This is your last chance. Your account and all data will be permanently deleted.")
         }
     }
 
