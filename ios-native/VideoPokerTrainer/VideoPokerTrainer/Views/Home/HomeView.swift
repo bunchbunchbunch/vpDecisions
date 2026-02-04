@@ -291,6 +291,15 @@ struct HomeView: View {
                 .foregroundColor(AppTheme.Colors.textSecondary)
 
             HStack(spacing: 12) {
+                // Study Hall
+                FeatureCard(
+                    chipImage: "chip-purple",
+                    title: "Study Hall",
+                    subtitle: "Lessons, drills, and review your mistakes."
+                ) {
+                    navigationPath.append(AppScreen.trainingHub)
+                }
+
                 // Quiz Mode
                 FeatureCard(
                     chipImage: "chip-gold",
@@ -301,7 +310,9 @@ struct HomeView: View {
                     navigationPath.append(AppScreen.quizStart)
                 }
                 .tourTarget("quizModeButton")
+            }
 
+            HStack(spacing: 12) {
                 // Analyze
                 FeatureCard(
                     chipImage: "chip-blue",
@@ -311,9 +322,7 @@ struct HomeView: View {
                     navigationPath.append(AppScreen.analyzer)
                 }
                 .tourTarget("analyzerButton")
-            }
 
-            HStack(spacing: 12) {
                 // Simulation
                 FeatureCard(
                     chipImage: "chip-green",
@@ -321,15 +330,6 @@ struct HomeView: View {
                     subtitle: "Run thousands of hands to see expected results."
                 ) {
                     navigationPath.append(AppScreen.simulationStart)
-                }
-
-                // VP Academy
-                FeatureCard(
-                    chipImage: "chip-purple",
-                    title: "VP Academy",
-                    subtitle: "Lessons, drills, and review your mistakes."
-                ) {
-                    navigationPath.append(AppScreen.trainingHub)
                 }
             }
         }

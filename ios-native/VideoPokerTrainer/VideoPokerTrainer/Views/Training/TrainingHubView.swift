@@ -117,7 +117,7 @@ struct TrainingHubView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 50, height: 50)
 
-                Text("VP Academy")
+                Text("Study Hall")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -139,7 +139,7 @@ struct TrainingHubView: View {
                 .frame(width: 36, height: 36)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("VP Academy")
+                Text("Study Hall")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
 

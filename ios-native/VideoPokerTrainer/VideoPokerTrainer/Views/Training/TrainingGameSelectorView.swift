@@ -61,7 +61,7 @@ struct TrainingGameSelectorView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("VP Academy")
+                Text("Study Hall")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(.white)
             }
@@ -82,7 +82,7 @@ struct TrainingGameSelectorView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 50, height: 50)
 
-                Text("VP Academy")
+                Text("Study Hall")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)

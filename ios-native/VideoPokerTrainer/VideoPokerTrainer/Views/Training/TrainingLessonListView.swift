@@ -3,6 +3,8 @@ import SwiftUI
 struct TrainingLessonListView: View {
     @StateObject private var viewModel = TrainingLessonListViewModel()
     @Binding var navigationPath: NavigationPath
+    @State private var showCelebration = false
+    @AppStorage("has_seen_course_completion_v1") private var hasSeenCelebration = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -22,6 +24,11 @@ struct TrainingLessonListView: View {
                         portraitLayout
                     }
                 }
+
+                if showCelebration {
+                    CourseCompletionCelebrationView(isPresented: $showCelebration)
+                        .transition(.opacity)
+                }
             }
         }
         .navigationTitle("Training")
@@ -36,6 +43,14 @@ struct TrainingLessonListView: View {
         }
         .onAppear {
             viewModel.load()
+        }
+        .onChange(of: viewModel.hasCompletedAll) { _, completed in
+            if completed && !hasSeenCelebration {
+                hasSeenCelebration = true
+                withAnimation {
+                    showCelebration = true
+                }
+            }
         }
     }
 
@@ -82,11 +97,12 @@ struct TrainingLessonListView: View {
                 .frame(height: 120)
 
             VStack(spacing: 8) {
-                Image(systemName: "graduationcap.fill")
-                    .font(.system(size: 32))
-                    .foregroundColor(.white)
+                Image("chip-purple")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 50, height: 50)
 
-                Text("VP Academy")
+                Text("Study Hall")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -101,12 +117,13 @@ struct TrainingLessonListView: View {
     private var compactHeaderSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
-                Image(systemName: "graduationcap.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(AppTheme.Colors.mintGreen)
+                Image("chip-purple")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 36, height: 36)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("VP Academy")
+                    Text("Study Hall")
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(.white)
 
@@ -158,6 +175,28 @@ struct TrainingLessonListView: View {
                     navigationPath.append(AppScreen.trainingLessonContent(lessonNumber: lesson.number))
                 }
             }
+
+            #if DEBUG
+            Button {
+                withAnimation {
+                    showCelebration = true
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "party.popper")
+                    Text("Test Celebration")
+                }
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(AppTheme.Colors.textSecondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(AppTheme.Colors.textSecondary.opacity(0.3), lineWidth: 1)
+                )
+            }
+            .padding(.top, 8)
+            #endif
         }
     }
 }
