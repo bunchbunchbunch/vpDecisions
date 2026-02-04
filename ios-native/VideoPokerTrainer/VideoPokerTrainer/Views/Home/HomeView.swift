@@ -16,6 +16,9 @@ enum AppScreen: Hashable {
     case lessonDetail(lessonId: String)
     case drillPlay(drillId: String)
     case reviewQueue
+    case trainingLessons
+    case trainingLessonContent(lessonNumber: Int)
+    case trainingLessonQuiz(lessonNumber: Int)
 }
 
 struct HomeView: View {
@@ -466,13 +469,26 @@ struct HomeView: View {
         case .simulationStart:
             SimulationStartView(navigationPath: $navigationPath)
         case .trainingHub:
-            TrainingHubView(navigationPath: $navigationPath, paytableId: selectedPaytable.id)
+            TrainingGameSelectorView(navigationPath: $navigationPath)
+        case .trainingLessons:
+            TrainingLessonListView(navigationPath: $navigationPath)
         case .lessonDetail(let lessonId):
             LessonDetailView(lessonId: lessonId, navigationPath: $navigationPath)
         case .drillPlay(let drillId):
             DrillPlayView(drillId: drillId, navigationPath: $navigationPath)
         case .reviewQueue:
             ReviewQueueView(navigationPath: $navigationPath, paytableId: selectedPaytable.id)
+        case .trainingLessonContent(let lessonNumber):
+            if let lesson = TrainingLesson.lesson(lessonNumber) {
+                TrainingLessonContentView(lesson: lesson, navigationPath: $navigationPath)
+            }
+        case .trainingLessonQuiz(let lessonNumber):
+            if let lesson = TrainingLesson.lesson(lessonNumber) {
+                TrainingLessonQuizView(
+                    viewModel: TrainingLessonQuizViewModel(lesson: lesson),
+                    navigationPath: $navigationPath
+                )
+            }
         }
     }
 }

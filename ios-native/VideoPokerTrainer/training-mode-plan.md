@@ -118,7 +118,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 1 | Qs Jd 8c 5h 3s | Qs Jd | QJ unsuited — the best 2-card unsuited combo |
 | 2 | As Qd 8c 5h 3s | As Qd | AQ unsuited — weaker than QJ, but still hold both |
 | 3 | Ah Qd Jc 6s 3h | Qd Jc | AQJ unsuited — drop the A, keep QJ |
-| 4 | As Kd Qs 7c 3h | Kd Qs | AKQ unsuited — drop the A, keep KQ |
+| 4 | Ac Kd Qs 7c 3h | Kd Qs | AKQ unsuited — drop the A, keep KQ |
 | 5 | Ah Kd Jc 6s 2h | Kd Jc | AKJ unsuited — drop the A, keep KJ |
 | 6 | Ks Jd 8c 5h 2s | Ks Jd | KJ unsuited — solid 2-card hold |
 | 7 | As Kd 8c 5h 3s | As Kd | AK unsuited |
@@ -146,17 +146,16 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 | # | Hand | Correct Hold | Lesson |
 |---|------|-------------|--------|
-| 1 | As 9d 7c 4h 2s | As | Lone Ace — only option when nothing connects |
-| 2 | Jd 8c 5h 3s 2d | Jd | Lone Jack — only option when nothing connects |
-| 3 | Qh Jh 8c 5d 3s | Qh Jh | Suited QJ — best 2-card high card combo |
-| 4 | Qs Jd 8c 5h 3d | Qs Jd | Unsuited QJ — still the best unsuited 2-card combo |
-| 5 | As Kd 8c 5h 3s | As Kd | AK unsuited |
-| 6 | Ah Qd Jc 6s 3h | Qd Jc | 3 unsuited high cards — drop the A, keep QJ |
-| 7 | Kh Jh 9c 5d 2s | Kh Jh | Suited KJ — the suit makes this much stronger |
-| 8 | 8s Jd Qc Ad 3d | Ad Jd | suited AJ — better than QJ offsuit |
-| 9 | Kd Qh Jd 6c 2h | Kd Jd | Suited KJ — better than QJ offsuit |
-| 10 | Ah Kd Qs 7c 3d | Kd Qs | 3 high cards — drop the Ace, keep KQ
-| 11 | 8s Jc Kd Ad 3d | Ad Kd | Suited AK — better than KJ offsuit ||
+| 1 | Qh Jh 8c 5d 3s | Qh Jh | Suited QJ — best 2-card high card combo |
+| 2 | Qs Jd 8c 5h 3d | Qs Jd | Unsuited QJ — still the best unsuited 2-card combo |
+| 3 | As Kd 8c 5h 3s | As Kd | AK unsuited |
+| 4 | Ah Qd Jc 6s 3h | Qd Jc | 3 unsuited high cards — drop the A, keep QJ |
+| 5 | Kh Jc Qc 5d 2s | Qc Jc | Suited QJ — the suit makes this much stronger |
+| 6 | 8s Jd Qc Ad 3d | Ad Jd | suited AJ — better than QJ offsuit |
+| 7 | Kd Qh Jd 6c 2h | Kd Qh Jd | Suited KJ — better than QJ offsuit |
+| 8 | Kd Qh Jc 6c 2h | Kd Jd | Unsuited KQJ — the only time you hold three high cards |
+| 9 | Ah Kd Qs 7c 3d | Kd Qs | 3 high cards — drop the Ace, keep KQ
+| 10 | 8s Jc Kd Ad 3d | Ad Kd | Suited AK — better than KJ offsuit ||
 
 
 ---
@@ -451,7 +450,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 ---
 
-## Lesson 16: Garbage Hands & Full Strategy Review
+## Lesson 16: Garbage Hands
 *John Reviewed*
 **Key concept:** Sometimes you're dealt nothing — no pair, no draw, no high cards. Knowing when to throw away all 5 cards is a skill. This lesson also puts everything together.
 
