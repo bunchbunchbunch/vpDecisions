@@ -30,7 +30,6 @@ struct HomeView: View {
         }
     }
     @State private var weakSpotsMode = false
-    @State private var showBetaFeatures = false
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -81,9 +80,6 @@ struct HomeView: View {
 
                 // Training Mode section
                 trainingModeSection
-
-                // Features in Beta section
-                betaFeaturesSection
             }
             .padding(.horizontal)
             .padding(.top, 8)
@@ -166,13 +162,18 @@ struct HomeView: View {
                         navigationPath.append(AppScreen.analyzer)
                     }
                     .tourTarget("analyzerButton")
+
+                    // Simulation
+                    FeatureCard(
+                        icon: "chart.line.uptrend.xyaxis",
+                        iconColor: AppTheme.Colors.mintGreen,
+                        title: "Simulation",
+                        subtitle: "Run simulations."
+                    ) {
+                        navigationPath.append(AppScreen.simulationStart)
+                    }
                 }
                 .frame(maxHeight: availableHeight * 0.45)
-
-                Spacer(minLength: 16)
-
-                // Beta features section at bottom
-                betaFeaturesSection
 
                 Spacer(minLength: 8)
             }
@@ -313,114 +314,26 @@ struct HomeView: View {
                 .tourTarget("analyzerButton")
             }
 
-            // VP Academy / Training Hub
-            Button {
-                navigationPath.append(AppScreen.trainingHub)
-            } label: {
-                HStack {
-                    Image(systemName: "graduationcap.fill")
-                        .font(.system(size: 24))
-                        .foregroundColor(AppTheme.Colors.mintGreen)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("VP Academy")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.white)
-                        Text("Lessons, drills, and review your mistakes.")
-                            .font(.system(size: 11))
-                            .foregroundColor(AppTheme.Colors.textSecondary)
-                    }
-
-                    Spacer()
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14))
-                        .foregroundColor(AppTheme.Colors.textSecondary)
+            HStack(spacing: 12) {
+                // Simulation
+                FeatureCard(
+                    icon: "chart.line.uptrend.xyaxis",
+                    iconColor: AppTheme.Colors.mintGreen,
+                    title: "Simulation",
+                    subtitle: "Run thousands of hands to see expected results."
+                ) {
+                    navigationPath.append(AppScreen.simulationStart)
                 }
-                .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(AppTheme.Colors.cardBackground)
-                )
-            }
-            .buttonStyle(.plain)
-        }
-    }
 
-    // MARK: - Beta Features Section
-
-    private var betaFeaturesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Collapsible header
-            Button {
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    showBetaFeatures.toggle()
+                // VP Academy
+                FeatureCard(
+                    icon: "graduationcap.fill",
+                    iconColor: AppTheme.Colors.mintGreen,
+                    title: "VP Academy",
+                    subtitle: "Lessons, drills, and review your mistakes."
+                ) {
+                    navigationPath.append(AppScreen.trainingHub)
                 }
-            } label: {
-                HStack {
-                    Image(systemName: "hammer.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(AppTheme.Colors.textSecondary)
-
-                    Text("Features in Beta")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(AppTheme.Colors.textSecondary)
-
-                    Spacer()
-
-                    Image(systemName: showBetaFeatures ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12))
-                        .foregroundColor(AppTheme.Colors.textSecondary)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(AppTheme.Colors.cardBackground)
-                .cornerRadius(12)
-            }
-
-            // Expandable content
-            if showBetaFeatures {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Available in beta. Expect improvements.")
-                        .font(.system(size: 12))
-                        .foregroundColor(AppTheme.Colors.textSecondary)
-
-                    HStack(spacing: 12) {
-                        // Weak Spots
-                        FeatureCard(
-                            chipImage: "chip-black",
-                            title: "Weak Spots",
-                            subtitle: "Practice your problem hands."
-                        ) {
-                            weakSpotsMode = true
-                            navigationPath.append(AppScreen.weakSpots)
-                        }
-
-                        // Progress
-                        FeatureCard(
-                            title: "Progress",
-                            subtitle: "Track your mastery.",
-                            showCards: true
-                        ) {
-                            navigationPath.append(AppScreen.mastery)
-                        }
-                    }
-
-                    HStack(spacing: 12) {
-                        // Simulation
-                        FeatureCard(
-                            icon: "chart.line.uptrend.xyaxis",
-                            iconColor: AppTheme.Colors.mintGreen,
-                            title: "Simulation",
-                            subtitle: "Run thousands of hands to see expected results."
-                        ) {
-                            navigationPath.append(AppScreen.simulationStart)
-                        }
-
-                        Spacer()
-                    }
-                }
-                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
     }
