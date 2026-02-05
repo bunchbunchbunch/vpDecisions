@@ -1,12 +1,13 @@
 import AuthenticationServices
 import Foundation
+import Sentry
 import Supabase
 import UIKit
 
 @MainActor
 class AuthViewModel: ObservableObject {
     @Published var isAuthenticated = false
-    @Published var currentUser: User?
+    @Published var currentUser: Supabase.User?
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -24,9 +25,14 @@ class AuthViewModel: ObservableObject {
                 self.currentUser = state.session?.user
                 self.isAuthenticated = state.session != nil
 
-                // Upsert profile on sign in
+                // Update Sentry user context
                 if let user = state.session?.user {
+                    let sentryUser = Sentry.User(userId: user.id.uuidString)
+                    sentryUser.email = user.email
+                    SentrySDK.setUser(sentryUser)
                     try? await supabase.upsertProfile(user: user)
+                } else {
+                    SentrySDK.setUser(nil)
                 }
             }
         }

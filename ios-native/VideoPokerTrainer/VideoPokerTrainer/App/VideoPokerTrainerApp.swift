@@ -1,3 +1,4 @@
+import Sentry
 import SwiftUI
 
 @main
@@ -6,6 +7,13 @@ struct VideoPokerTrainerApp: App {
     @State private var showResetPassword = false
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome = false
     @State private var showAuth = false
+
+    init() {
+        SentrySDK.start { options in
+            options.dsn = "https://c6a1309302958c324ec7580b62d0ccbc@o4510830379728896.ingest.us.sentry.io/4510830381367296"
+            options.tracesSampleRate = 0
+        }
+    }
 
     var body: some Scene {
         WindowGroup {

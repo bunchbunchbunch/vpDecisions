@@ -65,6 +65,7 @@
 		7F19D2CB801A784CD2487F3A /* VideoPokerTrainerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C5FE168A5F77BB008FC6E4 /* VideoPokerTrainerApp.swift */; };
 		7F91767A20F844B17A466A75 /* Hand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03FD663D9F07AEE4E1829685 /* Hand.swift */; };
 		8249F63D5D57BAAF4C1F2044 /* LessonQuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC12AEBB1E2558E2070AFF30 /* LessonQuizView.swift */; };
+		84E0A34C796B2ACE80892A32 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 58CC2341155591616F3682E1 /* Sentry */; };
 		85CECA9A8176241DBCEA51CC /* TrainingHubViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFFA528F4CAD6CAB949A5743 /* TrainingHubViewModel.swift */; };
 		880BF76C2AAB5FA877AEFF8A /* ResetPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D795BF36AA1D7A6ED28A80 /* ResetPasswordView.swift */; };
 		89C0141E5A17CFE80A57AFCE /* BinaryStrategyStoreV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 708050F84370FF30E2A4C697 /* BinaryStrategyStoreV2.swift */; };
@@ -254,6 +255,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D353D33B14246C03446A1BFF /* Supabase in Frameworks */,
+				84E0A34C796B2ACE80892A32 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -595,6 +597,7 @@
 			name = VideoPokerTrainer;
 			packageProductDependencies = (
 				C4FD2CF0865B3C43DC64102E /* Supabase */,
+				58CC2341155591616F3682E1 /* Sentry */,
 			);
 			productName = VideoPokerTrainer;
 			productReference = DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */;
@@ -625,6 +628,7 @@
 			mainGroup = 4DAE062D564A2D89693762BC;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				D15484FC763A1FE08E063C52 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				204AC625DCF6E53F6C3058EB /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -966,9 +970,22 @@
 				minimumVersion = 2.0.0;
 			};
 		};
+		D15484FC763A1FE08E063C52 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		58CC2341155591616F3682E1 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D15484FC763A1FE08E063C52 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
 		C4FD2CF0865B3C43DC64102E /* Supabase */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 204AC625DCF6E53F6C3058EB /* XCRemoteSwiftPackageReference "supabase-swift" */;
