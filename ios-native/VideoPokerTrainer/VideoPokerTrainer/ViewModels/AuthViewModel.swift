@@ -25,10 +25,9 @@ class AuthViewModel: ObservableObject {
                 self.currentUser = state.session?.user
                 self.isAuthenticated = state.session != nil
 
-                // Update Sentry user context
+                // Update Sentry user context (userId only, no PII)
                 if let user = state.session?.user {
                     let sentryUser = Sentry.User(userId: user.id.uuidString)
-                    sentryUser.email = user.email
                     SentrySDK.setUser(sentryUser)
                     try? await supabase.upsertProfile(user: user)
                     await UserDataSyncService.shared.initializeForUser(user.id)
