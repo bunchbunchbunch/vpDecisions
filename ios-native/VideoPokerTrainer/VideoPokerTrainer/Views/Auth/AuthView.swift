@@ -228,21 +228,6 @@ struct AuthView: View {
 
                             }
 
-                            #if DEBUG
-                            // Quick login for dev
-                            Button {
-                                Task {
-                                    await viewModel.quickLogin()
-                                }
-                            } label: {
-                                HStack {
-                                    Image(systemName: "bolt.fill")
-                                    Text("Quick Login (Dev)")
-                                }
-                                .secondaryButton(isEnabled: networkMonitor.isOnline)
-                            }
-                            .disabled(viewModel.isLoading || !networkMonitor.isOnline)
-                            #endif
                         }
                         .padding(.horizontal, AppTheme.Layout.paddingLarge)
                     }

@@ -306,13 +306,6 @@ class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
-    /// Quick login for testing
-    func quickLogin() async {
-        await signInWithEmail(
-            email: "bhsapcsturnin@gmail.com",
-            password: "test1234"
-        )
-    }
 }
 
 // MARK: - Apple Sign In Delegate
