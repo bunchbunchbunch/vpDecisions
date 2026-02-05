@@ -12,6 +12,7 @@ actor PendingAttemptsStore {
     private var insertPendingStmt: OpaquePointer?
     private var getPendingStmt: OpaquePointer?
     private var countPendingStmt: OpaquePointer?
+    private var markSyncedStmt: OpaquePointer?
 
     private init() {
         let cachesPath = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
@@ -74,6 +75,11 @@ actor PendingAttemptsStore {
         let countPendingSQL = "SELECT COUNT(*) FROM pending_attempts WHERE sync_status = 'pending';"
         if sqlite3_prepare_v2(db, countPendingSQL, -1, &countPendingStmt, nil) != SQLITE_OK {
             print("❌ Error preparing count pending statement: \(String(cString: sqlite3_errmsg(db)))")
+        }
+
+        let markSyncedSQL = "UPDATE pending_attempts SET sync_status = 'synced' WHERE id = ?;"
+        if sqlite3_prepare_v2(db, markSyncedSQL, -1, &markSyncedStmt, nil) != SQLITE_OK {
+            print("❌ Error preparing mark synced statement: \(String(cString: sqlite3_errmsg(db)))")
         }
     }
 
@@ -194,7 +200,14 @@ actor PendingAttemptsStore {
 
     /// Mark an attempt as synced
     func markAttemptSynced(id: Int64) {
-        executeSQL("UPDATE pending_attempts SET sync_status = 'synced' WHERE id = \(id);")
+        guard let stmt = markSyncedStmt else { return }
+        defer { sqlite3_reset(stmt) }
+
+        sqlite3_bind_int64(stmt, 1, id)
+
+        if sqlite3_step(stmt) != SQLITE_DONE {
+            NSLog("❌ Failed to mark attempt synced: \(String(cString: sqlite3_errmsg(db)))")
+        }
     }
 
     /// Delete all synced attempts
@@ -211,6 +224,7 @@ actor PendingAttemptsStore {
         sqlite3_finalize(insertPendingStmt)
         sqlite3_finalize(getPendingStmt)
         sqlite3_finalize(countPendingStmt)
+        sqlite3_finalize(markSyncedStmt)
         sqlite3_close(db)
     }
 }
