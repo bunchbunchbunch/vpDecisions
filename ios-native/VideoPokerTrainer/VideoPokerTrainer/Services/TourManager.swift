@@ -58,6 +58,9 @@ class TourManager: ObservableObject {
         }
         set {
             UserDefaults.standard.set(Array(newValue), forKey: completedToursKey)
+            Task {
+                await UserDataSyncService.shared.markDirty(key: "completedTours")
+            }
         }
     }
 

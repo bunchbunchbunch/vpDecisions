@@ -9,7 +9,22 @@ actor TrainingService {
     private var progressCache: [String: LessonProgress] = [:]
     private var drillStatsCache: [String: DrillStats] = [:]
 
-    private init() {}
+    private init() {
+        Task {
+            await listenForSyncNotification()
+        }
+    }
+
+    private func listenForSyncNotification() async {
+        for await _ in NotificationCenter.default.notifications(named: .userDataDidSync).map({ _ in () }) {
+            reloadFromDefaults()
+        }
+    }
+
+    func reloadFromDefaults() {
+        progressCache = [:]
+        drillStatsCache = [:]
+    }
 
     // MARK: - Lessons
 
@@ -93,6 +108,8 @@ actor TrainingService {
         if let data = try? JSONEncoder().encode(progressCache) {
             UserDefaults.standard.set(data, forKey: "lesson_progress")
         }
+
+        await UserDataSyncService.shared.markDirty(key: "lesson_progress")
     }
 
     /// Record a quiz attempt
@@ -159,6 +176,8 @@ actor TrainingService {
         if let data = try? JSONEncoder().encode(drillStatsCache) {
             UserDefaults.standard.set(data, forKey: "drill_stats")
         }
+
+        await UserDataSyncService.shared.markDirty(key: "drill_stats")
     }
 
     /// Record a completed drill session

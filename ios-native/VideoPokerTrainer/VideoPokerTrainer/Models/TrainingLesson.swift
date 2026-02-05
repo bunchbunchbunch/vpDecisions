@@ -51,7 +51,24 @@ final class TrainingProgressStore: ObservableObject {
     private var loaded = false
     @Published private(set) var changeCount = 0
 
-    private init() {}
+    private init() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleSyncNotification),
+            name: .userDataDidSync,
+            object: nil
+        )
+    }
+
+    @objc private func handleSyncNotification() {
+        reloadFromDefaults()
+    }
+
+    func reloadFromDefaults() {
+        cache = [:]
+        loaded = false
+        changeCount += 1
+    }
 
     func loadIfNeeded() {
         guard !loaded else { return }
@@ -104,6 +121,9 @@ final class TrainingProgressStore: ObservableObject {
     private func save() {
         if let data = try? JSONEncoder().encode(cache) {
             UserDefaults.standard.set(data, forKey: key)
+        }
+        Task {
+            await UserDataSyncService.shared.markDirty(key: "training_lesson_progress_v2")
         }
     }
 }

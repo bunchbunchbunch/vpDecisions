@@ -1,6 +1,24 @@
 import Foundation
 import Supabase
 
+// MARK: - User Data Row (for KV sync)
+
+struct UserDataRow: Codable, Sendable {
+    let userId: UUID
+    let dataKey: String
+    let dataValue: String
+    let updatedAt: Date
+    let schemaVersion: Int
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case dataKey = "data_key"
+        case dataValue = "data_value"
+        case updatedAt = "updated_at"
+        case schemaVersion = "schema_version"
+    }
+}
+
 @MainActor
 class SupabaseService: ObservableObject {
     static let shared = SupabaseService()
@@ -171,6 +189,27 @@ class SupabaseService: ObservableObject {
             .from("mastery_scores")
             .upsert(score, onConflict: "user_id,paytable_id,category")
             .execute()
+    }
+
+    // MARK: - User Data Sync
+
+    func upsertUserData(rows: [UserDataRow]) async throws {
+        guard !rows.isEmpty else { return }
+        try await client
+            .from("user_data")
+            .upsert(rows, onConflict: "user_id,data_key")
+            .execute()
+    }
+
+    func getAllUserData() async throws -> [UserDataRow] {
+        guard let userId = currentUser?.id else { return [] }
+        let rows: [UserDataRow] = try await client
+            .from("user_data")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+            .value
+        return rows
     }
 
     // MARK: - Test Connection

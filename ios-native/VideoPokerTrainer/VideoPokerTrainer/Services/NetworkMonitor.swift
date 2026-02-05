@@ -30,6 +30,7 @@ class NetworkMonitor {
                 // Trigger sync when coming back online
                 if path.status == .satisfied {
                     await SyncService.shared.syncPendingAttempts()
+                    await UserDataSyncService.shared.pushChanges()
                 }
             }
         }

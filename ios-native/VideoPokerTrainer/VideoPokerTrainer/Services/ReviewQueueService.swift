@@ -13,6 +13,21 @@ actor ReviewQueueService {
         Task {
             await loadCachedItems()
         }
+        Task {
+            await listenForSyncNotification()
+        }
+    }
+
+    private func listenForSyncNotification() async {
+        for await _ in NotificationCenter.default.notifications(named: .userDataDidSync).map({ _ in () }) {
+            reloadFromDefaults()
+        }
+    }
+
+    func reloadFromDefaults() {
+        reviewItemsCache.removeAll()
+        reviewStatsCache = nil
+        loadCachedItems()
     }
 
     // MARK: - Load Cached Items
@@ -40,6 +55,11 @@ actor ReviewQueueService {
         if let stats = reviewStatsCache,
            let data = try? JSONEncoder().encode(stats) {
             UserDefaults.standard.set(data, forKey: "review_stats")
+        }
+
+        Task {
+            await UserDataSyncService.shared.markDirty(key: "review_items")
+            await UserDataSyncService.shared.markDirty(key: "review_stats")
         }
     }
 

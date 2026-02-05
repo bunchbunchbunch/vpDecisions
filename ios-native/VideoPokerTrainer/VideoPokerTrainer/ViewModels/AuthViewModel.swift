@@ -31,6 +31,7 @@ class AuthViewModel: ObservableObject {
                     sentryUser.email = user.email
                     SentrySDK.setUser(sentryUser)
                     try? await supabase.upsertProfile(user: user)
+                    await UserDataSyncService.shared.initializeForUser(user.id)
                 } else {
                     SentrySDK.setUser(nil)
                 }
@@ -94,6 +95,7 @@ class AuthViewModel: ObservableObject {
         errorMessage = nil
 
         do {
+            await clearAllUserData()
             try await supabase.signOut()
         } catch {
             errorMessage = error.localizedDescription
@@ -108,13 +110,53 @@ class AuthViewModel: ObservableObject {
 
         do {
             try await supabase.deleteAccount()
-            await PendingAttemptsStore.shared.clearAllAttempts()
+            await clearAllUserData()
             try? await supabase.signOut()
         } catch {
             errorMessage = error.localizedDescription
         }
 
         isLoading = false
+    }
+
+    /// Clears all user-specific local data (UserDefaults, SQLite, caches)
+    /// Called on sign-out and account deletion for privacy/security
+    private func clearAllUserData() async {
+        // Clear sync metadata
+        await UserDataSyncService.shared.clearSyncState()
+
+        // Clear SQLite pending attempts
+        await PendingAttemptsStore.shared.clearAllAttempts()
+
+        // Clear all user-specific UserDefaults keys
+        let defaults = UserDefaults.standard
+
+        // Static keys
+        let userDataKeys = [
+            "lesson_progress",
+            "drill_stats",
+            "training_lesson_progress_v2",
+            "review_items",
+            "review_stats",
+            "playerBalance",
+            "playSettings",
+            "completedTours",
+            "activeHandState"
+        ]
+        for key in userDataKeys {
+            defaults.removeObject(forKey: key)
+        }
+
+        // Dynamic playStats_* keys
+        let allKeys = defaults.dictionaryRepresentation().keys
+        for key in allKeys where key.hasPrefix("playStats_") {
+            defaults.removeObject(forKey: key)
+        }
+
+        // Reset in-memory caches in services
+        await TrainingService.shared.reloadFromDefaults()
+        await ReviewQueueService.shared.reloadFromDefaults()
+        TrainingProgressStore.shared.reloadFromDefaults()
     }
 
     func resetPassword(email: String) async {

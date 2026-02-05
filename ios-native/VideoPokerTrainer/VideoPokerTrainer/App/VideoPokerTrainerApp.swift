@@ -4,6 +4,7 @@ import SwiftUI
 @main
 struct VideoPokerTrainerApp: App {
     @StateObject private var authViewModel = AuthViewModel()
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showResetPassword = false
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome = false
     @State private var showAuth = false
@@ -37,6 +38,13 @@ struct VideoPokerTrainerApp: App {
             }
             .onOpenURL { url in
                 handleDeepLink(url)
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active && authViewModel.isAuthenticated {
+                    Task {
+                        await UserDataSyncService.shared.syncAll()
+                    }
+                }
             }
         }
     }

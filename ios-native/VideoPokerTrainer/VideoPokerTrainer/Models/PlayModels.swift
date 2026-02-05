@@ -235,6 +235,9 @@ actor PlayPersistence {
         if let data = try? JSONEncoder().encode(balance) {
             UserDefaults.standard.set(data, forKey: balanceKey)
         }
+        Task {
+            await UserDataSyncService.shared.markDirty(key: "playerBalance")
+        }
     }
 
     // MARK: - Stats (per paytable)
@@ -252,6 +255,9 @@ actor PlayPersistence {
         let key = statsKeyPrefix + stats.paytableId
         if let data = try? JSONEncoder().encode(stats) {
             UserDefaults.standard.set(data, forKey: key)
+        }
+        Task {
+            await UserDataSyncService.shared.markDirty(key: "playStats_\(stats.paytableId)")
         }
     }
 
@@ -272,6 +278,9 @@ actor PlayPersistence {
     func saveSettings(_ settings: PlaySettings) {
         if let data = try? JSONEncoder().encode(settings) {
             UserDefaults.standard.set(data, forKey: settingsKey)
+        }
+        Task {
+            await UserDataSyncService.shared.markDirty(key: "playSettings")
         }
     }
 
