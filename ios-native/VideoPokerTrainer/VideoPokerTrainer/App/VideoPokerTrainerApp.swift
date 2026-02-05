@@ -52,7 +52,8 @@ struct VideoPokerTrainerApp: App {
     private func handleDeepLink(_ url: URL) {
         // Handle deep links from email (password reset, magic link, etc.)
         // Supabase format: vptrainer://[path]#access_token=xxx&refresh_token=yyy
-        print("📱 Deep link received: \(url.absoluteString)")
+        // Note: Never log url.absoluteString or url.fragment as they contain auth tokens
+        print("📱 Deep link received: \(url.host ?? "unknown")\(url.path)")
 
         // Google OAuth callback - handle session from URL
         if url.host == "google-callback" || url.absoluteString.contains("access_token") {
