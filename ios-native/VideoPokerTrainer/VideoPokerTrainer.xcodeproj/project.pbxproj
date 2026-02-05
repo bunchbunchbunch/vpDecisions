@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -128,7 +128,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		02889465DAE8498345DCC9FB /* strategy_double_bonus_10_7.vpstrat2 */ = {isa = PBXFileReference; path = strategy_double_bonus_10_7.vpstrat2; sourceTree = "<group>"; };
+		02889465DAE8498345DCC9FB /* strategy_double_bonus_10_7.vpstrat2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_double_bonus_10_7.vpstrat2; sourceTree = "<group>"; };
 		03FD663D9F07AEE4E1829685 /* Hand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hand.swift; sourceTree = "<group>"; };
 		04493682371D6C684F390870 /* OfflineDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineDataView.swift; sourceTree = "<group>"; };
 		0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticService.swift; sourceTree = "<group>"; };
@@ -138,7 +138,7 @@
 		0CC7295394359AAC982C5636 /* TrainingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingService.swift; sourceTree = "<group>"; };
 		0D6A631F3E90A1B2FCFA8934 /* QuizPlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizPlayView.swift; sourceTree = "<group>"; };
 		0DAAF85BDE88C81E15EFF930 /* VideoPokerTrainer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VideoPokerTrainer.entitlements; sourceTree = "<group>"; };
-		0EBE00B664DD19CAAF859A0E /* strategy_deuces_wild_nsud.vpstrat2 */ = {isa = PBXFileReference; path = strategy_deuces_wild_nsud.vpstrat2; sourceTree = "<group>"; };
+		0EBE00B664DD19CAAF859A0E /* strategy_deuces_wild_nsud.vpstrat2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_deuces_wild_nsud.vpstrat2; sourceTree = "<group>"; };
 		0EE6406207879E220129EAAA /* UltimateXStrategyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXStrategyService.swift; sourceTree = "<group>"; };
 		12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryViewModel.swift; sourceTree = "<group>"; };
 		135622686A6EB570041BEBD2 /* CourseCompletionCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourseCompletionCelebrationView.swift; sourceTree = "<group>"; };
@@ -159,14 +159,14 @@
 		2DBBCA8AC7FDE32C9F657A89 /* SimulationResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationResultsView.swift; sourceTree = "<group>"; };
 		3073A21306BAED1BC9915B2A /* job-penalty-cards.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "job-penalty-cards.json"; sourceTree = "<group>"; };
 		356502E16A4F89728A7313D6 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
-		3612725179DC33AC42B6BCA6 /* strategy_jacks_or_better_9_6.vpstrat2 */ = {isa = PBXFileReference; path = strategy_jacks_or_better_9_6.vpstrat2; sourceTree = "<group>"; };
+		3612725179DC33AC42B6BCA6 /* strategy_jacks_or_better_9_6.vpstrat2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_jacks_or_better_9_6.vpstrat2; sourceTree = "<group>"; };
 		366DA5F3E1C1EDF1246A7FA3 /* TrainingLesson.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingLesson.swift; sourceTree = "<group>"; };
 		36E0D2F0FDCE8B3E20E66AA9 /* quiz-complete.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "quiz-complete.mp3"; sourceTree = "<group>"; };
 		386E9003F306C7FAE7140AA6 /* ReviewQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewQueueView.swift; sourceTree = "<group>"; };
 		38E42FBAD025A5534A6E4850 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		3A372C2B67ECD0E057210D57 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		3BD0AFFC99AFF87B9DEFC49E /* CompactPayTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompactPayTableView.swift; sourceTree = "<group>"; };
-		3BDB45877902B16EBD9E8D5C /* strategy_double_double_bonus_9_6.vpstrat2 */ = {isa = PBXFileReference; path = strategy_double_double_bonus_9_6.vpstrat2; sourceTree = "<group>"; };
+		3BDB45877902B16EBD9E8D5C /* strategy_double_double_bonus_9_6.vpstrat2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_double_double_bonus_9_6.vpstrat2; sourceTree = "<group>"; };
 		3CB5DC3096AEEC2024AE7D7F /* TrainingLessonData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingLessonData.swift; sourceTree = "<group>"; };
 		3EF02E69A42C1F2C6E7AB042 /* Lesson.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lesson.swift; sourceTree = "<group>"; };
 		444F388649659769BBF7709A /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
@@ -229,7 +229,7 @@
 		D90A1B2C22F69A4059A0AF90 /* next-hand.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "next-hand.mp3"; sourceTree = "<group>"; };
 		DC16561FC66CC71BEDA449FC /* TrainingLessonQuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingLessonQuizView.swift; sourceTree = "<group>"; };
 		DCE574B6713DC27CBB847898 /* button-tap.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "button-tap.mp3"; sourceTree = "<group>"; };
-		DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = VideoPokerTrainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VideoPokerTrainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1905AE0390569A95AE29470 /* TourTooltipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourTooltipView.swift; sourceTree = "<group>"; };
 		E1B363E6B6126A534580B197 /* PopularGameButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopularGameButton.swift; sourceTree = "<group>"; };
 		E5C2FCCEF2732A0C9753E2C9 /* TrainingLessonContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingLessonContentView.swift; sourceTree = "<group>"; };
@@ -631,7 +631,6 @@
 				D15484FC763A1FE08E063C52 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				204AC625DCF6E53F6C3058EB /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -848,6 +847,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 5;
+				DEVELOPMENT_TEAM = 7NDW5TK87N;
 				INFOPLIST_FILE = VideoPokerTrainer/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -925,6 +925,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 5;
+				DEVELOPMENT_TEAM = 7NDW5TK87N;
 				INFOPLIST_FILE = VideoPokerTrainer/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
