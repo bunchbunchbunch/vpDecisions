@@ -190,7 +190,7 @@ actor StrategyService {
         debugNSLog("📥 Starting download: %@", filename)
 
         // Create download request
-        let (asyncBytes, response) = try await URLSession.shared.bytes(from: url)
+        let (asyncBytes, response) = try await PinnedURLSession.shared.bytes(from: url)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw StrategyDownloadError.downloadFailed("Invalid response")
@@ -274,7 +274,7 @@ actor StrategyService {
         }
 
         do {
-            let (data, response) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await PinnedURLSession.shared.data(from: url)
 
             guard let httpResponse = response as? HTTPURLResponse,
                   httpResponse.statusCode == 200 else {
@@ -337,7 +337,7 @@ actor StrategyService {
             debugNSLog("📥 Starting download: %@", filename)
 
             // Create download request
-            let (asyncBytes, response) = try await URLSession.shared.bytes(from: url)
+            let (asyncBytes, response) = try await PinnedURLSession.shared.bytes(from: url)
 
             guard let httpResponse = response as? HTTPURLResponse,
                   httpResponse.statusCode == 200 else {
