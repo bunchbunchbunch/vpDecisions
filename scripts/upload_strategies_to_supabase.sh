@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # Upload strategy files to Supabase Storage
-# Usage: ./upload_strategies_to_supabase.sh [service_role_key]
+# Usage: SUPABASE_SERVICE_ROLE_KEY=<key> ./upload_strategies_to_supabase.sh
 #
-# If service_role_key is not provided, it will look for SUPABASE_SERVICE_ROLE_KEY env var
-# You can find your service role key in: Supabase Dashboard > Settings > API > service_role key
+# The service role key MUST be provided via environment variable (never as CLI argument
+# to avoid exposure in shell history and process listings).
+# Find your key at: Supabase Dashboard > Settings > API > service_role (secret)
 
 set -e
 
@@ -12,16 +13,18 @@ SUPABASE_URL="https://ctqefgdvqiaiumtmcjdz.supabase.co"
 BUCKET_NAME="strategies"
 UPLOAD_DIR="$(dirname "$0")/../supabase-uploads"
 
-# Get service role key from argument or environment
-SERVICE_ROLE_KEY="${1:-$SUPABASE_SERVICE_ROLE_KEY}"
+# Get service role key from environment only (never accept as CLI argument for security)
+SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY"
 
 if [ -z "$SERVICE_ROLE_KEY" ]; then
-    echo "Error: Service role key required"
-    echo "Usage: $0 <service_role_key>"
-    echo "   or: SUPABASE_SERVICE_ROLE_KEY=<key> $0"
+    echo "Error: SUPABASE_SERVICE_ROLE_KEY environment variable required"
+    echo ""
+    echo "Usage: SUPABASE_SERVICE_ROLE_KEY=<key> $0"
     echo ""
     echo "Find your service role key at:"
     echo "  Supabase Dashboard > Settings > API > service_role (secret)"
+    echo ""
+    echo "Security note: Never pass the key as a CLI argument."
     exit 1
 fi
 
