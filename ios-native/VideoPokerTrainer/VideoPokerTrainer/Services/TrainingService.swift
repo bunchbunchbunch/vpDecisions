@@ -56,7 +56,7 @@ actor TrainingService {
     /// Load a single lesson from a JSON file
     private func loadLesson(from filename: String) -> Lesson? {
         guard let url = Bundle.main.url(forResource: filename, withExtension: "json", subdirectory: "Lessons") else {
-            print("TrainingService: Could not find lesson file: \(filename).json")
+            debugLog("TrainingService: Could not find lesson file: \(filename).json")
             return nil
         }
 
@@ -65,7 +65,7 @@ actor TrainingService {
             let lesson = try JSONDecoder().decode(Lesson.self, from: data)
             return lesson
         } catch {
-            print("TrainingService: Failed to decode lesson \(filename): \(error)")
+            debugLog("TrainingService: Failed to decode lesson \(filename): \(error)")
             return nil
         }
     }

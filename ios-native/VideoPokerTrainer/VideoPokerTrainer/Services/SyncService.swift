@@ -30,16 +30,16 @@ actor SyncService {
         let pending = await PendingAttemptsStore.shared.getPendingAttempts()
         guard !pending.isEmpty else { return }
 
-        NSLog("🔄 SyncService: Syncing \(pending.count) pending attempts")
+        debugNSLog("🔄 SyncService: Syncing \(pending.count) pending attempts")
 
         for attempt in pending {
             do {
                 try await SupabaseService.shared.saveHandAttempt(attempt.toHandAttempt())
                 await PendingAttemptsStore.shared.markAttemptSynced(id: attempt.id)
-                NSLog("✅ SyncService: Synced attempt \(attempt.id)")
+                debugNSLog("✅ SyncService: Synced attempt \(attempt.id)")
             } catch {
                 // Will retry on next sync
-                NSLog("❌ SyncService: Failed to sync attempt \(attempt.id): \(error)")
+                debugNSLog("❌ SyncService: Failed to sync attempt \(attempt.id): \(error)")
                 break // Stop on first failure to preserve order
             }
         }

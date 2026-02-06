@@ -156,7 +156,7 @@ actor BinaryStrategyStoreV2 {
         let keyBytes = Array(handKey.utf8)
 
         guard keyBytes.count == keyLength else {
-            NSLog("BinaryStrategyStoreV2: Key length mismatch - expected \(keyLength), got \(keyBytes.count)")
+            debugNSLog("BinaryStrategyStoreV2: Key length mismatch - expected \(keyLength), got \(keyBytes.count)")
             return nil
         }
 
@@ -241,18 +241,18 @@ private final class MappedStrategyFileV2 {
 
     init?(url: URL) {
         guard FileManager.default.fileExists(atPath: url.path) else {
-            NSLog("BinaryStrategyStoreV2: File not found: \(url.path)")
+            debugNSLog("BinaryStrategyStoreV2: File not found: \(url.path)")
             return nil
         }
 
         // Memory-map the file
         guard let mappedData = try? Data(contentsOf: url, options: .mappedIfSafe) else {
-            NSLog("BinaryStrategyStoreV2: Failed to mmap file: \(url.path)")
+            debugNSLog("BinaryStrategyStoreV2: Failed to mmap file: \(url.path)")
             return nil
         }
 
         guard mappedData.count >= BinaryStrategyStoreV2.headerSize else {
-            NSLog("BinaryStrategyStoreV2: File too small: \(mappedData.count) bytes")
+            debugNSLog("BinaryStrategyStoreV2: File too small: \(mappedData.count) bytes")
             return nil
         }
 
@@ -266,7 +266,7 @@ private final class MappedStrategyFileV2 {
         }
 
         guard valid else {
-            NSLog("BinaryStrategyStoreV2: Invalid magic number")
+            debugNSLog("BinaryStrategyStoreV2: Invalid magic number")
             return nil
         }
 
@@ -288,6 +288,6 @@ private final class MappedStrategyFileV2 {
         self.keyLength = keyLen
         self.hasJoker = joker
 
-        NSLog("BinaryStrategyStoreV2: Loaded \(url.lastPathComponent) - \(entryCount) entries, key length \(keyLength)")
+        debugNSLog("BinaryStrategyStoreV2: Loaded \(url.lastPathComponent) - \(entryCount) entries, key length \(keyLength)")
     }
 }

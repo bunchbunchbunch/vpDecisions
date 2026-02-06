@@ -58,12 +58,12 @@ class AudioService: ObservableObject {
             )
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
-            print("Failed to configure audio session: \(error)")
+            debugLog("Failed to configure audio session: \(error)")
         }
     }
 
     private func preloadSounds() {
-        NSLog("🔊 AudioService: Starting to preload sounds...")
+        debugNSLog("🔊 AudioService: Starting to preload sounds...")
         for sound in SoundEffect.allCases {
             // Try without subdirectory first (files copied to bundle root)
             var url = Bundle.main.url(forResource: sound.filename, withExtension: "mp3")
@@ -79,15 +79,15 @@ class AudioService: ObservableObject {
                     player.prepareToPlay()
                     player.volume = volume
                     players[sound] = player
-                    NSLog("🔊 AudioService: Loaded %@", sound.rawValue)
+                    debugNSLog("🔊 AudioService: Loaded %@", sound.rawValue)
                 } catch {
-                    NSLog("🔊 AudioService: Failed to load %@: %@", sound.rawValue, error.localizedDescription)
+                    debugNSLog("🔊 AudioService: Failed to load %@: %@", sound.rawValue, error.localizedDescription)
                 }
             } else {
-                NSLog("🔊 AudioService: File not found: %@.mp3", sound.filename)
+                debugNSLog("🔊 AudioService: File not found: %@.mp3", sound.filename)
             }
         }
-        NSLog("🔊 AudioService: Preloaded %d sounds", players.count)
+        debugNSLog("🔊 AudioService: Preloaded %d sounds", players.count)
     }
 
     private func updatePlayerVolumes() {

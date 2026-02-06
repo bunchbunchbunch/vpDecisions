@@ -42,7 +42,7 @@ class QuizViewModel: ObservableObject {
         self.paytableId = paytableId
         self.weakSpotsMode = weakSpotsMode
         self.quizSize = quizSize
-        NSLog("📊 QuizViewModel initialized with paytableId: %@, quizSize: %d", paytableId, quizSize)
+        debugNSLog("📊 QuizViewModel initialized with paytableId: %@, quizSize: %d", paytableId, quizSize)
     }
 
     var currentHand: QuizHand? {
@@ -101,7 +101,7 @@ class QuizViewModel: ObservableObject {
             do {
                 if let result = try await StrategyService.shared.lookup(hand: hand, paytableId: paytableId) {
                     if foundHands.count == 0 {
-                        NSLog("🔍 First hand lookup using paytableId: %@, hand: %@", paytableId, hand.canonicalKey)
+                        debugNSLog("🔍 First hand lookup using paytableId: %@, hand: %@", paytableId, hand.canonicalKey)
                     }
 
                     let quizHand = QuizHand(hand: hand, strategyResult: result)
@@ -109,7 +109,7 @@ class QuizViewModel: ObservableObject {
                     loadingProgress = foundHands.count
                 }
             } catch {
-                print("Error looking up strategy: \(error)")
+                debugLog("Error looking up strategy: \(error)")
             }
         }
 
@@ -151,20 +151,20 @@ class QuizViewModel: ObservableObject {
         let userBitmask = Hand.bitmaskFromHoldIndices(userCanonicalHold)
         let tiedBitmasks = currentHand.strategyResult.tiedForBestBitmasks
         let bestEv = currentHand.strategyResult.bestEv
-        NSLog("🎯 TIED RANKS DEBUG:")
-        NSLog("  Hand: %@", currentHand.hand.cards.map { "\($0.rank.display)\($0.suit.code)" }.joined(separator: " "))
-        NSLog("  User hold (original): %@", userHold.description)
-        NSLog("  User hold (canonical): %@", userCanonicalHold.description)
-        NSLog("  User bitmask: %d", userBitmask)
-        NSLog("  Best EV: %.6f", bestEv)
-        NSLog("  Tied bitmasks: %@", tiedBitmasks.description)
-        NSLog("  User bitmask in tied? %@", tiedBitmasks.contains(userBitmask) ? "YES" : "NO")
+        debugNSLog("🎯 TIED RANKS DEBUG:")
+        debugNSLog("  Hand: %@", currentHand.hand.cards.map { "\($0.rank.display)\($0.suit.code)" }.joined(separator: " "))
+        debugNSLog("  User hold (original): %@", userHold.description)
+        debugNSLog("  User hold (canonical): %@", userCanonicalHold.description)
+        debugNSLog("  User bitmask: %d", userBitmask)
+        debugNSLog("  Best EV: %.6f", bestEv)
+        debugNSLog("  Tied bitmasks: %@", tiedBitmasks.description)
+        debugNSLog("  User bitmask in tied? %@", tiedBitmasks.contains(userBitmask) ? "YES" : "NO")
 
         // Log all options with their EVs to see if there are tiny differences
         let sortedOptions = currentHand.strategyResult.sortedHoldOptions.prefix(5)
         for (i, opt) in sortedOptions.enumerated() {
             let diff = abs(opt.ev - bestEv)
-            NSLog("  Option %d: bitmask=%d, EV=%.10f, diff=%.10f", i, opt.bitmask, opt.ev, diff)
+            debugNSLog("  Option %d: bitmask=%d, EV=%.10f, diff=%.10f", i, opt.bitmask, opt.ev, diff)
         }
 
         // Check if user's hold is tied for best EV (not just exact match with bestHold)

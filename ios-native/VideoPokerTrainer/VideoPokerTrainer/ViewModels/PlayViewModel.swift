@@ -108,7 +108,7 @@ class PlayViewModel: ObservableObject {
         // Clear the orphaned hand state
         await PlayPersistence.shared.clearActiveHand()
 
-        NSLog("🎰 Orphaned hand detected - bet refunded: $%.2f", savedHand.betAmount)
+        debugNSLog("🎰 Orphaned hand detected - bet refunded: $%.2f", savedHand.betAmount)
     }
 
     /// Prepares the current paytable for use - auto-downloads if needed
@@ -435,7 +435,7 @@ class PlayViewModel: ObservableObject {
             settings: settings
         )
         await PlayPersistence.shared.saveActiveHand(state)
-        NSLog("🎰 Hand state saved for background")
+        debugNSLog("🎰 Hand state saved for background")
     }
 
     /// Restores the hand state when returning from background.
@@ -455,7 +455,7 @@ class PlayViewModel: ObservableObject {
         // Clear the saved state since we've restored it
         await PlayPersistence.shared.clearActiveHand()
 
-        NSLog("🎰 Hand state restored from background")
+        debugNSLog("🎰 Hand state restored from background")
         return true
     }
 
@@ -496,7 +496,7 @@ class PlayViewModel: ObservableObject {
 
         phase = .betting
 
-        NSLog("🎰 Hand abandoned - bet refunded: $%.2f", betAmount)
+        debugNSLog("🎰 Hand abandoned - bet refunded: $%.2f", betAmount)
     }
 
     // MARK: - Stats Management
@@ -579,7 +579,7 @@ class PlayViewModel: ObservableObject {
                 strategyResult = result
             }
         } catch {
-            print("Failed to lookup optimal strategy: \(error)")
+            debugLog("Failed to lookup optimal strategy: \(error)")
         }
     }
 
@@ -659,7 +659,7 @@ class PlayViewModel: ObservableObject {
                 }
             }
         } catch {
-            print("Failed to calculate EV loss: \(error)")
+            debugLog("Failed to calculate EV loss: \(error)")
         }
     }
 

@@ -27,13 +27,13 @@ actor PendingAttemptsStore {
 
     private func openDatabase() {
         if sqlite3_open(dbPath, &db) != SQLITE_OK {
-            print("❌ Error opening pending attempts database: \(String(cString: sqlite3_errmsg(db)))")
+            debugLog("❌ Error opening pending attempts database: \(String(cString: sqlite3_errmsg(db)))")
             return
         }
 
         createTables()
         prepareStatements()
-        print("✅ PendingAttemptsStore database opened at \(dbPath)")
+        debugLog("✅ PendingAttemptsStore database opened at \(dbPath)")
     }
 
     private func createTables() {
@@ -64,22 +64,22 @@ actor PendingAttemptsStore {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending');
         """
         if sqlite3_prepare_v2(db, insertPendingSQL, -1, &insertPendingStmt, nil) != SQLITE_OK {
-            print("❌ Error preparing insert pending statement: \(String(cString: sqlite3_errmsg(db)))")
+            debugLog("❌ Error preparing insert pending statement: \(String(cString: sqlite3_errmsg(db)))")
         }
 
         let getPendingSQL = "SELECT id, user_id, hand_key, hand_category, paytable_id, user_hold, optimal_hold, is_correct, ev_difference, response_time_ms, created_at FROM pending_attempts WHERE sync_status = 'pending' ORDER BY id ASC;"
         if sqlite3_prepare_v2(db, getPendingSQL, -1, &getPendingStmt, nil) != SQLITE_OK {
-            print("❌ Error preparing get pending statement: \(String(cString: sqlite3_errmsg(db)))")
+            debugLog("❌ Error preparing get pending statement: \(String(cString: sqlite3_errmsg(db)))")
         }
 
         let countPendingSQL = "SELECT COUNT(*) FROM pending_attempts WHERE sync_status = 'pending';"
         if sqlite3_prepare_v2(db, countPendingSQL, -1, &countPendingStmt, nil) != SQLITE_OK {
-            print("❌ Error preparing count pending statement: \(String(cString: sqlite3_errmsg(db)))")
+            debugLog("❌ Error preparing count pending statement: \(String(cString: sqlite3_errmsg(db)))")
         }
 
         let markSyncedSQL = "UPDATE pending_attempts SET sync_status = 'synced' WHERE id = ?;"
         if sqlite3_prepare_v2(db, markSyncedSQL, -1, &markSyncedStmt, nil) != SQLITE_OK {
-            print("❌ Error preparing mark synced statement: \(String(cString: sqlite3_errmsg(db)))")
+            debugLog("❌ Error preparing mark synced statement: \(String(cString: sqlite3_errmsg(db)))")
         }
     }
 
@@ -87,7 +87,7 @@ actor PendingAttemptsStore {
         var errMsg: UnsafeMutablePointer<CChar>?
         if sqlite3_exec(db, sql, nil, nil, &errMsg) != SQLITE_OK {
             if let errMsg = errMsg {
-                print("❌ SQL Error: \(String(cString: errMsg))")
+                debugLog("❌ SQL Error: \(String(cString: errMsg))")
                 sqlite3_free(errMsg)
             }
         }
@@ -124,9 +124,9 @@ actor PendingAttemptsStore {
         sqlite3_bind_text(stmt, 10, createdAt, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
 
         if sqlite3_step(stmt) == SQLITE_DONE {
-            NSLog("💾 Saved pending attempt for hand: \(attempt.handKey)")
+            debugNSLog("💾 Saved pending attempt for hand: \(attempt.handKey)")
         } else {
-            NSLog("❌ Failed to save pending attempt: \(String(cString: sqlite3_errmsg(db)))")
+            debugNSLog("❌ Failed to save pending attempt: \(String(cString: sqlite3_errmsg(db)))")
         }
     }
 
@@ -206,7 +206,7 @@ actor PendingAttemptsStore {
         sqlite3_bind_int64(stmt, 1, id)
 
         if sqlite3_step(stmt) != SQLITE_DONE {
-            NSLog("❌ Failed to mark attempt synced: \(String(cString: sqlite3_errmsg(db)))")
+            debugNSLog("❌ Failed to mark attempt synced: \(String(cString: sqlite3_errmsg(db)))")
         }
     }
 

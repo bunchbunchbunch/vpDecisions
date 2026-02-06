@@ -103,7 +103,7 @@ actor StrategyService {
         }
 
         // No strategy found
-        NSLog("⚠️ No strategy found for %@ / %@", paytableId, hand.canonicalKey)
+        debugNSLog("⚠️ No strategy found for %@ / %@", paytableId, hand.canonicalKey)
         return nil
     }
 
@@ -138,7 +138,7 @@ actor StrategyService {
         }
 
         // Not available locally - download it
-        NSLog("📥 Strategy not found locally for %@, starting download...", paytableId)
+        debugNSLog("📥 Strategy not found locally for %@, starting download...", paytableId)
         await MainActor.run { onStatusChange(.downloading(progress: 0)) }
 
         do {
@@ -164,7 +164,7 @@ actor StrategyService {
             }
 
         } catch {
-            NSLog("❌ Failed to download strategy for %@: %@", paytableId, error.localizedDescription)
+            debugNSLog("❌ Failed to download strategy for %@: %@", paytableId, error.localizedDescription)
             await MainActor.run { onStatusChange(.failed("Download failed: \(error.localizedDescription)")) }
             return false
         }
@@ -187,7 +187,7 @@ actor StrategyService {
             throw StrategyDownloadError.invalidURL
         }
 
-        NSLog("📥 Starting download: %@", filename)
+        debugNSLog("📥 Starting download: %@", filename)
 
         // Create download request
         let (asyncBytes, response) = try await URLSession.shared.bytes(from: url)
@@ -197,7 +197,7 @@ actor StrategyService {
         }
 
         guard httpResponse.statusCode == 200 else {
-            NSLog("❌ Download failed with status %d for %@", httpResponse.statusCode, filename)
+            debugNSLog("❌ Download failed with status %d for %@", httpResponse.statusCode, filename)
             throw StrategyDownloadError.downloadFailed("Server returned \(httpResponse.statusCode)")
         }
 
@@ -230,7 +230,7 @@ actor StrategyService {
         let filePath = strategiesDir.appendingPathComponent(filename)
         try receivedData.write(to: filePath)
 
-        NSLog("✅ Downloaded and saved: %@ (%d bytes)", filename, receivedData.count)
+        debugNSLog("✅ Downloaded and saved: %@ (%d bytes)", filename, receivedData.count)
 
         return true
     }
@@ -278,7 +278,7 @@ actor StrategyService {
 
             guard let httpResponse = response as? HTTPURLResponse,
                   httpResponse.statusCode == 200 else {
-                NSLog("⚠️ Manifest fetch failed with status: %d", (response as? HTTPURLResponse)?.statusCode ?? 0)
+                debugNSLog("⚠️ Manifest fetch failed with status: %d", (response as? HTTPURLResponse)?.statusCode ?? 0)
                 throw StrategyDownloadError.manifestFetchFailed
             }
 
@@ -286,12 +286,12 @@ actor StrategyService {
             manifestCache = manifest
             manifestLastFetch = Date()
 
-            NSLog("✅ Fetched manifest with %d games", manifest.count)
+            debugNSLog("✅ Fetched manifest with %d games", manifest.count)
             return manifest
         } catch let error as StrategyDownloadError {
             throw error
         } catch {
-            NSLog("⚠️ Manifest fetch error: %@", error.localizedDescription)
+            debugNSLog("⚠️ Manifest fetch error: %@", error.localizedDescription)
             throw StrategyDownloadError.manifestFetchFailed
         }
     }
@@ -334,7 +334,7 @@ actor StrategyService {
                 throw StrategyDownloadError.invalidURL
             }
 
-            NSLog("📥 Starting download: %@", filename)
+            debugNSLog("📥 Starting download: %@", filename)
 
             // Create download request
             let (asyncBytes, response) = try await URLSession.shared.bytes(from: url)
@@ -369,7 +369,7 @@ actor StrategyService {
             let filePath = strategiesDir.appendingPathComponent(filename)
             try receivedData.write(to: filePath)
 
-            NSLog("✅ Downloaded and saved: %@ (%d bytes)", filename, receivedData.count)
+            debugNSLog("✅ Downloaded and saved: %@ (%d bytes)", filename, receivedData.count)
 
             // Clear progress tracking
             await self.clearDownloadTracking(paytableId: paytableId)
@@ -406,7 +406,7 @@ actor StrategyService {
         if FileManager.default.fileExists(atPath: filePath.path) {
             try FileManager.default.removeItem(at: filePath)
             await BinaryStrategyStoreV2.shared.unload(paytableId: paytableId)
-            NSLog("🗑️ Deleted strategy: %@", filename)
+            debugNSLog("🗑️ Deleted strategy: %@", filename)
         }
     }
 

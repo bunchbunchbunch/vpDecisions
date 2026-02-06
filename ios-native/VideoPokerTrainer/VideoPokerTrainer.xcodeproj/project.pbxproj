@@ -58,6 +58,7 @@
 		75B126AB01F29B0B4BDBD97D /* SimulationResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DBBCA8AC7FDE32C9F657A89 /* SimulationResultsView.swift */; };
 		783B823EA2A0DC67835FA6CE /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B175B2E82D2658E469108B19 /* SyncService.swift */; };
 		A1B2C3D4E5F60718293A4B5C /* UserDataSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6E7F8091A2B3C4D5E6F7081 /* UserDataSyncService.swift */; };
+		DBGL0001DBGL0001DBGL0001 /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBGL0002DBGL0002DBGL0002 /* DebugLog.swift */; };
 		79C00D3104A899CC50934E18 /* MiniCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 734A74A6F165B997A891B862 /* MiniCardView.swift */; };
 		7A39E6ADD94F463904666AB6 /* PopularGameButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B363E6B6126A534580B197 /* PopularGameButton.swift */; };
 		7DD564D08C78F917E261534E /* MasteryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */; };
@@ -209,6 +210,7 @@
 		B0D795BF36AA1D7A6ED28A80 /* ResetPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPasswordView.swift; sourceTree = "<group>"; };
 		B175B2E82D2658E469108B19 /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
 		D6E7F8091A2B3C4D5E6F7081 /* UserDataSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataSyncService.swift; sourceTree = "<group>"; };
+		DBGL0002DBGL0002DBGL0002 /* DebugLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLog.swift; sourceTree = "<group>"; };
 		B188A14203D26FE1B65F0C49 /* strategy_jacks_or_better_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = strategy_jacks_or_better_9_6.json.gz; sourceTree = "<group>"; };
 		B2AA77874E6B4185196D7BBC /* PlayModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayModels.swift; sourceTree = "<group>"; };
 		B55AC61CEF4D7A94E08C1D5E /* ReviewQueueService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewQueueService.swift; sourceTree = "<group>"; };
@@ -539,6 +541,7 @@
 				8717FB49A524CDA76F3D730A /* SupabaseService.swift */,
 				B175B2E82D2658E469108B19 /* SyncService.swift */,
 				D6E7F8091A2B3C4D5E6F7081 /* UserDataSyncService.swift */,
+				DBGL0002DBGL0002DBGL0002 /* DebugLog.swift */,
 				BF39FAEB04F197691FDE1F60 /* TourManager.swift */,
 				0CC7295394359AAC982C5636 /* TrainingService.swift */,
 				0EE6406207879E220129EAAA /* UltimateXStrategyService.swift */,
@@ -751,6 +754,7 @@
 				D7B782D6C22D584CF543D895 /* SupabaseService.swift in Sources */,
 				783B823EA2A0DC67835FA6CE /* SyncService.swift in Sources */,
 				A1B2C3D4E5F60718293A4B5C /* UserDataSyncService.swift in Sources */,
+				DBGL0001DBGL0001DBGL0001 /* DebugLog.swift in Sources */,
 				32B4C6420492BE9393FF05AD /* Tour.swift in Sources */,
 				7422A3C4C0203BF0538EB6D4 /* TourContent.swift in Sources */,
 				587F6DA42B2DFF1E02E1F056 /* TourManager.swift in Sources */,

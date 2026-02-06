@@ -104,9 +104,9 @@ actor UserDataSyncService {
                 remaining.remove(row.dataKey)
             }
             setDirtyKeys(remaining)
-            NSLog("✅ UserDataSync: Pushed \(rows.count) keys")
+            debugNSLog("✅ UserDataSync: Pushed \(rows.count) keys")
         } catch {
-            NSLog("❌ UserDataSync: Push failed: \(error)")
+            debugNSLog("❌ UserDataSync: Push failed: \(error)")
         }
     }
 
@@ -120,7 +120,7 @@ actor UserDataSyncService {
         do {
             let remoteRows = try await SupabaseService.shared.getAllUserData()
             guard !remoteRows.isEmpty else {
-                NSLog("ℹ️ UserDataSync: No remote data to pull")
+                debugNSLog("ℹ️ UserDataSync: No remote data to pull")
                 return
             }
 
@@ -152,13 +152,13 @@ actor UserDataSyncService {
                 }
                 setDirtyKeys(dirty)
 
-                NSLog("✅ UserDataSync: Pulled and merged remote data")
+                debugNSLog("✅ UserDataSync: Pulled and merged remote data")
                 await MainActor.run {
                     NotificationCenter.default.post(name: .userDataDidSync, object: nil)
                 }
             }
         } catch {
-            NSLog("❌ UserDataSync: Pull failed: \(error)")
+            debugNSLog("❌ UserDataSync: Pull failed: \(error)")
         }
     }
 
@@ -193,14 +193,14 @@ actor UserDataSyncService {
 
             if remoteRows.isEmpty {
                 // Server empty — push all local data
-                NSLog("ℹ️ UserDataSync: First sync — server empty, pushing all local data")
+                debugNSLog("ℹ️ UserDataSync: First sync — server empty, pushing all local data")
                 markAllLocalKeysAsDirty()
                 // Set initialized before pushing so pushChanges can proceed
                 UserDefaults.standard.set(true, forKey: key)
                 await pushChanges()
             } else {
                 // Server has data — pull first (new device scenario)
-                NSLog("ℹ️ UserDataSync: First sync — server has data, pulling first")
+                debugNSLog("ℹ️ UserDataSync: First sync — server has data, pulling first")
                 UserDefaults.standard.set(true, forKey: key)
 
                 // Apply all remote data (force-apply since this is first sync)
@@ -233,7 +233,7 @@ actor UserDataSyncService {
                 }
             }
         } catch {
-            NSLog("❌ UserDataSync: Initialization failed: \(error)")
+            debugNSLog("❌ UserDataSync: Initialization failed: \(error)")
         }
     }
 
