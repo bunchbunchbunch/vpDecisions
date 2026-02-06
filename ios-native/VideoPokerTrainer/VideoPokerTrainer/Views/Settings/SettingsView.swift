@@ -1,3 +1,4 @@
+import LocalAuthentication
 import SwiftUI
 
 struct SettingsView: View {
@@ -7,6 +8,8 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showDeleteConfirmation = false
     @State private var showDeleteFinalConfirmation = false
+    @State private var showAuthenticationError = false
+    @State private var authenticationErrorMessage = ""
 
     var body: some View {
         GeometryReader { geometry in
@@ -231,12 +234,49 @@ struct SettingsView: View {
         .alert("Are you sure?", isPresented: $showDeleteFinalConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Delete My Account", role: .destructive) {
-                Task {
-                    await authViewModel.deleteAccount()
-                }
+                authenticateAndDelete()
             }
         } message: {
             Text("This is your last chance. Your account and all data will be permanently deleted.")
+        }
+        .alert("Authentication Required", isPresented: $showAuthenticationError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(authenticationErrorMessage)
+        }
+    }
+
+    // MARK: - Biometric Authentication for Account Deletion
+
+    private func authenticateAndDelete() {
+        let context = LAContext()
+        var error: NSError?
+
+        // Check if biometric/passcode authentication is available
+        if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
+            context.evaluatePolicy(
+                .deviceOwnerAuthentication,
+                localizedReason: "Confirm account deletion"
+            ) { success, authError in
+                DispatchQueue.main.async {
+                    if success {
+                        Task {
+                            await authViewModel.deleteAccount()
+                        }
+                    } else {
+                        if let error = authError as? LAError, error.code == .userCancel {
+                            // User cancelled - do nothing
+                        } else {
+                            authenticationErrorMessage = "Authentication failed. Please try again to delete your account."
+                            showAuthenticationError = true
+                        }
+                    }
+                }
+            }
+        } else {
+            // Device doesn't support authentication - show error
+            authenticationErrorMessage = "Device authentication is not available. Please set up Face ID, Touch ID, or a passcode in Settings."
+            showAuthenticationError = true
         }
     }
 
