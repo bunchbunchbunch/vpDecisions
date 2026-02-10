@@ -36,6 +36,7 @@ class AudioService: ObservableObject {
     }
 
     private var players: [SoundEffect: AVAudioPlayer] = [:]
+    private let playerLock = NSLock()
 
     private init() {
         // Load saved settings
@@ -64,6 +65,9 @@ class AudioService: ObservableObject {
 
     private func preloadSounds() {
         debugNSLog("🔊 AudioService: Starting to preload sounds...")
+        playerLock.lock()
+        defer { playerLock.unlock() }
+
         for sound in SoundEffect.allCases {
             // Try without subdirectory first (files copied to bundle root)
             var url = Bundle.main.url(forResource: sound.filename, withExtension: "mp3")
@@ -91,6 +95,9 @@ class AudioService: ObservableObject {
     }
 
     private func updatePlayerVolumes() {
+        playerLock.lock()
+        defer { playerLock.unlock() }
+
         for player in players.values {
             player.volume = volume
         }
@@ -101,9 +108,16 @@ class AudioService: ObservableObject {
 
         // Play sound on background queue to avoid blocking UI during rapid gestures
         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-            guard let player = self?.players[sound] else { return }
+            guard let self = self else { return }
+
+            self.playerLock.lock()
+            guard let player = self.players[sound] else {
+                self.playerLock.unlock()
+                return
+            }
             player.currentTime = 0
             player.play()
+            self.playerLock.unlock()
         }
     }
 }

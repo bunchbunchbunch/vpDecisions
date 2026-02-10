@@ -5,7 +5,7 @@ struct Hand: Identifiable {
     var cards: [Card]
 
     init(cards: [Card]) {
-        precondition(cards.count == 5, "A hand must have exactly 5 cards")
+        assert(cards.count == 5, "A hand must have exactly 5 cards")
         self.cards = cards
     }
 
