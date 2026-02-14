@@ -49,11 +49,6 @@ struct HandAnalyzerView: View {
             portraitHeaderBar
                 .tourTarget("analyzerGameSelector")
 
-            // Ultimate X controls bar (when enabled)
-            if viewModel.isUltimateXMode {
-                ultimateXControlsBar
-            }
-
             Divider()
 
             // Selected cards display
@@ -69,13 +64,8 @@ struct HandAnalyzerView: View {
             // Results table (inline, similar to quiz mode)
             if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
                 Divider()
-                if viewModel.isUltimateXMode, let uxResult = viewModel.ultimateXResult {
-                    ultimateXResultsTable(hand: hand, baseResult: result, uxResult: uxResult)
-                        .tourTarget("resultsTable")
-                } else {
-                    resultsTable(hand: hand, result: result)
-                        .tourTarget("resultsTable")
-                }
+                resultsTable(hand: hand, result: result)
+                    .tourTarget("resultsTable")
             }
 
             // Bottom bar with just error message
@@ -155,21 +145,6 @@ struct HandAnalyzerView: View {
 
             Spacer()
 
-            // Ultimate X toggle
-            Button {
-                viewModel.toggleUltimateXMode()
-            } label: {
-                HStack(spacing: 4) {
-                    Text("UX")
-                        .font(.system(size: 12, weight: .bold))
-                }
-                .foregroundColor(viewModel.isUltimateXMode ? .white : Color(hex: "e74c3c"))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                .background(viewModel.isUltimateXMode ? Color(hex: "e74c3c") : Color(hex: "e74c3c").opacity(0.15))
-                .cornerRadius(6)
-            }
-
             // Paytable button
             Button {
                 showPaytable = true
@@ -195,81 +170,6 @@ struct HandAnalyzerView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(Color(.systemBackground))
-    }
-
-    // MARK: - Ultimate X Controls Bar
-
-    private var ultimateXControlsBar: some View {
-        HStack(spacing: 12) {
-            // Play count selector
-            HStack(spacing: 6) {
-                Text("Play:")
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-
-                ForEach(UltimateXPlayCount.allCases) { playCount in
-                    Button {
-                        viewModel.setUltimateXPlayCount(playCount)
-                    } label: {
-                        Text("\(playCount.rawValue)")
-                            .font(.system(size: 12, weight: viewModel.ultimateXPlayCount == playCount ? .bold : .regular))
-                            .foregroundColor(viewModel.ultimateXPlayCount == playCount ? .white : .primary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                viewModel.ultimateXPlayCount == playCount
-                                    ? Color(hex: "e74c3c")
-                                    : Color(.systemGray5)
-                            )
-                            .cornerRadius(4)
-                    }
-                }
-            }
-
-            Spacer()
-
-            // Multiplier selector
-            HStack(spacing: 6) {
-                Text("Mult:")
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-
-                Menu {
-                    ForEach(1...12, id: \.self) { mult in
-                        Button {
-                            viewModel.setUltimateXMultiplier(mult)
-                        } label: {
-                            HStack {
-                                Text("\(mult)x")
-                                if viewModel.ultimateXMultiplier == mult {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 4) {
-                        Text("\(viewModel.ultimateXMultiplier)x")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white)
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 9))
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(
-                        viewModel.ultimateXMultiplier > 1
-                            ? Color(hex: "e74c3c")
-                            : Color(.systemGray4)
-                    )
-                    .cornerRadius(6)
-                }
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color(hex: "e74c3c").opacity(0.1))
     }
 
     // MARK: - Portrait Card Grid (8 rows of 7 cards)
@@ -363,21 +263,9 @@ struct HandAnalyzerView: View {
 
             // Right: Results
             if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
-                VStack(spacing: 0) {
-                    // Ultimate X controls in landscape (compact)
-                    if viewModel.isUltimateXMode {
-                        landscapeUltimateXControls
-                    }
-
-                    if viewModel.isUltimateXMode, let uxResult = viewModel.ultimateXResult {
-                        ultimateXResultsTable(hand: hand, baseResult: result, uxResult: uxResult)
-                            .tourTarget("resultsTable")
-                    } else {
-                        resultsTable(hand: hand, result: result)
-                            .tourTarget("resultsTable")
-                    }
-                }
-                .frame(width: geometry.size.width * 0.48)
+                resultsTable(hand: hand, result: result)
+                    .tourTarget("resultsTable")
+                    .frame(width: geometry.size.width * 0.48)
             } else {
                 VStack {
                     Spacer()
@@ -389,64 +277,6 @@ struct HandAnalyzerView: View {
                 .frame(width: geometry.size.width * 0.48)
             }
         }
-    }
-
-    // MARK: - Landscape Ultimate X Controls (compact)
-
-    private var landscapeUltimateXControls: some View {
-        HStack(spacing: 8) {
-            // Play count
-            ForEach(UltimateXPlayCount.allCases) { playCount in
-                Button {
-                    viewModel.setUltimateXPlayCount(playCount)
-                } label: {
-                    Text("\(playCount.rawValue)")
-                        .font(.system(size: 10, weight: viewModel.ultimateXPlayCount == playCount ? .bold : .regular))
-                        .foregroundColor(viewModel.ultimateXPlayCount == playCount ? .white : .primary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(
-                            viewModel.ultimateXPlayCount == playCount
-                                ? Color(hex: "e74c3c")
-                                : Color(.systemGray5)
-                        )
-                        .cornerRadius(3)
-                }
-            }
-
-            Spacer()
-
-            // Multiplier
-            Menu {
-                ForEach(1...12, id: \.self) { mult in
-                    Button {
-                        viewModel.setUltimateXMultiplier(mult)
-                    } label: {
-                        HStack {
-                            Text("\(mult)x")
-                            if viewModel.ultimateXMultiplier == mult {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
-                }
-            } label: {
-                Text("\(viewModel.ultimateXMultiplier)x")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(
-                        viewModel.ultimateXMultiplier > 1
-                            ? Color(hex: "e74c3c")
-                            : Color(.systemGray4)
-                    )
-                    .cornerRadius(4)
-            }
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Color(hex: "e74c3c").opacity(0.1))
     }
 
     // MARK: - Landscape Combined Header (game selectors + selected cards in one row)
@@ -543,19 +373,6 @@ struct HandAnalyzerView: View {
             .tourTarget("selectedCardsBar")
 
             Spacer()
-
-            // Ultimate X toggle
-            Button {
-                viewModel.toggleUltimateXMode()
-            } label: {
-                Text("UX")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(viewModel.isUltimateXMode ? .white : Color(hex: "e74c3c"))
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 4)
-                    .background(viewModel.isUltimateXMode ? Color(hex: "e74c3c") : Color(hex: "e74c3c").opacity(0.15))
-                    .cornerRadius(4)
-            }
 
             // Paytable button
             Button {
@@ -1145,173 +962,6 @@ struct HandAnalyzerView: View {
         .background(Color(.systemBackground))
     }
 
-    // MARK: - Ultimate X Results Table
-
-    private func ultimateXResultsTable(hand: Hand, baseResult: StrategyResult, uxResult: UltimateXStrategyResult) -> some View {
-        ScrollView {
-            VStack(spacing: 12) {
-                // Strategy comparison header
-                if uxResult.strategyDiffers {
-                    HStack(spacing: 8) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(Color(hex: "e74c3c"))
-                        Text("Strategy differs from base game!")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(Color(hex: "e74c3c"))
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color(hex: "e74c3c").opacity(0.15))
-                    .cornerRadius(8)
-                }
-
-                // Ultimate X Best Hold (with multiplier applied)
-                VStack(spacing: 8) {
-                    HStack {
-                        Text("Ultimate X Best Hold")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        if viewModel.ultimateXMultiplier > 1 {
-                            Text("(\(viewModel.ultimateXMultiplier)x)")
-                                .font(.subheadline)
-                                .fontWeight(.bold)
-                                .foregroundColor(Color(hex: "e74c3c"))
-                        }
-                    }
-
-                    let adjustedBestHoldOriginal = hand.canonicalIndicesToOriginal(uxResult.adjustedBestHoldIndices)
-                    HStack(spacing: 6) {
-                        if adjustedBestHoldOriginal.isEmpty {
-                            Text("Draw all 5 cards")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        } else {
-                            ForEach(adjustedBestHoldOriginal, id: \.self) { index in
-                                Text(hand.cards[index].displayText)
-                                    .font(.system(.body, design: .monospaced))
-                                    .fontWeight(.bold)
-                                    .foregroundColor(hand.cards[index].suit.color)
-                            }
-                        }
-                    }
-
-                    Text("Adjusted EV: \(String(format: "%.4f", uxResult.adjustedBestEv))")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color(hex: "e74c3c"))
-                }
-                .padding()
-                .background(Color(hex: "e74c3c").opacity(0.1))
-                .cornerRadius(12)
-
-                // Base strategy comparison (if different)
-                if uxResult.strategyDiffers {
-                    VStack(spacing: 8) {
-                        Text("Base Strategy Hold")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-
-                        let baseBestHoldOriginal = hand.canonicalIndicesToOriginal(baseResult.bestHoldIndices)
-                        HStack(spacing: 6) {
-                            if baseBestHoldOriginal.isEmpty {
-                                Text("Draw all 5 cards")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            } else {
-                                ForEach(baseBestHoldOriginal, id: \.self) { index in
-                                    Text(hand.cards[index].displayText)
-                                        .font(.system(.caption, design: .monospaced))
-                                        .foregroundColor(hand.cards[index].suit.color)
-                                }
-                            }
-                        }
-
-                        Text("Base EV: \(String(format: "%.4f", baseResult.bestEv))")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
-                }
-
-                // All adjusted options table
-                VStack(spacing: 8) {
-                    // Table header
-                    HStack {
-                        Text("Rank")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .frame(width: 40, alignment: .leading)
-
-                        Text("Hold")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                        Text("Adj EV")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .frame(width: 60, alignment: .trailing)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color(.systemGray5))
-                    .cornerRadius(8)
-
-                    // Table rows
-                    VStack(spacing: 4) {
-                        ForEach(Array(uxResult.sortedAdjustedHoldOptions.enumerated()), id: \.offset) { index, option in
-                            let optionOriginalIndices = hand.canonicalIndicesToOriginal(option.indices)
-                            let optionCards = optionOriginalIndices.map { hand.cards[$0] }
-                            let rank = uxResult.rankForAdjustedOption(at: index)
-                            let isBest = rank == 1
-
-                            HStack(spacing: 8) {
-                                // Rank
-                                Text("\(rank)")
-                                    .font(.subheadline)
-                                    .fontWeight(isBest ? .bold : .regular)
-                                    .frame(width: 40, alignment: .leading)
-
-                                // Hold cards
-                                if optionCards.isEmpty {
-                                    Text("Draw all")
-                                        .font(.subheadline)
-                                        .italic()
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                } else {
-                                    HStack(spacing: 4) {
-                                        ForEach(optionCards, id: \.id) { card in
-                                            Text(card.displayText)
-                                                .font(.subheadline)
-                                                .foregroundColor(card.suit.color)
-                                                .fontWeight(isBest ? .bold : .regular)
-                                        }
-                                    }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                }
-
-                                // Adjusted EV
-                                Text(String(format: "%.3f", option.ev))
-                                    .font(.subheadline)
-                                    .fontWeight(isBest ? .bold : .regular)
-                                    .frame(width: 60, alignment: .trailing)
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(isBest ? Color(hex: "e74c3c").opacity(0.2) : Color(.systemGray6))
-                            .cornerRadius(6)
-                        }
-                    }
-                }
-                .padding(.vertical, 4)
-            }
-            .padding()
-        }
-        .background(Color(.systemBackground))
-    }
 }
 
 // MARK: - Paytable Sheet
