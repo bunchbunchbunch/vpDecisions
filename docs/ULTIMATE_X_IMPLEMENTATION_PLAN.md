@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document outlines the strategy generation approach and implementation plan for adding Ultimate X poker to the Video Poker Trainer app. Based on research and your preferences:
+This document outlines the strategy generation approach and implementation plan for adding Ultimate X poker to the Video Poker Academy app. Based on research and your preferences:
 
 - **Target variant**: Classic IGT Ultimate X
 - **Hand configurations**: 3-play, 5-play, 10-play

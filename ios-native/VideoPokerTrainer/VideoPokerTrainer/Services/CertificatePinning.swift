@@ -6,7 +6,7 @@ import Security
 final class CertificatePinningDelegate: NSObject, URLSessionDelegate {
     /// SHA-256 hashes of the public keys we trust for Supabase
     /// These are the SPKI (Subject Public Key Info) hashes
-    /// To get these, run: openssl s_client -connect ctqefgdvqiaiumtmcjdz.supabase.co:443 | openssl x509 -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64
+    /// To get these, run: openssl s_client -connect api.videopoker.academy:443 | openssl x509 -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64
     private let pinnedHashes: Set<String> = [
         // Supabase uses Cloudflare - these are Cloudflare's intermediate CA public key hashes
         // You should verify and update these periodically
@@ -15,6 +15,7 @@ final class CertificatePinningDelegate: NSObject, URLSessionDelegate {
 
     /// Domains that require certificate pinning
     private let pinnedDomains: Set<String> = [
+        "api.videopoker.academy",
         "ctqefgdvqiaiumtmcjdz.supabase.co",
         "supabase.co"
     ]

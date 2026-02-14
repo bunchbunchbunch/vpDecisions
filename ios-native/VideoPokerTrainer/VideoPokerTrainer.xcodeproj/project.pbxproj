@@ -34,6 +34,7 @@
 		3887194775E395BFFF973798 /* TrainingLessonListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8C1F288DC9B8B348F39FEA5 /* TrainingLessonListView.swift */; };
 		38D2B5DC081395DAE5D3B0FB /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CDFD929FF8F295FDC95267 /* ForgotPasswordView.swift */; };
 		3B02824BED9C868617E34C34 /* PayTableData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEC6E4EE5E71F8D44366E1EF /* PayTableData.swift */; };
+		3DA822C3D5AE89FB11204622 /* CertificatePinning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C00FF6EB79F2C46C0A27857 /* CertificatePinning.swift */; };
 		43FCEFE638D3F414FC598CD8 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 444F388649659769BBF7709A /* EditProfileView.swift */; };
 		45A994A3FF8B47757F71FAA2 /* coin-payout.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9B3673EC5622B45B9A2E48F5 /* coin-payout.mp3 */; };
 		4AECAB933B728B9D7834F5E3 /* strategy_jacks_or_better_9_6.vpstrat2 in Resources */ = {isa = PBXBuildFile; fileRef = 3612725179DC33AC42B6BCA6 /* strategy_jacks_or_better_9_6.vpstrat2 */; };
@@ -51,15 +52,13 @@
 		611CF46743CA88B71B485BCD /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A372C2B67ECD0E057210D57 /* Card.swift */; };
 		62B033C387E3C5652C8CB606 /* TrainingLessonListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C2ECC99AA9A278CD5DA626 /* TrainingLessonListViewModel.swift */; };
 		67A3216BE88B3CFE58B0A5C6 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8986A4EB35876AA4015AD85 /* WelcomeView.swift */; };
+		70561D98EECA0F9BB937BE6D /* UserDataSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98B59ED34118B582A18E051 /* UserDataSyncService.swift */; };
 		7185250C4F29CE36379C56A7 /* UltimateXStrategyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EE6406207879E220129EAAA /* UltimateXStrategyService.swift */; };
 		71A602043D2B35B4789E7D57 /* incorrect.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A938B302053EBA1843CDBDD8 /* incorrect.mp3 */; };
 		72D9066727B69AD0C98ED387 /* PlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C872879EF7A70D6EA2251AC /* PlayView.swift */; };
 		7422A3C4C0203BF0538EB6D4 /* TourContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE00888343D5020721ED5FB /* TourContent.swift */; };
 		75B126AB01F29B0B4BDBD97D /* SimulationResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DBBCA8AC7FDE32C9F657A89 /* SimulationResultsView.swift */; };
 		783B823EA2A0DC67835FA6CE /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B175B2E82D2658E469108B19 /* SyncService.swift */; };
-		A1B2C3D4E5F60718293A4B5C /* UserDataSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6E7F8091A2B3C4D5E6F7081 /* UserDataSyncService.swift */; };
-		DBGL0001DBGL0001DBGL0001 /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBGL0002DBGL0002DBGL0002 /* DebugLog.swift */; };
-		CPINCP01CPINCP01CPINCP01 /* CertificatePinning.swift in Sources */ = {isa = PBXBuildFile; fileRef = CPINCP02CPINCP02CPINCP02 /* CertificatePinning.swift */; };
 		79C00D3104A899CC50934E18 /* MiniCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 734A74A6F165B997A891B862 /* MiniCardView.swift */; };
 		7A39E6ADD94F463904666AB6 /* PopularGameButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B363E6B6126A534580B197 /* PopularGameButton.swift */; };
 		7DD564D08C78F917E261534E /* MasteryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12AAAB7C5221F1F7A23863B1 /* MasteryViewModel.swift */; };
@@ -75,6 +74,7 @@
 		8A70DEDBDBD11F526147FC1F /* UltimateXModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53089C515C48629183974455 /* UltimateXModels.swift */; };
 		8A9A3CE99246EFF4C4EF47AF /* CardGlowEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7B2A6182B4B0AB0FE6DA824 /* CardGlowEffect.swift */; };
 		8CCE1370C9565C56D9BD6341 /* StrategyLookupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6587EE3FE9CD5F04ADD8B5EB /* StrategyLookupService.swift */; };
+		8D697B45CA62C0F418839580 /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4247C4861E0A832C064C5EA /* DebugLog.swift */; };
 		8E430B3CF10EA07783EAC4E5 /* dealt-winner.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 192AEE07411E5DBD2F6F8F0D /* dealt-winner.mp3 */; };
 		90F328F95FA3DF2FE683515D /* job-penalty-cards.json in Resources */ = {isa = PBXBuildFile; fileRef = 3073A21306BAED1BC9915B2A /* job-penalty-cards.json */; };
 		914B62273D32E316465986A8 /* LessonCompleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C620D64223573967518A62 /* LessonCompleteView.swift */; };
@@ -184,6 +184,7 @@
 		69F5B95B214AAE723EE83BC4 /* GameSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSelectorView.swift; sourceTree = "<group>"; };
 		6A54E2F332A83BA4932499AC /* TrainingLessonQuizViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingLessonQuizViewModel.swift; sourceTree = "<group>"; };
 		6B6BF445908851BA020E163D /* ReviewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewItem.swift; sourceTree = "<group>"; };
+		6C00FF6EB79F2C46C0A27857 /* CertificatePinning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificatePinning.swift; sourceTree = "<group>"; };
 		6C6BFC5F8422806903EC72C4 /* TourTargetModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourTargetModifier.swift; sourceTree = "<group>"; };
 		6EC3286EC1CCE9AFB611DA38 /* HandCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandCategory.swift; sourceTree = "<group>"; };
 		6FCBC58743A80FDACE84FB39 /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
@@ -210,9 +211,6 @@
 		AEA82F5544A546A1CABF096A /* HundredPlayTallyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HundredPlayTallyView.swift; sourceTree = "<group>"; };
 		B0D795BF36AA1D7A6ED28A80 /* ResetPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPasswordView.swift; sourceTree = "<group>"; };
 		B175B2E82D2658E469108B19 /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
-		D6E7F8091A2B3C4D5E6F7081 /* UserDataSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataSyncService.swift; sourceTree = "<group>"; };
-		DBGL0002DBGL0002DBGL0002 /* DebugLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLog.swift; sourceTree = "<group>"; };
-		CPINCP02CPINCP02CPINCP02 /* CertificatePinning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificatePinning.swift; sourceTree = "<group>"; };
 		B188A14203D26FE1B65F0C49 /* strategy_jacks_or_better_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = strategy_jacks_or_better_9_6.json.gz; sourceTree = "<group>"; };
 		B2AA77874E6B4185196D7BBC /* PlayModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayModels.swift; sourceTree = "<group>"; };
 		B55AC61CEF4D7A94E08C1D5E /* ReviewQueueService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewQueueService.swift; sourceTree = "<group>"; };
@@ -227,12 +225,14 @@
 		C0F1393C11511534CE0AA9C5 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		C14259F264852A551BD50150 /* LessonViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonViewModel.swift; sourceTree = "<group>"; };
 		C2FC39FDA702D867D1E79C10 /* TrainingHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingHubView.swift; sourceTree = "<group>"; };
+		C4247C4861E0A832C064C5EA /* DebugLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLog.swift; sourceTree = "<group>"; };
 		C8C1F288DC9B8B348F39FEA5 /* TrainingLessonListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingLessonListView.swift; sourceTree = "<group>"; };
 		C8C62208F429A6CF389A6DA1 /* big-win.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "big-win.mp3"; sourceTree = "<group>"; };
 		CD2EBCD89E37768DD6B1B9DD /* SimulationStartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationStartView.swift; sourceTree = "<group>"; };
 		D14019151E66CF2BF3B17ED5 /* GameFamily.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameFamily.swift; sourceTree = "<group>"; };
 		D25485E3CB6182634F963032 /* HandEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandEvaluator.swift; sourceTree = "<group>"; };
 		D90A1B2C22F69A4059A0AF90 /* next-hand.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "next-hand.mp3"; sourceTree = "<group>"; };
+		D98B59ED34118B582A18E051 /* UserDataSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataSyncService.swift; sourceTree = "<group>"; };
 		DC16561FC66CC71BEDA449FC /* TrainingLessonQuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingLessonQuizView.swift; sourceTree = "<group>"; };
 		DCE574B6713DC27CBB847898 /* button-tap.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "button-tap.mp3"; sourceTree = "<group>"; };
 		DD1594B5031CCA3641219559 /* VideoPokerTrainer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VideoPokerTrainer.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -532,6 +532,8 @@
 			children = (
 				EEFE93106067A8CC6C7D44E0 /* AudioService.swift */,
 				708050F84370FF30E2A4C697 /* BinaryStrategyStoreV2.swift */,
+				6C00FF6EB79F2C46C0A27857 /* CertificatePinning.swift */,
+				C4247C4861E0A832C064C5EA /* DebugLog.swift */,
 				D25485E3CB6182634F963032 /* HandEvaluator.swift */,
 				0503F6FAAE581B3F7BA6FF96 /* HapticService.swift */,
 				356502E16A4F89728A7313D6 /* NetworkMonitor.swift */,
@@ -542,12 +544,10 @@
 				2B14813ABEB1C877847870FF /* StrategyService.swift */,
 				8717FB49A524CDA76F3D730A /* SupabaseService.swift */,
 				B175B2E82D2658E469108B19 /* SyncService.swift */,
-				D6E7F8091A2B3C4D5E6F7081 /* UserDataSyncService.swift */,
-				DBGL0002DBGL0002DBGL0002 /* DebugLog.swift */,
-				CPINCP02CPINCP02CPINCP02 /* CertificatePinning.swift */,
 				BF39FAEB04F197691FDE1F60 /* TourManager.swift */,
 				0CC7295394359AAC982C5636 /* TrainingService.swift */,
 				0EE6406207879E220129EAAA /* UltimateXStrategyService.swift */,
+				D98B59ED34118B582A18E051 /* UserDataSyncService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -696,10 +696,12 @@
 				611CF46743CA88B71B485BCD /* Card.swift in Sources */,
 				8A9A3CE99246EFF4C4EF47AF /* CardGlowEffect.swift in Sources */,
 				D7F21D806CD72B4FBBE789EE /* CardView.swift in Sources */,
+				3DA822C3D5AE89FB11204622 /* CertificatePinning.swift in Sources */,
 				CEB052412DBD9F7FC125E98F /* ChangePasswordView.swift in Sources */,
 				CA02749FA8C7CEE2A99CAA8A /* CompactPayTableView.swift in Sources */,
 				578A213AA3FE67A21D5BDE50 /* CourseCompletionCelebrationView.swift in Sources */,
 				4B04B4CD4470F1A26E6022E8 /* DealtWinnerBanner.swift in Sources */,
+				8D697B45CA62C0F418839580 /* DebugLog.swift in Sources */,
 				D757E5DDACD08464062255CF /* Drill.swift in Sources */,
 				9CC24798EF144DBA673A8D1C /* DrillCompleteView.swift in Sources */,
 				034C5AD3FB4AA42A3936F65A /* DrillPlayView.swift in Sources */,
@@ -756,9 +758,6 @@
 				9AD6A559445353450025DD68 /* StrategyService.swift in Sources */,
 				D7B782D6C22D584CF543D895 /* SupabaseService.swift in Sources */,
 				783B823EA2A0DC67835FA6CE /* SyncService.swift in Sources */,
-				A1B2C3D4E5F60718293A4B5C /* UserDataSyncService.swift in Sources */,
-				DBGL0001DBGL0001DBGL0001 /* DebugLog.swift in Sources */,
-				CPINCP01CPINCP01CPINCP01 /* CertificatePinning.swift in Sources */,
 				32B4C6420492BE9393FF05AD /* Tour.swift in Sources */,
 				7422A3C4C0203BF0538EB6D4 /* TourContent.swift in Sources */,
 				587F6DA42B2DFF1E02E1F056 /* TourManager.swift in Sources */,
@@ -780,6 +779,7 @@
 				AE317B2263E2FAA2813F5C88 /* TrainingService.swift in Sources */,
 				8A70DEDBDBD11F526147FC1F /* UltimateXModels.swift in Sources */,
 				7185250C4F29CE36379C56A7 /* UltimateXStrategyService.swift in Sources */,
+				70561D98EECA0F9BB937BE6D /* UserDataSyncService.swift in Sources */,
 				7F19D2CB801A784CD2487F3A /* VideoPokerTrainerApp.swift in Sources */,
 				67A3216BE88B3CFE58B0A5C6 /* WelcomeView.swift in Sources */,
 			);

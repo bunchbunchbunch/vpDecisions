@@ -47,7 +47,7 @@ targets:
       path: VideoPokerTrainer/Info.plist
       properties:
         CFBundleDisplayName: VP Academy
-        CFBundleName: VideoPokerTrainer
+        CFBundleName: VP Academy
         CFBundleShortVersionString: "1.0.0"
         CFBundleVersion: "1"
         UILaunchScreen:
