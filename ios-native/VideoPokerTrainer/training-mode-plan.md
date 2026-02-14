@@ -186,6 +186,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 
 ---
+
 ## Lesson 7: Suited Ten + High Card — 2 to a Royal with a Ten
 *John Reviewed*
 
