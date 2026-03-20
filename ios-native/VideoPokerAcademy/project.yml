@@ -1,0 +1,68 @@
+name: VideoPokerAcademy
+options:
+  bundleIdPrefix: com.vptrainer
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "15.0"
+
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: "2.0.0"
+  Sentry:
+    url: https://github.com/getsentry/sentry-cocoa
+    from: "8.0.0"
+
+targets:
+  VideoPokerAcademy:
+    type: application
+    platform: iOS
+    sources:
+      - VideoPokerAcademy
+    resources:
+      - path: VideoPokerAcademy/Resources
+        includes:
+          - "*.vpstrat2"
+    entitlements:
+      path: VideoPokerAcademy/VideoPokerAcademy.entitlements
+      properties:
+        com.apple.developer.applesignin:
+          - Default
+    settings:
+      base:
+        INFOPLIST_FILE: VideoPokerAcademy/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.vptrainer.native
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "5"
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.0"
+        # DEVELOPMENT_TEAM will be set automatically by Xcode when you select your team
+    dependencies:
+      - package: Supabase
+        product: Supabase
+      - package: Sentry
+        product: Sentry
+    info:
+      path: VideoPokerAcademy/Info.plist
+      properties:
+        CFBundleDisplayName: VP Academy
+        CFBundleName: VP Academy
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+          UIImageName: LaunchIcon
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - vptrainer
+            CFBundleURLName: com.vptrainer.native

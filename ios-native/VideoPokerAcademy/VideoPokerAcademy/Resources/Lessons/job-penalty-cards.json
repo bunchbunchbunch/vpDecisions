@@ -1,0 +1,182 @@
+{
+  "id": "job-penalty-cards",
+  "title": "Penalty Card System",
+  "description": "Advanced strategy: understand how discarded cards affect your draws.",
+  "order": 3,
+  "passingScore": 8,
+  "sections": [
+    {
+      "id": "concept-1",
+      "type": "concept",
+      "title": "What are Penalty Cards?",
+      "content": "A penalty card is a card you discard that would have helped complete a draw. When you discard a card of a suit you're drawing to, you reduce your chances of hitting.\n\nFor example: If you're holding 3 hearts and drawing, discarding another heart means there's one less heart in the deck to catch.",
+      "exampleHand": null
+    },
+    {
+      "id": "concept-2",
+      "type": "concept",
+      "title": "When Penalties Matter",
+      "content": "Penalty cards affect close decisions. When two plays have similar EV, the penalty from discarded cards can tip the balance.\n\nThe most common penalty situations:\n• High card vs 4-to-straight\n• Two high cards vs 4-to-inside-straight\n• 3-to-royal vs 4-to-flush",
+      "exampleHand": null
+    },
+    {
+      "id": "example-1",
+      "type": "example",
+      "title": "Flush Penalty",
+      "content": "You have a 4-to-straight with a flush penalty card.",
+      "exampleHand": {
+        "cards": ["5h", "6c", "7d", "8s", "Ah"],
+        "correctHold": [4],
+        "explanation": "Hold just the Ace. The 5h is a penalty card - if you hold 5-6-7-8, you're discarding a heart that could help a future flush draw. In this case, the Ace alone is better."
+      }
+    },
+    {
+      "id": "example-2",
+      "type": "example",
+      "title": "Straight Penalty",
+      "content": "Does holding more high cards create straight penalties?",
+      "exampleHand": {
+        "cards": ["Tc", "Jd", "Qs", "4h", "7c"],
+        "correctHold": [1, 2],
+        "explanation": "Hold J-Q only, not T-J-Q. The Ten creates a straight penalty - it blocks potential straights with the remaining cards. J-Q gives you more flexibility."
+      }
+    },
+    {
+      "id": "tip-1",
+      "type": "tip",
+      "title": "The Rule of Thumb",
+      "content": "When deciding between high cards, avoid cards that create straight or flush penalties. In close decisions, fewer held cards with no penalties can beat more held cards with penalties.",
+      "exampleHand": null
+    },
+    {
+      "id": "example-3",
+      "type": "example",
+      "title": "Royal Flush Penalty",
+      "content": "Should you hold the Ace or King?",
+      "exampleHand": {
+        "cards": ["Ah", "Kc", "3d", "7s", "9c"],
+        "correctHold": [0],
+        "explanation": "Hold the Ace alone. The King would block K-high straight possibilities and create a royal penalty in clubs. The Ace is more flexible."
+      }
+    },
+    {
+      "id": "example-4",
+      "type": "example",
+      "title": "Suited vs Unsuited High Cards",
+      "content": "Two high cards - suited or unsuited makes a difference!",
+      "exampleHand": {
+        "cards": ["Jd", "Qd", "3c", "7h", "9s"],
+        "correctHold": [0, 1],
+        "explanation": "Hold J-Q suited. Suited high cards are always better than unsuited because you maintain flush and royal flush potential."
+      }
+    },
+    {
+      "id": "concept-3",
+      "type": "concept",
+      "title": "The 3-to-Royal Decision",
+      "content": "When you have a 3-to-royal and other options:\n\n• 3-to-royal usually beats 2 unsuited high cards\n• 3-to-royal can lose to a 4-flush\n• Check for flush penalties in the discards\n\nThe cards you throw away matter!",
+      "exampleHand": null
+    },
+    {
+      "id": "example-5",
+      "type": "example",
+      "title": "3-to-Royal vs High Cards",
+      "content": "Should you keep the 3-to-royal or split it?",
+      "exampleHand": {
+        "cards": ["Th", "Jh", "Qh", "Kc", "3d"],
+        "correctHold": [0, 1, 2],
+        "explanation": "Hold T-J-Q of hearts (3-to-royal). Don't add the King - it creates penalties and doesn't improve your royal draw."
+      }
+    },
+    {
+      "id": "example-6",
+      "type": "example",
+      "title": "4-to-Flush with High Card Out",
+      "content": "4-flush or high card?",
+      "exampleHand": {
+        "cards": ["2c", "5c", "8c", "Jc", "Ah"],
+        "correctHold": [0, 1, 2, 3],
+        "explanation": "Hold the 4-flush. The Ace of hearts doesn't help the flush, and the 4-flush has better EV than a single Ace."
+      }
+    },
+    {
+      "id": "tip-2",
+      "type": "tip",
+      "title": "Penalty Summary",
+      "content": "• Flush penalty: Discarding a card in your draw suit\n• Straight penalty: Discarding a card that blocks straights\n• Royal penalty: Discarding a royal-eligible card\n\nIn close decisions, avoid creating penalties when possible.",
+      "exampleHand": null
+    }
+  ],
+  "practiceHands": [
+    {
+      "id": "ph-1",
+      "cards": ["4c", "5d", "6h", "7s", "Ac"],
+      "correctHold": [4],
+      "category": "high_cards",
+      "explanation": "Hold just the Ace. The 4c creates a flush penalty."
+    },
+    {
+      "id": "ph-2",
+      "cards": ["Kh", "Qh", "Jh", "5c", "2d"],
+      "correctHold": [0, 1, 2],
+      "category": "three_to_royal",
+      "explanation": "Hold the 3-to-royal K-Q-J of hearts."
+    },
+    {
+      "id": "ph-3",
+      "cards": ["As", "Kd", "Qc", "4h", "7s"],
+      "correctHold": [0, 1],
+      "category": "high_cards",
+      "explanation": "Hold A-K. Adding the Queen creates straight penalties."
+    },
+    {
+      "id": "ph-4",
+      "cards": ["Jc", "Qc", "5c", "8c", "Kd"],
+      "correctHold": [0, 1, 2, 3],
+      "category": "four_to_flush",
+      "explanation": "Hold the 4-flush. It beats the unsuited King."
+    },
+    {
+      "id": "ph-5",
+      "cards": ["Th", "Jh", "Qd", "Kc", "2s"],
+      "correctHold": [1, 2],
+      "category": "high_cards",
+      "explanation": "Hold J-Q. Don't include T or K - they create penalties."
+    },
+    {
+      "id": "ph-6",
+      "cards": ["Ad", "Kh", "3c", "5s", "9d"],
+      "correctHold": [0],
+      "category": "high_cards",
+      "explanation": "Hold just the Ace. K creates a royal penalty in hearts."
+    },
+    {
+      "id": "ph-7",
+      "cards": ["Js", "Qs", "Ks", "4h", "7c"],
+      "correctHold": [0, 1, 2],
+      "category": "three_to_royal",
+      "explanation": "Hold the 3-to-royal J-Q-K of spades."
+    },
+    {
+      "id": "ph-8",
+      "cards": ["Tc", "Jd", "Qh", "Kc", "3s"],
+      "correctHold": [1, 2],
+      "category": "high_cards",
+      "explanation": "Hold J-Q. The T and K create penalties for this hand."
+    },
+    {
+      "id": "ph-9",
+      "cards": ["Ah", "Qh", "Th", "4d", "7c"],
+      "correctHold": [0, 1, 2],
+      "category": "three_to_royal",
+      "explanation": "Hold the 3-to-royal A-Q-T of hearts."
+    },
+    {
+      "id": "ph-10",
+      "cards": ["3h", "6h", "9h", "Qh", "Kc"],
+      "correctHold": [0, 1, 2, 3],
+      "category": "four_to_flush",
+      "explanation": "Hold the 4-flush. The unsuited King is not worth keeping."
+    }
+  ]
+}
