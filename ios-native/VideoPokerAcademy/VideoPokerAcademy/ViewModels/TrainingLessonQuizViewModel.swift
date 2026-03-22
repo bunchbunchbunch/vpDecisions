@@ -200,6 +200,7 @@ class TrainingLessonQuizViewModel: ObservableObject {
                 score: correctCount,
                 totalHands: hands.count
             )
+            RatingPromptService.shared.markTriggerEvent()
         } else {
             showDealtWinner = false
             dealtWinnerName = nil

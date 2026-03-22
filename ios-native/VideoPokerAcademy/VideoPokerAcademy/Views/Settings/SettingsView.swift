@@ -40,6 +40,14 @@ struct SettingsView: View {
                             }
 
                             Button {
+                                if let url = URL(string: "https://apps.apple.com/app/id6760155052?action=write-review") {
+                                    UIApplication.shared.open(url)
+                                }
+                            } label: {
+                                SettingsRowContent(icon: "star.bubble", title: "Rate the App", subtitle: "Enjoying VP Academy? Leave us a review!", showChevron: true)
+                            }
+
+                            Button {
                                 showDeleteConfirmation = true
                             } label: {
                                 HStack(spacing: 12) {
@@ -210,6 +218,23 @@ struct SettingsView: View {
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
                         }
+
+                        #if DEBUG
+                        // Developer Tools
+                        settingsSection(title: "Developer") {
+                            Button {
+                                RatingPromptService.shared.forceShow()
+                            } label: {
+                                SettingsRowContent(
+                                    icon: "star.bubble",
+                                    title: "Preview Rating Prompt",
+                                    subtitle: "Bypasses time gate — debug only",
+                                    showChevron: false
+                                )
+                            }
+                        }
+                        .padding(.top, 8)
+                        #endif
 
                         // Sign Out Button
                         Button {

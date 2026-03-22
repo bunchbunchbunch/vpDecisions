@@ -176,6 +176,7 @@ class DrillViewModel: ObservableObject {
 
             // Refresh stats
             stats = await TrainingService.shared.stats(for: drillId)
+            RatingPromptService.shared.markTriggerEvent()
         }
     }
 

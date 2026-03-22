@@ -14,6 +14,10 @@ struct VideoPokerAcademyApp: App {
             options.dsn = "https://c6a1309302958c324ec7580b62d0ccbc@o4510830379728896.ingest.us.sentry.io/4510830381367296"
             options.tracesSampleRate = 0
         }
+        // Record first launch date for rating prompt (written once; never overwritten)
+        if UserDefaults.standard.object(forKey: "firstLaunchDate") == nil {
+            UserDefaults.standard.set(Date(), forKey: "firstLaunchDate")
+        }
     }
 
     var body: some Scene {

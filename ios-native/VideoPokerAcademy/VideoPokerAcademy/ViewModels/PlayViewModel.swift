@@ -236,6 +236,7 @@ class PlayViewModel: ObservableObject {
 
         // Clear saved hand state since hand completed normally
         await clearSavedHandState()
+        RatingPromptService.shared.markTriggerEvent()
     }
 
     private func performStandardDraw() async {

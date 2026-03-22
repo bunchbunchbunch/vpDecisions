@@ -30,6 +30,7 @@ struct HomeView: View {
         }
     }
     @State private var weakSpotsMode = false
+    @ObservedObject private var ratingPromptService = RatingPromptService.shared
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -70,6 +71,9 @@ struct HomeView: View {
             }
             .navigationDestination(for: SimulationViewModel.self) { vm in
                 SimulationContainerView(viewModel: vm, navigationPath: $navigationPath)
+            }
+            .sheet(isPresented: $ratingPromptService.shouldShowPrompt) {
+                RatingPromptView()
             }
         }
     }
