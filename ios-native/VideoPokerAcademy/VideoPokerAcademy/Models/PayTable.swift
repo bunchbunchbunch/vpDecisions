@@ -12,6 +12,21 @@ struct PayTable: Identifiable, Hashable, Codable {
         self.isBundled = isBundled
     }
 
+    // MARK: - Last Selected Game Persistence
+
+    static var lastSelectedId: String {
+        get {
+            let id = UserDefaults.standard.string(forKey: "lastSelectedPaytableId")
+            if let id, allPayTables.contains(where: { $0.id == id }) {
+                return id
+            }
+            return PayTable.jacksOrBetter96.id
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "lastSelectedPaytableId")
+        }
+    }
+
     // Computed property to determine game family from ID
     var family: GameFamily {
         // Order matters - check longer/more specific prefixes first
@@ -78,6 +93,169 @@ struct PayTable: Identifiable, Hashable, Codable {
         topThreeHandNames.contains(handName)
     }
 
+    /// Return percentage under optimal play. Values from PayTableData.swift comments and PAYTABLES.md.
+    static let returnPercentages: [String: Double] = [
+        // Jacks or Better
+        "jacks-or-better-9-6": 99.54,
+        "jacks-or-better-9-5": 98.45,
+        "jacks-or-better-8-6": 98.39,
+        "jacks-or-better-8-5": 97.30,
+        "jacks-or-better-8-5-35": 99.66,
+        "jacks-or-better-7-5": 96.15,
+        "jacks-or-better-6-5": 95.00,
+        "jacks-or-better-9-6-90": 100.00,
+        "jacks-or-better-9-6-940": 99.90,
+
+        // Tens or Better
+        "tens-or-better-6-5": 99.14,
+
+        // All American
+        "all-american-40-7": 100.72,
+        "all-american-35-8": 99.60,
+        "all-american-30-8": 98.49,
+        "all-american-25-8": 97.37,
+
+        // Bonus Poker
+        "bonus-poker-8-5": 99.17,
+        "bonus-poker-7-5": 98.01,
+        "bonus-poker-7-5-1200": 99.09,
+        "bonus-poker-6-5": 96.87,
+
+        // Bonus Poker Deluxe
+        "bonus-poker-deluxe-9-6": 99.64,
+        "bonus-poker-deluxe-9-5": 98.55,
+        "bonus-poker-deluxe-8-6": 98.49,
+        "bonus-poker-deluxe-8-5": 97.40,
+        "bonus-poker-deluxe-7-5": 96.25,
+        "bonus-poker-deluxe-6-5": 95.36,
+
+        // Bonus Poker Plus
+        "bonus-poker-plus-10-7": 99.61,
+        "bonus-poker-plus-9-6": 98.34,
+
+        // Double Bonus
+        "double-bonus-10-7": 100.17,
+        "double-bonus-10-7-80": 100.52,
+        "double-bonus-10-7-4": 100.77,
+        "double-bonus-10-6": 98.88,
+        "double-bonus-9-7-5": 99.11,
+        "double-bonus-9-6-5": 97.81,
+        "double-bonus-9-6-4": 96.38,
+
+        // Double Double Bonus
+        "double-double-bonus-10-6": 100.07,
+        "double-double-bonus-9-6": 98.98,
+        "double-double-bonus-9-5": 97.87,
+        "double-double-bonus-8-5": 96.79,
+        "double-double-bonus-7-5": 95.71,
+        "double-double-bonus-6-5": 94.66,
+
+        // Super Double Bonus
+        "super-double-bonus-9-5": 99.69,
+        "super-double-bonus-8-5": 98.69,
+        "super-double-bonus-7-5": 97.77,
+        "super-double-bonus-6-5": 96.87,
+
+        // Triple Double Bonus
+        "triple-double-bonus-9-7": 99.58,
+        "triple-double-bonus-9-6": 98.15,
+        "triple-double-bonus-8-5": 95.97,
+
+        // Triple Bonus
+        "triple-bonus-9-5": 99.94,
+        "triple-bonus-8-5": 98.52,
+        "triple-bonus-7-5": 97.45,
+
+        // Triple Bonus Plus
+        "triple-bonus-plus-9-5": 99.80,
+        "triple-bonus-plus-8-5": 98.73,
+        "triple-bonus-plus-7-5": 97.67,
+
+        // Triple Triple Bonus
+        "triple-triple-bonus-9-6": 99.75,
+        "triple-triple-bonus-9-5": 98.61,
+        "triple-triple-bonus-8-5": 97.61,
+        "triple-triple-bonus-7-5": 96.55,
+
+        // Deuces Wild
+        "deuces-wild-full-pay": 100.76,
+        "deuces-wild-nsud": 99.73,
+        "deuces-wild-illinois": 98.91,
+        "deuces-wild-colorado": 96.77,
+        "deuces-wild-25-15-9": 100.76,
+        "deuces-wild-25-12-9": 99.81,
+        "deuces-wild-25-15-8": 100.36,
+        "deuces-wild-20-15-9": 99.89,
+        "deuces-wild-20-12-9": 99.42,
+        "deuces-wild-44-nsud": 99.73,
+        "deuces-wild-44-illinois": 98.91,
+        "deuces-wild-44-apdw": 99.96,
+
+        // Loose Deuces
+        "loose-deuces-500-17": 101.60,
+        "loose-deuces-500-15": 100.97,
+        "loose-deuces-500-12": 100.15,
+        "loose-deuces-400-12": 99.20,
+
+        // Double Jackpot
+        "double-jackpot-8-5": 99.63,
+        "double-jackpot-7-5": 98.49,
+
+        // Double Double Jackpot
+        "double-double-jackpot-10-6": 100.35,
+        "double-double-jackpot-9-6": 99.27,
+
+        // Aces & Eights
+        "aces-and-eights-8-5": 99.78,
+        "aces-and-eights-7-5": 98.63,
+
+        // Aces & Faces
+        "aces-and-faces-8-5": 99.26,
+        "aces-and-faces-7-6": 98.85,
+        "aces-and-faces-7-5": 98.12,
+        "aces-and-faces-6-5": 96.97,
+
+        // Aces Bonus
+        "aces-bonus-8-5": 99.40,
+        "aces-bonus-7-5": 98.25,
+        "aces-bonus-6-5": 97.11,
+
+        // Bonus Aces & Faces
+        "bonus-aces-faces-8-5": 99.26,
+        "bonus-aces-faces-7-5": 98.12,
+        "bonus-aces-faces-6-5": 96.97,
+
+        // Super Aces
+        "super-aces-8-5": 99.94,
+        "super-aces-7-5": 98.85,
+        "super-aces-6-5": 97.78,
+
+        // Royal Aces Bonus
+        "royal-aces-bonus-9-6": 99.58,
+        "royal-aces-bonus-10-5": 99.20,
+        "royal-aces-bonus-8-6": 98.51,
+        "royal-aces-bonus-9-5": 97.55,
+
+        // White Hot Aces
+        "white-hot-aces-9-5": 99.80,
+        "white-hot-aces-8-5": 98.50,
+        "white-hot-aces-7-5": 97.44,
+        "white-hot-aces-6-5": 96.39,
+
+        // DDB Aces & Faces
+        "ddb-aces-faces-9-6": 99.47,
+        "ddb-aces-faces-9-5": 98.37,
+
+        // DDB Plus
+        "ddb-plus-9-6": 99.68,
+        "ddb-plus-9-5": 98.57,
+        "ddb-plus-8-5": 97.49,
+    ]
+
+    var returnPercentage: Double? {
+        PayTable.returnPercentages[id]
+    }
+
     // Short variant name for display (e.g., "9/6", "NSUD", "Full Pay")
     var variantName: String {
         // Strip the family prefix and format nicely
@@ -112,6 +290,13 @@ struct PayTable: Identifiable, Hashable, Codable {
                 .uppercased()
                 .trimmingCharacters(in: CharacterSet.whitespaces)
         }
+    }
+
+    /// Variant name with return percentage for display in selectors (e.g., "9/6 99.54%")
+    var variantDisplayName: String {
+        let base = variantName
+        guard let pct = returnPercentage else { return base }
+        return String(format: "%@ %.2f%%", base, pct)
     }
 
     // ==========================================================================

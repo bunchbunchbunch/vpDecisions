@@ -91,6 +91,12 @@ struct SimulationStartView: View {
                 .frame(maxWidth: .infinity)
             }
         }
+        .onAppear {
+            let lastId = PayTable.lastSelectedId
+            if viewModel.selectedPaytableId != lastId {
+                viewModel.selectedPaytableId = lastId
+            }
+        }
         .navigationTitle("Simulation")
         .navigationBarTitleDisplayMode(.inline)
         .alert("Game Not Available Offline", isPresented: $showOfflineAlert) {

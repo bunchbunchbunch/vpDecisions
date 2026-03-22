@@ -13,7 +13,7 @@ class SimulationViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     // Configuration selections
-    @Published var selectedPaytableId: String = PayTable.jacksOrBetter96.id
+    @Published var selectedPaytableId: String = PayTable.lastSelectedId
     @Published var selectedDenomination: BetDenomination = .quarter
     @Published var selectedLinesPerHand: Int = 10
     @Published var selectedHandsPerSim: Int = 1000

@@ -24,7 +24,7 @@ enum AppScreen: Hashable {
 struct HomeView: View {
     @ObservedObject var authViewModel: AuthViewModel
     @State private var navigationPath = NavigationPath()
-    @State private var selectedPaytable = PayTable.jacksOrBetter96 {
+    @State private var selectedPaytable = PayTable.allPayTables.first(where: { $0.id == PayTable.lastSelectedId }) ?? PayTable.jacksOrBetter96 {
         didSet {
             NSLog("🏠 HomeView selectedPaytable changed to: %@ - %@", selectedPaytable.id, selectedPaytable.name)
         }
@@ -49,6 +49,13 @@ struct HomeView: View {
                 }
             }
             .withTour(.home)
+            .onAppear {
+                let lastId = PayTable.lastSelectedId
+                if selectedPaytable.id != lastId,
+                   let paytable = PayTable.allPayTables.first(where: { $0.id == lastId }) {
+                    selectedPaytable = paytable
+                }
+            }
             .task {
                 await SyncService.shared.syncPendingAttempts()
             }
@@ -162,6 +169,15 @@ struct HomeView: View {
                         navigationPath.append(AppScreen.analyzer)
                     }
                     .tourTarget("analyzerButton")
+
+                    // Study Hall
+                    FeatureCard(
+                        chipImage: "chip-purple",
+                        title: "Study Hall",
+                        subtitle: "Lessons & drills."
+                    ) {
+                        navigationPath.append(AppScreen.trainingHub)
+                    }
 
                     // Simulation
                     FeatureCard(
@@ -512,19 +528,9 @@ struct QuizStartView: View {
     @Binding var weakSpotsMode: Bool
 
     @State private var selectedPaytableId: String = PayTable.jacksOrBetter96.id
-    @State private var selectedFamily: GameFamily = .jacksOrBetter
     @State private var selectedQuizSize: Int = 25
     @State private var networkMonitor = NetworkMonitor.shared
     @State private var showOfflineAlert = false
-
-    // Longest family name to establish dropdown width
-    private var longestFamilyName: String {
-        GameFamily.allCases.map(\.displayName).max(by: { $0.count < $1.count }) ?? ""
-    }
-
-    private var selectedVariantName: String {
-        PayTable.allPayTables.first { $0.id == selectedPaytableId }?.variantName ?? "Select Variant"
-    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -554,8 +560,10 @@ struct QuizStartView: View {
         }
         .onAppear {
             selectedPaytableId = selectedPaytable.id
-            if let paytable = PayTable.allPayTables.first(where: { $0.id == selectedPaytableId }) {
-                selectedFamily = paytable.family
+        }
+        .onChange(of: selectedPaytableId) { _, newId in
+            if let paytable = PayTable.allPayTables.first(where: { $0.id == newId }) {
+                selectedPaytable = paytable
             }
         }
         .alert("Game Not Available Offline", isPresented: $showOfflineAlert) {
@@ -682,7 +690,6 @@ struct QuizStartView: View {
                         isSelected: selectedPaytableId == game.id
                     ) {
                         selectedPaytableId = game.id
-                        selectedFamily = game.family
                         selectedPaytable = game
                     }
                 }
@@ -701,88 +708,7 @@ struct QuizStartView: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(AppTheme.Colors.textSecondary)
 
-            HStack(spacing: 8) {
-                // Game Family dropdown
-                Menu {
-                    ForEach(GameFamily.allCases) { family in
-                        Button {
-                            selectedFamily = family
-                            let familyPaytables = PayTable.paytables(for: family)
-                            if !familyPaytables.contains(where: { $0.id == selectedPaytableId }),
-                               let first = familyPaytables.first {
-                                selectedPaytableId = first.id
-                                selectedPaytable = first
-                            }
-                        } label: {
-                            HStack {
-                                Text(family.displayName)
-                                if selectedFamily == family {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                    }
-                } label: {
-                    HStack {
-                        ZStack(alignment: .leading) {
-                            Text(longestFamilyName)
-                                .font(.system(size: 15))
-                                .hidden()
-                            Text(selectedFamily.displayName)
-                                .font(.system(size: 15))
-                                .foregroundColor(.white)
-                                .lineLimit(1)
-                        }
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 12))
-                            .foregroundColor(AppTheme.Colors.textSecondary)
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(AppTheme.Colors.cardBackground)
-                    )
-                }
-
-                // Paytable variant dropdown
-                Menu {
-                    ForEach(PayTable.paytables(for: selectedFamily), id: \.id) { paytable in
-                        Button {
-                            selectedPaytableId = paytable.id
-                            selectedPaytable = paytable
-                        } label: {
-                            HStack {
-                                Text(paytable.variantName)
-                                if selectedPaytableId == paytable.id {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                    }
-                } label: {
-                    HStack {
-                        ZStack(alignment: .leading) {
-                            Text("9/6 (94.0%)")
-                                .font(.system(size: 15))
-                                .hidden()
-                            Text(selectedVariantName)
-                                .font(.system(size: 15))
-                                .foregroundColor(.white)
-                                .lineLimit(1)
-                        }
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 12))
-                            .foregroundColor(AppTheme.Colors.textSecondary)
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(AppTheme.Colors.cardBackground)
-                    )
-                }
-            }
+            GameSelectorView(selectedPaytableId: $selectedPaytableId)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

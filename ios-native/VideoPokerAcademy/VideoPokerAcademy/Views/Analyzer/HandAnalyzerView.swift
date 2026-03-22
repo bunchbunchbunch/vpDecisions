@@ -3,16 +3,20 @@ import SwiftUI
 struct HandAnalyzerView: View {
     @StateObject private var viewModel = AnalyzerViewModel()
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedFamily: GameFamily = .jacksOrBetter
-    @State private var selectedPaytableId: String = PayTable.jacksOrBetter96.id
+    @State private var selectedFamily: GameFamily = (PayTable.allPayTables.first(where: { $0.id == PayTable.lastSelectedId }) ?? PayTable.jacksOrBetter96).family
+    @State private var selectedPaytableId: String = PayTable.lastSelectedId
     @State private var showPaytable = false
 
     let allSuits: [Suit] = [.hearts, .diamonds, .clubs, .spades]
     let allRanks: [Rank] = Rank.allCases
 
-    /// Paytables available for the currently selected family
+    /// Paytables available for the currently selected family, sorted by return % descending
     private var paytablesForSelectedFamily: [PayTable] {
-        PayTable.paytables(for: selectedFamily)
+        PayTable.paytables(for: selectedFamily).sorted { a, b in
+            let aReturn = a.returnPercentage ?? -1
+            let bReturn = b.returnPercentage ?? -1
+            return aReturn > bReturn
+        }
     }
 
     var body: some View {
@@ -31,6 +35,15 @@ struct HandAnalyzerView: View {
                 // Loading overlay when preparing paytable
                 if viewModel.isPreparingPaytable {
                     preparingPaytableOverlay
+                }
+            }
+        }
+        .onAppear {
+            let lastId = PayTable.lastSelectedId
+            if selectedPaytableId != lastId {
+                selectedPaytableId = lastId
+                if let paytable = PayTable.allPayTables.first(where: { $0.id == lastId }) {
+                    selectedFamily = paytable.family
                 }
             }
         }
@@ -81,19 +94,24 @@ struct HandAnalyzerView: View {
         HStack(spacing: 6) {
             // Game family selector
             Menu {
-                ForEach(GameFamily.allCases) { family in
-                    Button {
-                        selectedFamily = family
-                        // Auto-select first paytable in the new family
-                        if let firstPaytable = PayTable.paytables(for: family).first {
-                            selectedPaytableId = firstPaytable.id
-                            viewModel.selectedPaytable = firstPaytable
-                        }
-                    } label: {
-                        HStack {
-                            Text(family.displayName)
-                            if selectedFamily == family {
-                                Image(systemName: "checkmark")
+                ForEach(GameFamilyCategory.displayOrder) { category in
+                    Section(category.displayName) {
+                        ForEach(GameFamily.families(for: category)) { family in
+                            Button {
+                                selectedFamily = family
+                                let sorted = PayTable.paytables(for: family).sorted { ($0.returnPercentage ?? -1) > ($1.returnPercentage ?? -1) }
+                                if !sorted.contains(where: { $0.id == selectedPaytableId }),
+                                   let first = sorted.first {
+                                    selectedPaytableId = first.id
+                                    viewModel.selectedPaytable = first
+                                }
+                            } label: {
+                                HStack {
+                                    Text(family.displayName)
+                                    if selectedFamily == family {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
                             }
                         }
                     }
@@ -121,7 +139,7 @@ struct HandAnalyzerView: View {
                         viewModel.selectedPaytable = paytable
                     } label: {
                         HStack {
-                            Text(paytable.variantName)
+                            Text(paytable.variantDisplayName)
                             if selectedPaytableId == paytable.id {
                                 Image(systemName: "checkmark")
                             }
@@ -130,7 +148,7 @@ struct HandAnalyzerView: View {
                 }
             } label: {
                 HStack(spacing: 4) {
-                    Text(viewModel.selectedPaytable.variantName)
+                    Text(viewModel.selectedPaytable.variantDisplayName)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.white)
                     Image(systemName: "chevron.down")
@@ -285,18 +303,24 @@ struct HandAnalyzerView: View {
         HStack(spacing: 6) {
             // Game family selector
             Menu {
-                ForEach(GameFamily.allCases) { family in
-                    Button {
-                        selectedFamily = family
-                        if let firstPaytable = PayTable.paytables(for: family).first {
-                            selectedPaytableId = firstPaytable.id
-                            viewModel.selectedPaytable = firstPaytable
-                        }
-                    } label: {
-                        HStack {
-                            Text(family.displayName)
-                            if selectedFamily == family {
-                                Image(systemName: "checkmark")
+                ForEach(GameFamilyCategory.displayOrder) { category in
+                    Section(category.displayName) {
+                        ForEach(GameFamily.families(for: category)) { family in
+                            Button {
+                                selectedFamily = family
+                                let sorted = PayTable.paytables(for: family).sorted { ($0.returnPercentage ?? -1) > ($1.returnPercentage ?? -1) }
+                                if !sorted.contains(where: { $0.id == selectedPaytableId }),
+                                   let first = sorted.first {
+                                    selectedPaytableId = first.id
+                                    viewModel.selectedPaytable = first
+                                }
+                            } label: {
+                                HStack {
+                                    Text(family.displayName)
+                                    if selectedFamily == family {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
                             }
                         }
                     }
@@ -324,7 +348,7 @@ struct HandAnalyzerView: View {
                         viewModel.selectedPaytable = paytable
                     } label: {
                         HStack {
-                            Text(paytable.variantName)
+                            Text(paytable.variantDisplayName)
                             if selectedPaytableId == paytable.id {
                                 Image(systemName: "checkmark")
                             }
@@ -333,7 +357,7 @@ struct HandAnalyzerView: View {
                 }
             } label: {
                 HStack(spacing: 2) {
-                    Text(viewModel.selectedPaytable.variantName)
+                    Text(viewModel.selectedPaytable.variantDisplayName)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(.white)
                     Image(systemName: "chevron.down")
@@ -470,18 +494,24 @@ struct HandAnalyzerView: View {
         HStack(spacing: 6) {
             // Game family selector
             Menu {
-                ForEach(GameFamily.allCases) { family in
-                    Button {
-                        selectedFamily = family
-                        if let firstPaytable = PayTable.paytables(for: family).first {
-                            selectedPaytableId = firstPaytable.id
-                            viewModel.selectedPaytable = firstPaytable
-                        }
-                    } label: {
-                        HStack {
-                            Text(family.displayName)
-                            if selectedFamily == family {
-                                Image(systemName: "checkmark")
+                ForEach(GameFamilyCategory.displayOrder) { category in
+                    Section(category.displayName) {
+                        ForEach(GameFamily.families(for: category)) { family in
+                            Button {
+                                selectedFamily = family
+                                let sorted = PayTable.paytables(for: family).sorted { ($0.returnPercentage ?? -1) > ($1.returnPercentage ?? -1) }
+                                if !sorted.contains(where: { $0.id == selectedPaytableId }),
+                                   let first = sorted.first {
+                                    selectedPaytableId = first.id
+                                    viewModel.selectedPaytable = first
+                                }
+                            } label: {
+                                HStack {
+                                    Text(family.displayName)
+                                    if selectedFamily == family {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
                             }
                         }
                     }
@@ -509,7 +539,7 @@ struct HandAnalyzerView: View {
                         viewModel.selectedPaytable = paytable
                     } label: {
                         HStack {
-                            Text(paytable.variantName)
+                            Text(paytable.variantDisplayName)
                             if selectedPaytableId == paytable.id {
                                 Image(systemName: "checkmark")
                             }
@@ -518,7 +548,7 @@ struct HandAnalyzerView: View {
                 }
             } label: {
                 HStack(spacing: 3) {
-                    Text(viewModel.selectedPaytable.variantName)
+                    Text(viewModel.selectedPaytable.variantDisplayName)
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.white)
                     Image(systemName: "chevron.down")

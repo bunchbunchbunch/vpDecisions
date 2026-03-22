@@ -5,7 +5,6 @@ struct PlayStartView: View {
     @State private var settings = PlaySettings()
     @State private var networkMonitor = NetworkMonitor.shared
     @State private var showOfflineAlert = false
-    @State private var selectedFamily: GameFamily = .jacksOrBetter
 
     var body: some View {
         GeometryReader { geometry in
@@ -29,6 +28,10 @@ struct PlayStartView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .task {
             settings = await PlayPersistence.shared.loadSettings()
+            let lastId = PayTable.lastSelectedId
+            if settings.selectedPaytableId != lastId {
+                settings.selectedPaytableId = lastId
+            }
         }
         .alert("Game Not Available Offline", isPresented: $showOfflineAlert) {
             Button("OK", role: .cancel) { }
@@ -158,8 +161,6 @@ struct PlayStartView: View {
                         isSelected: settings.selectedPaytableId == game.id
                     ) {
                         settings.selectedPaytableId = game.id
-                        // Sync the family dropdown
-                        selectedFamily = game.family
                     }
                 }
             }
@@ -177,112 +178,8 @@ struct PlayStartView: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(AppTheme.Colors.textSecondary)
 
-            HStack(spacing: 8) {
-                // Game Family dropdown
-                Menu {
-                    ForEach(GameFamily.allCases) { family in
-                        Button {
-                            selectedFamily = family
-                            // Auto-select first paytable in family if current isn't in it
-                            let familyPaytables = PayTable.paytables(for: family)
-                            if !familyPaytables.contains(where: { $0.id == settings.selectedPaytableId }),
-                               let first = familyPaytables.first {
-                                settings.selectedPaytableId = first.id
-                            }
-                        } label: {
-                            HStack {
-                                Text(family.displayName)
-                                if selectedFamily == family {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                    }
-                } label: {
-                    HStack {
-                        // Use ZStack with hidden longest text to establish minimum width
-                        ZStack(alignment: .leading) {
-                            // Hidden text of longest option to set minimum width
-                            Text(longestFamilyName)
-                                .font(.system(size: 15))
-                                .hidden()
-
-                            Text(selectedFamily.displayName)
-                                .font(.system(size: 15))
-                                .foregroundColor(.white)
-                                .lineLimit(1)
-                        }
-
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 12))
-                            .foregroundColor(AppTheme.Colors.textSecondary)
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(AppTheme.Colors.cardBackground)
-                    )
-                }
-
-                // Paytable variant dropdown
-                Menu {
-                    ForEach(PayTable.paytables(for: selectedFamily), id: \.id) { paytable in
-                        Button {
-                            settings.selectedPaytableId = paytable.id
-                        } label: {
-                            HStack {
-                                Text(paytable.variantName)
-                                if settings.selectedPaytableId == paytable.id {
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                    }
-                } label: {
-                    HStack {
-                        // Use ZStack with hidden longest text to establish minimum width
-                        ZStack(alignment: .leading) {
-                            // Hidden text to set minimum width for variant names
-                            Text("9/6 (94.0%)")
-                                .font(.system(size: 15))
-                                .hidden()
-
-                            Text(selectedVariantName)
-                                .font(.system(size: 15))
-                                .foregroundColor(.white)
-                                .lineLimit(1)
-                        }
-
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 12))
-                            .foregroundColor(AppTheme.Colors.textSecondary)
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(AppTheme.Colors.cardBackground)
-                    )
-                }
-            }
+            GameSelectorView(selectedPaytableId: $settings.selectedPaytableId)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .onAppear {
-            // Initialize selected family based on current paytable
-            if let paytable = PayTable.allPayTables.first(where: { $0.id == settings.selectedPaytableId }) {
-                selectedFamily = paytable.family
-            }
-        }
-    }
-
-    // Longest family name to establish dropdown width
-    private var longestFamilyName: String {
-        GameFamily.allCases.map(\.displayName).max(by: { $0.count < $1.count }) ?? ""
-    }
-
-    private var selectedVariantName: String {
-        PayTable.allPayTables.first { $0.id == settings.selectedPaytableId }?.variantName ?? "Select Variant"
     }
 
     // MARK: - Lines Section
