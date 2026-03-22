@@ -13,11 +13,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VP Academy — Play Smarter. Win Better.",
+  title: "VP Academy — Master Every Hand.",
   description:
     "Master video poker strategy with VP Academy. Training lessons, play mode, hand analyzer, and more — all in one iOS app.",
   openGraph: {
-    title: "VP Academy — Play Smarter. Win Better.",
+    title: "VP Academy — Master Every Hand.",
     description:
       "Master video poker strategy with VP Academy. Training lessons, play mode, hand analyzer, and more — all in one iOS app.",
     url: "https://videopoker.academy",

@@ -4,7 +4,7 @@ use flate2::Compression;
 use itertools::Itertools;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::io::{self, Write};
 use std::path::Path;
@@ -4624,6 +4624,765 @@ fn generate_strategy_file_with_progress(paytable: &Paytable, current_paytable: u
     (compressed, binary_v1, binary_v2, total, version)
 }
 
+// ============================================================================
+// HAND DISTRIBUTION CALCULATION
+// ============================================================================
+
+/// Classify a final hand into its hand type name and payout.
+/// Mirrors get_payout exactly but also returns the hand type string.
+fn get_standard_hand_type(hand: &[Card], paytable: &Paytable) -> (&'static str, f64) {
+    if hand.len() != 5 { return ("Nothing", 0.0); }
+
+    let flush = is_flush(hand);
+    let straight = is_straight(hand);
+    let counts = get_rank_counts(hand);
+
+    if flush && straight {
+        let mut ranks: Vec<u8> = hand.iter().map(|c| c.rank()).collect();
+        ranks.sort();
+        if ranks == vec![8, 9, 10, 11, 12] {
+            return ("Royal Flush", paytable.royal_flush);
+        }
+        return ("Straight Flush", paytable.straight_flush);
+    }
+
+    let mut pairs = 0;
+    let mut trips = 0;
+    let mut quad_rank: Option<u8> = None;
+    let mut pair_ranks: Vec<usize> = Vec::new();
+
+    for (rank, &count) in counts.iter().enumerate() {
+        match count {
+            2 => { pairs += 1; pair_ranks.push(rank); }
+            3 => trips += 1,
+            4 => quad_rank = Some(rank as u8),
+            _ => {}
+        }
+    }
+
+    if let Some(qr) = quad_rank {
+        if paytable.has_kicker_bonus() {
+            let kicker_rank = counts.iter().enumerate()
+                .find(|(r, &c)| c == 1 && *r as u8 != qr)
+                .map(|(r, _)| r as u8)
+                .unwrap_or(0);
+            let is_low_kicker = kicker_rank <= 2 || kicker_rank == 12;
+
+            if qr == 12 {
+                if is_low_kicker {
+                    if let Some(payout) = paytable.four_aces_with_kicker {
+                        return ("Four Aces w/ 2-4", payout);
+                    }
+                }
+                if let Some(payout) = paytable.four_aces {
+                    return ("Four Aces", payout);
+                }
+            } else if qr <= 2 {
+                if is_low_kicker {
+                    if let Some(payout) = paytable.four_2_4_with_kicker {
+                        return ("Four 2-4 w/ A-4", payout);
+                    }
+                }
+                if let Some(payout) = paytable.four_2_4 {
+                    return ("Four 2-4", payout);
+                }
+            } else {
+                if let Some(payout) = paytable.four_5_k {
+                    return ("Four 5-K", payout);
+                }
+            }
+        }
+
+        if paytable.has_face_kicker_bonus() {
+            let kicker_rank = counts.iter().enumerate()
+                .find(|(r, &c)| c == 1 && *r as u8 != qr)
+                .map(|(r, _)| r as u8)
+                .unwrap_or(0);
+            let is_face_kicker = kicker_rank >= 9;
+
+            if qr == 12 {
+                if is_face_kicker {
+                    if let Some(payout) = paytable.four_aces_with_face {
+                        return ("Four Aces w/ J-K", payout);
+                    }
+                }
+                if let Some(payout) = paytable.four_aces {
+                    return ("Four Aces", payout);
+                }
+            } else if qr >= 9 && qr <= 11 {
+                if is_face_kicker {
+                    if let Some(payout) = paytable.four_jqk_with_face {
+                        return ("Four J-K w/ Face", payout);
+                    }
+                }
+                if let Some(payout) = paytable.four_jqk {
+                    return ("Four J-K", payout);
+                }
+            } else {
+                return ("Four of a Kind", paytable.four_of_a_kind);
+            }
+        }
+
+        if qr == 12 {
+            if let Some(payout) = paytable.four_aces {
+                return ("Four Aces", payout);
+            }
+        }
+        if qr <= 2 {
+            if let Some(payout) = paytable.four_2_4 {
+                return ("Four 2-4", payout);
+            }
+        }
+        if qr >= 9 && qr <= 11 {
+            if let Some(payout) = paytable.four_jqk {
+                return ("Four J-K", payout);
+            }
+        }
+        if qr == 6 {
+            if let Some(payout) = paytable.four_8s {
+                return ("Four 8s", payout);
+            }
+        }
+        if qr == 5 {
+            if let Some(payout) = paytable.four_7s {
+                return ("Four 7s", payout);
+            }
+        }
+        if let Some(payout) = paytable.four_5_k {
+            return ("Four 5-K", payout);
+        }
+        return ("Four of a Kind", paytable.four_of_a_kind);
+    }
+
+    if trips > 0 && pairs > 0 { return ("Full House", paytable.full_house); }
+    if flush { return ("Flush", paytable.flush); }
+    if straight { return ("Straight", paytable.straight); }
+    if trips > 0 { return ("Three of a Kind", paytable.three_of_a_kind); }
+    if pairs == 2 { return ("Two Pair", paytable.two_pair); }
+
+    if pairs == 1 {
+        let pair_rank = pair_ranks[0] as u8;
+        if pair_rank >= paytable.min_pair_rank {
+            let name = match paytable.min_pair_rank {
+                8 => "Tens or Better",
+                11 => "Kings or Better",
+                _ => "Jacks or Better",
+            };
+            return (name, paytable.high_pair);
+        }
+    }
+
+    ("Nothing", 0.0)
+}
+
+fn get_deuces_wild_hand_type(hand: &[Card], paytable: &Paytable) -> (&'static str, f64) {
+    let num_deuces = count_deuces(hand);
+    let non_deuces = get_non_deuces(hand);
+    let mut counts = [0u8; 13];
+    for card in &non_deuces { counts[card.rank() as usize] += 1; }
+    let max_count = *counts.iter().max().unwrap_or(&0);
+    let is_flush = is_flush_wild(&non_deuces);
+    let is_straight = is_straight_wild(&non_deuces, num_deuces);
+
+    if num_deuces == 0 && is_flush && is_straight {
+        let mut ranks: Vec<u8> = non_deuces.iter().map(|c| c.rank()).collect();
+        ranks.sort();
+        if ranks == vec![8, 9, 10, 11, 12] {
+            return ("Natural Royal Flush", paytable.royal_flush);
+        }
+    }
+    if num_deuces == 4 { return ("Four Deuces", paytable.four_deuces.unwrap_or(200.0)); }
+    if is_royal_wild(&non_deuces, num_deuces) && num_deuces > 0 {
+        return ("Wild Royal Flush", paytable.wild_royal.unwrap_or(25.0));
+    }
+    if max_count + num_deuces >= 5 { return ("Five of a Kind", paytable.five_of_a_kind.unwrap_or(15.0)); }
+    if is_flush && is_straight && !is_royal_wild(&non_deuces, num_deuces) {
+        return ("Straight Flush", paytable.straight_flush);
+    }
+    if max_count + num_deuces >= 4 { return ("Four of a Kind", paytable.four_of_a_kind); }
+
+    if max_count + num_deuces >= 3 {
+        let mut sorted_counts: Vec<u8> = counts.iter().cloned().filter(|&c| c > 0).collect();
+        sorted_counts.sort(); sorted_counts.reverse();
+        let can_make_full_house = if sorted_counts.len() >= 2 {
+            let need_trips = 3_u8.saturating_sub(sorted_counts[0]);
+            let need_pair = 2_u8.saturating_sub(sorted_counts[1]);
+            need_trips + need_pair <= num_deuces
+        } else if sorted_counts.len() == 1 {
+            sorted_counts[0] + num_deuces >= 5 && sorted_counts[0] >= 2
+        } else { num_deuces >= 5 };
+        if can_make_full_house && max_count + num_deuces < 4 {
+            return ("Full House", paytable.full_house);
+        }
+    }
+
+    if is_flush && !is_straight { return ("Flush", paytable.flush); }
+    if is_straight && !is_flush { return ("Straight", paytable.straight); }
+    if max_count + num_deuces >= 3 { return ("Three of a Kind", paytable.three_of_a_kind); }
+    ("Nothing", 0.0)
+}
+
+fn get_joker_hand_type(hand: &[Card], paytable: &Paytable) -> (&'static str, f64) {
+    let num_jokers = count_jokers(hand);
+    let non_jokers = get_non_jokers(hand);
+    let mut counts = [0u8; 13];
+    for card in &non_jokers { if card.rank() < 13 { counts[card.rank() as usize] += 1; } }
+    let max_count = *counts.iter().max().unwrap_or(&0);
+    let num_pairs = counts.iter().filter(|&&c| c == 2).count() as u8;
+    let is_flush = is_flush_wild(&non_jokers);
+    let is_straight = is_straight_wild(&non_jokers, num_jokers);
+
+    if num_jokers == 0 && is_flush && is_straight {
+        let mut ranks: Vec<u8> = non_jokers.iter().map(|c| c.rank()).collect();
+        ranks.sort();
+        if ranks == vec![8, 9, 10, 11, 12] {
+            return ("Natural Royal Flush", paytable.royal_flush);
+        }
+    }
+    if max_count + num_jokers >= 5 { return ("Five of a Kind", paytable.five_of_a_kind.unwrap_or(100.0)); }
+    if is_royal_wild(&non_jokers, num_jokers) && num_jokers > 0 {
+        return ("Wild Royal Flush", paytable.wild_royal.unwrap_or(50.0));
+    }
+    if is_flush && is_straight { return ("Straight Flush", paytable.straight_flush); }
+    if max_count + num_jokers >= 4 { return ("Four of a Kind", paytable.four_of_a_kind); }
+
+    if (max_count + num_jokers >= 3) && (num_pairs >= 1 || max_count >= 2) {
+        let mut sorted_counts: Vec<u8> = counts.iter().cloned().filter(|&c| c > 0).collect();
+        sorted_counts.sort(); sorted_counts.reverse();
+        let can_make_full_house = if sorted_counts.len() >= 2 {
+            let need_trips = 3_u8.saturating_sub(sorted_counts[0]);
+            let need_pair = 2_u8.saturating_sub(sorted_counts[1]);
+            need_trips + need_pair <= num_jokers
+        } else { false };
+        if can_make_full_house && max_count + num_jokers < 4 {
+            return ("Full House", paytable.full_house);
+        }
+    }
+
+    if is_flush && !is_straight { return ("Flush", paytable.flush); }
+    if is_straight && !is_flush { return ("Straight", paytable.straight); }
+    if max_count + num_jokers >= 3 { return ("Three of a Kind", paytable.three_of_a_kind); }
+
+    if num_pairs == 2 || (num_pairs == 1 && num_jokers >= 1 && max_count < 3) {
+        if paytable.two_pair > 0.0 { return ("Two Pair", paytable.two_pair); }
+    }
+
+    if num_pairs == 1 || (num_jokers >= 1 && max_count >= 1) {
+        let mut pr: Vec<usize> = counts.iter().enumerate()
+            .filter(|(_, &c)| c >= 2 || (c == 1 && num_jokers >= 1))
+            .map(|(r, _)| r).collect();
+        pr.sort(); pr.reverse();
+        if !pr.is_empty() && pr[0] as u8 >= paytable.min_pair_rank {
+            let name = match paytable.min_pair_rank {
+                11 => "Kings or Better",
+                _ => "Jacks or Better",
+            };
+            return (name, paytable.high_pair);
+        }
+        if num_jokers >= 1 && paytable.high_pair > 0.0 {
+            if let Some(highest) = counts.iter().enumerate().rev().find(|(_, &c)| c >= 1).map(|(r, _)| r) {
+                if highest as u8 >= paytable.min_pair_rank {
+                    let name = match paytable.min_pair_rank {
+                        11 => "Kings or Better",
+                        _ => "Jacks or Better",
+                    };
+                    return (name, paytable.high_pair);
+                }
+            }
+        }
+    }
+
+    ("Nothing", 0.0)
+}
+
+fn get_hand_type(hand: &[Card], paytable: &Paytable) -> (&'static str, f64) {
+    if hand.len() != 5 { return ("Nothing", 0.0); }
+    if paytable.is_deuces_wild() {
+        get_deuces_wild_hand_type(hand, paytable)
+    } else if paytable.is_joker_poker() {
+        get_joker_hand_type(hand, paytable)
+    } else {
+        get_standard_hand_type(hand, paytable)
+    }
+}
+
+/// Read a .vpstrat2 file and return a map of canonical_key -> best_hold_mask
+fn read_vpstrat2_holds(path: &str) -> Result<HashMap<String, u8>, String> {
+    let data = fs::read(path).map_err(|e| format!("Failed to read {}: {}", path, e))?;
+    if data.len() < VPS2_HEADER_SIZE { return Err("File too small".to_string()); }
+    if &data[0..4] != VPS2_MAGIC { return Err("Invalid magic".to_string()); }
+
+    let entry_count = u32::from_le_bytes([data[8], data[9], data[10], data[11]]) as usize;
+    let key_length = data[12] as usize;
+    let index_size = entry_count * key_length;
+    let data_start = VPS2_HEADER_SIZE + index_size;
+
+    let mut holds = HashMap::with_capacity(entry_count);
+    for i in 0..entry_count {
+        let key_offset = VPS2_HEADER_SIZE + i * key_length;
+        let key = String::from_utf8_lossy(&data[key_offset..key_offset + key_length])
+            .trim_end_matches('\0').to_string();
+        let data_offset = data_start + i * VPS2_DATA_ENTRY_SIZE;
+        let best_hold = data[data_offset];
+        holds.insert(key, best_hold);
+    }
+    Ok(holds)
+}
+
+/// Generate canonical hands with multiplicity count
+fn generate_canonical_hands_with_multiplicity(include_joker: bool) -> Vec<(String, Hand, u64)> {
+    println!("  Generating canonical hands with multiplicity...");
+    let mut seen: HashMap<String, (Hand, u64)> = HashMap::new();
+    let max_card = if include_joker { 53u8 } else { 52u8 };
+
+    for c1 in 0..(max_card - 4) {
+        for c2 in (c1 + 1)..(max_card - 3) {
+            for c3 in (c2 + 1)..(max_card - 2) {
+                for c4 in (c3 + 1)..(max_card - 1) {
+                    for c5 in (c4 + 1)..max_card {
+                        let hand: Hand = [Card(c1), Card(c2), Card(c3), Card(c4), Card(c5)];
+                        let key = hand_to_canonical_key(&hand);
+                        seen.entry(key)
+                            .and_modify(|(_, count)| *count += 1)
+                            .or_insert((hand, 1));
+                    }
+                }
+            }
+        }
+    }
+
+    let total_dealt: u64 = seen.values().map(|(_, c)| c).sum();
+    println!("  {} canonical hands, {} total dealt hands", seen.len(), total_dealt);
+    seen.into_iter().map(|(key, (hand, count))| (key, hand, count)).collect()
+}
+
+/// Compute hand type distribution for a paytable
+fn compute_distribution(
+    paytable: &Paytable,
+    holds: &HashMap<String, u8>,
+    canonical_hands: &[(String, Hand, u64)],
+) -> (HashMap<String, (f64, f64, usize)>, f64) {
+    let deck_size: u8 = if paytable.is_joker_poker() { 53 } else { 52 };
+    let total_dealt: f64 = if paytable.is_joker_poker() { 3_325_005.0 } else { 2_598_960.0 };
+
+    let processed = Arc::new(AtomicUsize::new(0));
+    let total_hands = canonical_hands.len();
+    let calc_start = Instant::now();
+
+    let results: Vec<HashMap<&'static str, (f64, f64)>> = canonical_hands
+        .par_iter()
+        .map(|(key, hand, multiplicity)| {
+            let count = processed.fetch_add(1, Ordering::Relaxed) + 1;
+            if count % 5000 == 0 || count == total_hands {
+                let elapsed = calc_start.elapsed().as_secs_f64();
+                let rate = count as f64 / elapsed;
+                let remaining = (total_hands - count) as f64 / rate;
+                print!("    Progress: {:>6}/{} ({:>3}%) | {:.0}/s | ~{}s left    \r",
+                    count, total_hands, count * 100 / total_hands, rate, remaining as u64);
+                io::stdout().flush().unwrap();
+            }
+            let best_hold = match holds.get(key) {
+                Some(&h) => h,
+                None => 0, // fallback: discard all
+            };
+
+            let mut held: Vec<Card> = Vec::with_capacity(5);
+            for i in 0..5 {
+                if best_hold & (1 << i) != 0 {
+                    held.push(hand[i]);
+                }
+            }
+            let num_to_draw = 5 - held.len();
+
+            let mut deck: Vec<Card> = Vec::with_capacity((deck_size - 5) as usize);
+            for card_idx in 0..deck_size {
+                let card = Card(card_idx);
+                if !hand.contains(&card) {
+                    deck.push(card);
+                }
+            }
+
+            let total_draws = if num_to_draw == 0 { 1u64 } else {
+                let n = deck.len() as u64;
+                let k = num_to_draw as u64;
+                (0..k).fold(1u64, |acc, i| acc * (n - i) / (i + 1))
+            };
+
+            let mut local_counts: HashMap<&'static str, (u64, f64)> = HashMap::new(); // count, payout
+
+            if num_to_draw == 0 {
+                let (ht, payout) = get_hand_type(hand, paytable);
+                local_counts.insert(ht, (1, payout));
+            } else {
+                for draw in deck.iter().combinations(num_to_draw) {
+                    let mut final_hand = held.clone();
+                    for &card in &draw { final_hand.push(*card); }
+                    let final_arr: [Card; 5] = final_hand.try_into().unwrap();
+                    let (ht, payout) = get_hand_type(&final_arr, paytable);
+                    let entry = local_counts.entry(ht).or_insert((0, payout));
+                    entry.0 += 1;
+                }
+            }
+
+            // Convert to probability contributions
+            let mult = *multiplicity as f64;
+            let mut prob_map: HashMap<&'static str, (f64, f64)> = HashMap::new();
+            for (ht, (count, payout)) in local_counts {
+                let prob_contribution = mult * (count as f64) / (total_dealt * total_draws as f64);
+                prob_map.insert(ht, (prob_contribution, payout));
+            }
+            prob_map
+        })
+        .collect();
+
+    println!();
+    // Merge all thread results
+    let mut merged: HashMap<String, (f64, f64)> = HashMap::new(); // name -> (total_prob, payout)
+    for result in results {
+        for (ht, (prob, payout)) in result {
+            let entry = merged.entry(ht.to_string()).or_insert((0.0, payout));
+            entry.0 += prob;
+        }
+    }
+
+    // Sort by payout descending to assign display order
+    let mut sorted: Vec<(String, f64, f64)> = merged.iter()
+        .map(|(name, (prob, payout))| (name.clone(), *prob, *payout))
+        .collect();
+    sorted.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
+
+    let mut final_map: HashMap<String, (f64, f64, usize)> = HashMap::new();
+    let mut overall_return = 0.0;
+    for (order, (name, prob, payout)) in sorted.iter().enumerate() {
+        let return_contrib = prob * payout;
+        overall_return += return_contrib;
+        final_map.insert(name.clone(), (*prob, *payout, order + 1));
+    }
+
+    (final_map, overall_return)
+}
+
+/// Check which paytables already have distribution data in Supabase
+fn fetch_completed_distributions(
+    client: &reqwest::blocking::Client,
+    supabase_url: &str,
+    service_key: &str,
+) -> HashSet<String> {
+    let url = format!("{}/rest/v1/paytable_returns?select=paytable_id", supabase_url);
+    let response = match client
+        .get(&url)
+        .header("apikey", service_key)
+        .header("Authorization", format!("Bearer {}", service_key))
+        .timeout(std::time::Duration::from_secs(30))
+        .send()
+    {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("  Warning: Could not check existing distributions: {}", e);
+            return HashSet::new();
+        }
+    };
+
+    if !response.status().is_success() {
+        eprintln!("  Warning: Could not fetch existing distributions ({})", response.status());
+        return HashSet::new();
+    }
+
+    #[derive(Deserialize)]
+    struct Row { paytable_id: String }
+
+    match response.json::<Vec<Row>>() {
+        Ok(rows) => rows.into_iter().map(|r| r.paytable_id).collect(),
+        Err(_) => HashSet::new(),
+    }
+}
+
+/// Upload distribution results to Supabase
+fn upload_distribution_to_supabase(
+    client: &reqwest::blocking::Client,
+    supabase_url: &str,
+    service_key: &str,
+    paytable_id: &str,
+    distribution: &HashMap<String, (f64, f64, usize)>,
+    overall_return: f64,
+    total_canonical: usize,
+    total_dealt: u64,
+) -> Result<(), String> {
+    // Delete existing data for this paytable first
+    let delete_url = format!("{}/rest/v1/paytable_hand_distribution?paytable_id=eq.{}",
+        supabase_url, paytable_id);
+    let _ = client.delete(&delete_url)
+        .header("apikey", service_key)
+        .header("Authorization", format!("Bearer {}", service_key))
+        .send();
+
+    let delete_url2 = format!("{}/rest/v1/paytable_returns?paytable_id=eq.{}",
+        supabase_url, paytable_id);
+    let _ = client.delete(&delete_url2)
+        .header("apikey", service_key)
+        .header("Authorization", format!("Bearer {}", service_key))
+        .send();
+
+    // Insert distribution rows
+    #[derive(Serialize)]
+    struct DistRow {
+        paytable_id: String,
+        hand_type: String,
+        hand_type_order: usize,
+        payout_per_coin: f64,
+        probability: f64,
+        return_contribution: f64,
+    }
+
+    let rows: Vec<DistRow> = distribution.iter().map(|(ht, (prob, payout, order))| {
+        DistRow {
+            paytable_id: paytable_id.to_string(),
+            hand_type: ht.clone(),
+            hand_type_order: *order,
+            payout_per_coin: *payout,
+            probability: *prob,
+            return_contribution: prob * payout,
+        }
+    }).collect();
+
+    let url = format!("{}/rest/v1/paytable_hand_distribution", supabase_url);
+    let response = client.post(&url)
+        .header("apikey", service_key)
+        .header("Authorization", format!("Bearer {}", service_key))
+        .header("Content-Type", "application/json")
+        .header("Prefer", "resolution=merge-duplicates")
+        .json(&rows)
+        .timeout(std::time::Duration::from_secs(30))
+        .send()
+        .map_err(|e| format!("Upload failed: {}", e))?;
+
+    if !response.status().is_success() {
+        let body = response.text().unwrap_or_default();
+        return Err(format!("Distribution upload failed: {}", body));
+    }
+
+    // Insert return summary
+    #[derive(Serialize)]
+    struct ReturnRow {
+        paytable_id: String,
+        calculated_return_pct: f64,
+        total_canonical_hands: i64,
+        total_dealt_hands: i64,
+    }
+
+    let return_row = ReturnRow {
+        paytable_id: paytable_id.to_string(),
+        calculated_return_pct: overall_return * 100.0, // convert to percentage
+        total_canonical_hands: total_canonical as i64,
+        total_dealt_hands: total_dealt as i64,
+    };
+
+    let url2 = format!("{}/rest/v1/paytable_returns", supabase_url);
+    let response2 = client.post(&url2)
+        .header("apikey", service_key)
+        .header("Authorization", format!("Bearer {}", service_key))
+        .header("Content-Type", "application/json")
+        .header("Prefer", "resolution=merge-duplicates")
+        .json(&[return_row])
+        .timeout(std::time::Duration::from_secs(30))
+        .send()
+        .map_err(|e| format!("Return upload failed: {}", e))?;
+
+    if !response2.status().is_success() {
+        let body = response2.text().unwrap_or_default();
+        return Err(format!("Return upload failed: {}", body));
+    }
+
+    Ok(())
+}
+
+fn run_distribution(strategies_dir: &str, single_paytable: Option<&str>) {
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║          HAND DISTRIBUTION CALCULATOR                           ║");
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+    println!();
+
+    // Load environment
+    dotenv::from_path("../../.env").ok();
+    let supabase_url = std::env::var("SUPABASE_URL")
+        .unwrap_or_else(|_| "https://ctqefgdvqiaiumtmcjdz.supabase.co".to_string());
+    let service_key = match std::env::var("SUPABASE_SERVICE_ROLE_KEY")
+        .or_else(|_| std::env::var("SUPABASE_SERVICE_KEY"))
+    {
+        Ok(key) => key,
+        Err(_) => { eprintln!("SUPABASE_SERVICE_ROLE_KEY not set in .env"); std::process::exit(1); }
+    };
+
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(120))
+        .build()
+        .expect("Failed to create HTTP client");
+
+    // Get all paytable IDs (or just the one requested)
+    let all_ids: Vec<&str> = if let Some(id) = single_paytable {
+        vec![id]
+    } else {
+        get_all_paytable_ids()
+    };
+
+    // Check which have strategy files
+    let ios_resources = "../../ios-native/VideoPokerAcademy/VideoPokerAcademy/Resources";
+    let mut paytables_with_strategies: Vec<(&str, String)> = Vec::new();
+    for id in &all_ids {
+        let filename = format!("strategy_{}.vpstrat2", id.replace("-", "_"));
+        let strat_path = Path::new(strategies_dir).join(&filename);
+        let ios_path = Path::new(ios_resources).join(&filename);
+        if strat_path.exists() {
+            paytables_with_strategies.push((id, strat_path.to_string_lossy().to_string()));
+        } else if ios_path.exists() {
+            paytables_with_strategies.push((id, ios_path.to_string_lossy().to_string()));
+        }
+    }
+
+    // Check which are already computed in Supabase
+    println!("Checking Supabase for already-computed distributions...");
+    let completed = fetch_completed_distributions(&client, &supabase_url, &service_key);
+    println!("  Found {} already completed\n", completed.len());
+
+    let mut to_process: Vec<(&str, String)> = paytables_with_strategies
+        .into_iter()
+        .filter(|(id, _)| !completed.contains(*id))
+        .collect();
+
+    let total_available = all_ids.len();
+    let total_with_strategies = to_process.len() + completed.len();
+    let remaining = to_process.len();
+
+    println!("  Total paytables: {}", total_available);
+    println!("  With strategy files: {}", total_with_strategies);
+    println!("  Already computed: {}", completed.len());
+    println!("  To process: {}", remaining);
+    println!();
+
+    if remaining == 0 {
+        println!("All distributions already computed! Nothing to do.");
+        return;
+    }
+
+    // Sort for consistent ordering
+    to_process.sort_by_key(|(id, _)| id.to_string());
+
+    let overall_start = Instant::now();
+    let mut completed_count = 0;
+    let mut failed_list: Vec<String> = Vec::new();
+    let mut paytable_times: Vec<f64> = Vec::new();
+
+    // Pre-generate canonical hands (reuse across paytables of same deck type)
+    println!("Pre-generating canonical hands...");
+    let standard_hands = generate_canonical_hands_with_multiplicity(false);
+    let joker_hands = generate_canonical_hands_with_multiplicity(true);
+    println!();
+
+    for (idx, (paytable_id, strat_path)) in to_process.iter().enumerate() {
+        let paytable = match get_paytable(paytable_id) {
+            Some(pt) => pt,
+            None => {
+                println!("  ⚠ Paytable not found: {}", paytable_id);
+                failed_list.push(paytable_id.to_string());
+                continue;
+            }
+        };
+
+        let eta_str = if !paytable_times.is_empty() {
+            let avg = paytable_times.iter().sum::<f64>() / paytable_times.len() as f64;
+            let remaining_count = remaining - idx;
+            let remaining_secs = remaining_count as f64 * avg;
+            format!("ETA: {}", format_duration(remaining_secs as u64))
+        } else {
+            "ETA: calculating...".to_string()
+        };
+
+        println!("┌──────────────────────────────────────────────────────────────────┐");
+        println!("│ [{}/{}] {:<53} │", idx + 1, remaining, paytable.name);
+        println!("│ ID: {:<61} │", paytable_id);
+        println!("│ {:<65} │", eta_str);
+        println!("└──────────────────────────────────────────────────────────────────┘");
+
+        let pt_start = Instant::now();
+
+        // Load strategy file
+        print!("  Loading strategy file... ");
+        io::stdout().flush().unwrap();
+        let holds = match read_vpstrat2_holds(strat_path) {
+            Ok(h) => { println!("{} entries", h.len()); h }
+            Err(e) => {
+                println!("FAILED: {}", e);
+                failed_list.push(paytable_id.to_string());
+                continue;
+            }
+        };
+
+        let canonical = if paytable.is_joker_poker() { &joker_hands } else { &standard_hands };
+        let total_dealt: u64 = canonical.iter().map(|(_, _, m)| m).sum();
+
+        // Compute distribution
+        print!("  Computing distribution ({} canonical hands)... ", canonical.len());
+        io::stdout().flush().unwrap();
+        let calc_start = Instant::now();
+        let (distribution, overall_return) = compute_distribution(&paytable, &holds, canonical);
+        let calc_elapsed = calc_start.elapsed().as_secs_f64();
+        println!("{:.1}s", calc_elapsed);
+
+        // Print results
+        let mut sorted_dist: Vec<(&String, &(f64, f64, usize))> = distribution.iter().collect();
+        sorted_dist.sort_by_key(|(_, (_, _, order))| *order);
+        println!("  ┌─────────────────────────────┬────────────┬──────────────┬──────────────┐");
+        println!("  │ Hand Type                   │ Payout     │ Probability  │ Return       │");
+        println!("  ├─────────────────────────────┼────────────┼──────────────┼──────────────┤");
+        for (name, (prob, payout, _)) in &sorted_dist {
+            let ret = prob * payout;
+            if *payout > 0.0 || **name == "Nothing" {
+                println!("  │ {:<27} │ {:>10.1} │ {:>12.8} │ {:>12.8} │",
+                    name, payout, prob, ret);
+            }
+        }
+        println!("  ├─────────────────────────────┼────────────┼──────────────┼──────────────┤");
+        println!("  │ TOTAL RETURN                │            │              │ {:>11.6}% │",
+            overall_return * 100.0);
+        println!("  └─────────────────────────────┴────────────┴──────────────┴──────────────┘");
+
+        // Upload to Supabase
+        print!("  Uploading to Supabase... ");
+        io::stdout().flush().unwrap();
+        match upload_distribution_to_supabase(
+            &client, &supabase_url, &service_key, paytable_id,
+            &distribution, overall_return, canonical.len(), total_dealt,
+        ) {
+            Ok(()) => println!("✓"),
+            Err(e) => {
+                println!("FAILED: {}", e);
+                failed_list.push(paytable_id.to_string());
+                continue;
+            }
+        }
+
+        let pt_elapsed = pt_start.elapsed().as_secs_f64();
+        paytable_times.push(pt_elapsed);
+        completed_count += 1;
+        println!("  Done in {:.1}s\n", pt_elapsed);
+    }
+
+    let total_elapsed = overall_start.elapsed();
+    println!("╔══════════════════════════════════════════════════════════════════╗");
+    println!("║                   DISTRIBUTION COMPLETE                         ║");
+    println!("╠══════════════════════════════════════════════════════════════════╣");
+    println!("║  Computed: {:<54} ║", completed_count);
+    println!("║  Failed: {:<56} ║", failed_list.len());
+    println!("║  Time: {:<58} ║", format_duration(total_elapsed.as_secs()));
+    if !failed_list.is_empty() {
+        println!("╠══════════════════════════════════════════════════════════════════╣");
+        for f in &failed_list {
+            println!("║  ✗ {:<61} ║", f);
+        }
+    }
+    println!("╚══════════════════════════════════════════════════════════════════╝");
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
@@ -4638,9 +5397,12 @@ fn main() {
         println!("  vp_calculator list                       List all available paytables");
         println!("  vp_calculator test [filter]              Run payout tests");
         println!("  vp_calculator manifest                   Show current manifest from Supabase");
+        println!("  vp_calculator distribution               Compute hand distributions for all paytables");
+        println!("  vp_calculator distribution <id>          Compute for a single paytable");
         println!("\nOptions:");
-        println!("  --no-upload    Skip uploading to Supabase Storage");
-        println!("  --output DIR   Specify output directory (default: ../../supabase-uploads)");
+        println!("  --no-upload      Skip uploading to Supabase Storage");
+        println!("  --output DIR     Specify output directory (default: ../../supabase-uploads)");
+        println!("  --strategies DIR Strategy files directory (default: ./strategies)");
         return;
     }
 
@@ -4696,6 +5458,26 @@ fn main() {
     if args.get(1).map(|s| s.as_str()) == Some("verify-binary") {
         let input_dir = args.get(2).map(|s| s.as_str()).unwrap_or("./strategies");
         verify_binary_files(input_dir);
+        return;
+    }
+
+    // Check for distribution mode
+    if args.get(1).map(|s| s.as_str()) == Some("distribution") {
+        let mut strategies_dir = "./strategies".to_string();
+        let mut single_id: Option<String> = None;
+        let mut i = 2;
+        while i < args.len() {
+            if args[i] == "--strategies" && i + 1 < args.len() {
+                strategies_dir = args[i + 1].clone();
+                i += 2;
+            } else if !args[i].starts_with("--") {
+                single_id = Some(args[i].clone());
+                i += 1;
+            } else {
+                i += 1;
+            }
+        }
+        run_distribution(&strategies_dir, single_id.as_deref());
         return;
     }
 

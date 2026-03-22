@@ -24,28 +24,46 @@ struct TrainingLessonResultsView: View {
                 )
                 .ignoresSafeArea()
 
-                VStack(spacing: 24) {
-                    Spacer()
-
-                    resultIcon
-
-                    scoreDisplay
-
-                    resultMessage
-
-                    Spacer()
-
-                    if isLandscape {
-                        HStack(spacing: 16) {
-                            actionButtons
+                if isLandscape {
+                    // Landscape: side-by-side layout
+                    HStack(spacing: 24) {
+                        // Left: icon + score + message
+                        VStack(spacing: 12) {
+                            Spacer()
+                            compactResultIcon
+                            compactScoreDisplay
+                            resultMessage
+                            Spacer()
                         }
-                    } else {
+                        .frame(maxWidth: .infinity)
+
+                        // Right: buttons centered vertically
+                        VStack(spacing: 12) {
+                            Spacer()
+                            actionButtons
+                            Spacer()
+                        }
+                        .frame(width: 200)
+                    }
+                    .padding()
+                } else {
+                    VStack(spacing: 24) {
+                        Spacer()
+
+                        resultIcon
+
+                        scoreDisplay
+
+                        resultMessage
+
+                        Spacer()
+
                         VStack(spacing: 12) {
                             actionButtons
                         }
                     }
+                    .padding()
                 }
-                .padding()
             }
         }
     }
@@ -60,6 +78,35 @@ struct TrainingLessonResultsView: View {
 
             Image(systemName: isPerfect ? "checkmark.circle.fill" : "arrow.counterclockwise.circle.fill")
                 .font(.system(size: 60))
+                .foregroundColor(isPerfect ? AppTheme.Colors.mintGreen : .orange)
+        }
+    }
+
+    // MARK: - Compact Result Icon (Landscape)
+
+    private var compactResultIcon: some View {
+        ZStack {
+            Circle()
+                .fill(isPerfect ? AppTheme.Colors.mintGreen.opacity(0.2) : Color.orange.opacity(0.2))
+                .frame(width: 64, height: 64)
+
+            Image(systemName: isPerfect ? "checkmark.circle.fill" : "arrow.counterclockwise.circle.fill")
+                .font(.system(size: 36))
+                .foregroundColor(isPerfect ? AppTheme.Colors.mintGreen : .orange)
+        }
+    }
+
+    // MARK: - Compact Score Display (Landscape)
+
+    private var compactScoreDisplay: some View {
+        VStack(spacing: 4) {
+            Text("\(viewModel.correctCount)/\(viewModel.hands.count)")
+                .font(.system(size: 32, weight: .bold))
+                .foregroundColor(.white)
+
+            Text(isPerfect ? "Perfect Score!" : "Keep practicing!")
+                .font(.headline)
+                .fontWeight(.semibold)
                 .foregroundColor(isPerfect ? AppTheme.Colors.mintGreen : .orange)
         }
     }

@@ -11,53 +11,136 @@ struct QuizResultsView: View {
     }
 
     var body: some View {
+        GeometryReader { geometry in
+            let isLandscape = geometry.size.width > geometry.size.height
+
+            if isLandscape {
+                landscapeLayout
+            } else {
+                portraitLayout
+            }
+        }
+        .navigationTitle("Results")
+        .navigationBarBackButtonHidden(true)
+    }
+
+    // MARK: - Portrait Layout
+
+    private var portraitLayout: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // Header
-                VStack(spacing: 8) {
-                    Text("Quiz Complete!")
-                        .font(.title)
-                        .fontWeight(.bold)
-
-                    Text("\(viewModel.correctCount) / \(viewModel.hands.count)")
-                        .font(.system(size: 48, weight: .bold))
-                        .foregroundColor(scoreColor)
-
-                    Text("\(scorePercentage)%")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
-                }
-                .padding()
+                scoreHeader
 
                 Divider()
 
-                // Hand review
+                handReviewSection
+
+                backToMenuButton
+                    .padding()
+            }
+        }
+    }
+
+    // MARK: - Landscape Layout
+
+    private var landscapeLayout: some View {
+        HStack(alignment: .top, spacing: 0) {
+            // Left side: compact score + button (always visible)
+            VStack(spacing: 16) {
+                Spacer()
+
+                compactScoreHeader
+
+                Spacer()
+
+                backToMenuButton
+            }
+            .padding()
+            .frame(width: 220)
+
+            Divider()
+
+            // Right side: scrollable hand review
+            ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Review Hands")
                         .font(.headline)
                         .padding(.horizontal)
+                        .padding(.top, 8)
 
                     ForEach(Array(viewModel.hands.enumerated()), id: \.element.id) { index, quizHand in
                         handReviewRow(index: index, quizHand: quizHand)
                     }
                 }
-
-                // Play again button
-                Button {
-                    viewModel.reset()
-                    navigationPath.removeLast(navigationPath.count)
-                } label: {
-                    Text("Back to Menu")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .buttonStyle(.borderedProminent)
-                .padding()
+                .padding(.bottom, 8)
             }
         }
-        .navigationTitle("Results")
-        .navigationBarBackButtonHidden(true)
+    }
+
+    // MARK: - Score Header (Portrait)
+
+    private var scoreHeader: some View {
+        VStack(spacing: 8) {
+            Text("Quiz Complete!")
+                .font(.title)
+                .fontWeight(.bold)
+
+            Text("\(viewModel.correctCount) / \(viewModel.hands.count)")
+                .font(.system(size: 48, weight: .bold))
+                .foregroundColor(scoreColor)
+
+            Text("\(scorePercentage)%")
+                .font(.title2)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+    }
+
+    // MARK: - Compact Score Header (Landscape)
+
+    private var compactScoreHeader: some View {
+        VStack(spacing: 6) {
+            Text("Quiz Complete!")
+                .font(.headline)
+                .fontWeight(.bold)
+
+            Text("\(viewModel.correctCount) / \(viewModel.hands.count)")
+                .font(.system(size: 36, weight: .bold))
+                .foregroundColor(scoreColor)
+
+            Text("\(scorePercentage)%")
+                .font(.title3)
+                .foregroundColor(.secondary)
+        }
+    }
+
+    // MARK: - Hand Review Section
+
+    private var handReviewSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Review Hands")
+                .font(.headline)
+                .padding(.horizontal)
+
+            ForEach(Array(viewModel.hands.enumerated()), id: \.element.id) { index, quizHand in
+                handReviewRow(index: index, quizHand: quizHand)
+            }
+        }
+    }
+
+    // MARK: - Back to Menu Button
+
+    private var backToMenuButton: some View {
+        Button {
+            viewModel.reset()
+            navigationPath.removeLast(navigationPath.count)
+        } label: {
+            Text("Back to Menu")
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .padding()
+        }
+        .buttonStyle(.borderedProminent)
     }
 
     private var scoreColor: Color {

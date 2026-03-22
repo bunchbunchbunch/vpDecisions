@@ -19,8 +19,7 @@ export default function Hero() {
         />
 
         <h1 className="mb-6 text-4xl font-bold tracking-tight text-text-primary md:text-6xl">
-          Play Smarter.{" "}
-          <span className="text-mint">Win Better.</span>
+          Master Every Hand.
         </h1>
 
         <p className="mb-10 max-w-2xl text-lg text-text-secondary md:text-xl">

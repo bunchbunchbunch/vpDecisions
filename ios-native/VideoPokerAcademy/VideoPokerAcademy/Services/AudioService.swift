@@ -19,12 +19,35 @@ enum SoundEffect: String, CaseIterable {
     }
 }
 
+enum SoundMode: String, CaseIterable {
+    case alwaysOff = "off"
+    case alwaysOn = "on"
+    case respectSilentMode = "silent"
+
+    var label: String {
+        switch self {
+        case .alwaysOff: return "Always Off"
+        case .alwaysOn: return "Always On"
+        case .respectSilentMode: return "Respect Silent Mode"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .alwaysOff: return "Sound effects are disabled"
+        case .alwaysOn: return "Plays even when device is on silent"
+        case .respectSilentMode: return "No sound when device is on silent"
+        }
+    }
+}
+
 class AudioService: ObservableObject {
     static let shared = AudioService()
 
-    @Published var isEnabled: Bool = true {
+    @Published var soundMode: SoundMode = .alwaysOn {
         didSet {
-            UserDefaults.standard.set(isEnabled, forKey: "soundEnabled")
+            UserDefaults.standard.set(soundMode.rawValue, forKey: "soundMode")
+            configureAudioSession()
         }
     }
 
@@ -40,7 +63,14 @@ class AudioService: ObservableObject {
 
     private init() {
         // Load saved settings
-        isEnabled = UserDefaults.standard.object(forKey: "soundEnabled") as? Bool ?? true
+        if let rawMode = UserDefaults.standard.string(forKey: "soundMode"),
+           let mode = SoundMode(rawValue: rawMode) {
+            soundMode = mode
+        } else {
+            // Migrate from old isEnabled setting
+            let wasEnabled = UserDefaults.standard.object(forKey: "soundEnabled") as? Bool ?? true
+            soundMode = wasEnabled ? .alwaysOn : .alwaysOff
+        }
         volume = UserDefaults.standard.object(forKey: "soundVolume") as? Float ?? 0.7
 
         // Configure audio session
@@ -52,12 +82,25 @@ class AudioService: ObservableObject {
 
     private func configureAudioSession() {
         do {
-            try AVAudioSession.sharedInstance().setCategory(
-                .playback,
-                mode: .default,
-                options: [.mixWithOthers]
-            )
-            try AVAudioSession.sharedInstance().setActive(true)
+            switch soundMode {
+            case .alwaysOff:
+                // No need to configure session when sound is off
+                break
+            case .alwaysOn:
+                try AVAudioSession.sharedInstance().setCategory(
+                    .playback,
+                    mode: .default,
+                    options: [.mixWithOthers]
+                )
+                try AVAudioSession.sharedInstance().setActive(true)
+            case .respectSilentMode:
+                try AVAudioSession.sharedInstance().setCategory(
+                    .ambient,
+                    mode: .default,
+                    options: [.mixWithOthers]
+                )
+                try AVAudioSession.sharedInstance().setActive(true)
+            }
         } catch {
             debugLog("Failed to configure audio session: \(error)")
         }
@@ -104,7 +147,7 @@ class AudioService: ObservableObject {
     }
 
     func play(_ sound: SoundEffect) {
-        guard isEnabled else { return }
+        guard soundMode != .alwaysOff else { return }
 
         // Play sound on background queue to avoid blocking UI during rapid gestures
         DispatchQueue.global(qos: .userInteractive).async { [weak self] in

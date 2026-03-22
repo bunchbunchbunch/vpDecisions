@@ -1,5 +1,36 @@
 import Foundation
 
+enum GameFamilyCategory: String, CaseIterable, Identifiable {
+    case standard
+    case bonusPoker
+    case doubleBonus
+    case tripleBonus
+    case aces
+    case jackpot
+    case ddbVariants
+    case wildCards
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .standard: return "Standard"
+        case .bonusPoker: return "Bonus Poker"
+        case .doubleBonus: return "Double Bonus"
+        case .tripleBonus: return "Triple Bonus"
+        case .aces: return "Aces"
+        case .jackpot: return "Jackpot"
+        case .ddbVariants: return "DDB Variants"
+        case .wildCards: return "Wild Cards"
+        }
+    }
+
+    static var displayOrder: [GameFamilyCategory] {
+        [.standard, .bonusPoker, .doubleBonus, .tripleBonus,
+         .aces, .jackpot, .ddbVariants, .wildCards]
+    }
+}
+
 enum GameFamily: String, CaseIterable, Identifiable {
     // Standard Games
     case jacksOrBetter = "jacks-or-better"
@@ -151,5 +182,32 @@ enum GameFamily: String, CaseIterable, Identifiable {
         default:
             return false
         }
+    }
+
+    var category: GameFamilyCategory {
+        switch self {
+        case .jacksOrBetter, .tensOrBetter, .allAmerican:
+            return .standard
+        case .bonusPoker, .bonusPokerDeluxe, .bonusPokerPlus:
+            return .bonusPoker
+        case .doubleBonus, .doubleDoubleBonus, .superDoubleBonus:
+            return .doubleBonus
+        case .tripleBonus, .tripleBonusPlus, .tripleDoubleBonus, .tripleTripleBonus:
+            return .tripleBonus
+        case .acesBonus, .acesAndEights, .acesAndFaces, .bonusAcesFaces,
+             .superAces, .royalAcesBonus, .whiteHotAces:
+            return .aces
+        case .doubleJackpot, .doubleDoubleJackpot:
+            return .jackpot
+        case .ddbAcesFaces, .ddbPlus:
+            return .ddbVariants
+        case .deucesWild, .looseDeuces:
+            return .wildCards
+        }
+    }
+
+    static func families(for category: GameFamilyCategory) -> [GameFamily] {
+        allCases.filter { $0.category == category }
+            .sorted { $0.displayName < $1.displayName }
     }
 }

@@ -67,14 +67,34 @@ struct SettingsView: View {
 
                         // Sound & Haptics
                         settingsSection(title: "Sound & Haptics") {
-                            SettingsToggleRow(
-                                icon: "speaker.wave.2",
-                                title: "Sound Effects",
-                                subtitle: nil,
-                                isOn: $audioService.isEnabled
-                            )
+                            ForEach(SoundMode.allCases, id: \.self) { mode in
+                                Button {
+                                    audioService.soundMode = mode
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: audioService.soundMode == mode ? "checkmark.circle.fill" : "circle")
+                                            .font(.system(size: 18))
+                                            .foregroundColor(audioService.soundMode == mode ? AppTheme.Colors.mintGreen : AppTheme.Colors.textSecondary)
+                                            .frame(width: 24)
 
-                            if audioService.isEnabled {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(mode.label)
+                                                .font(.system(size: 15))
+                                                .foregroundColor(.white)
+
+                                            Text(mode.description)
+                                                .font(.system(size: 12))
+                                                .foregroundColor(AppTheme.Colors.textSecondary)
+                                        }
+
+                                        Spacer()
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                }
+                            }
+
+                            if audioService.soundMode != .alwaysOff {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text("Volume: \(Int(audioService.volume * 100))%")
                                         .font(.system(size: 12))
@@ -336,7 +356,7 @@ struct SettingsView: View {
     }
 
     private func resetToDefaults() {
-        audioService.isEnabled = true
+        audioService.soundMode = .alwaysOn
         audioService.volume = 0.7
         hapticService.isEnabled = true
     }
