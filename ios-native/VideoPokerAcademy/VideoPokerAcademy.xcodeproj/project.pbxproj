@@ -138,6 +138,7 @@
 		F240F12A6D999646A56984D9 /* dealt-winner.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 01336DB80608484C40DD1E4D /* dealt-winner.mp3 */; };
 		F24D496317EFEB0937B8D5F8 /* ReviewQueueService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B88B78742FE59734AB407E71 /* ReviewQueueService.swift */; };
 		F3A9BDAC7AE3F7D7B4A69870 /* TrainingLessonQuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A19E5DCC9A440CE3A8294C78 /* TrainingLessonQuizView.swift */; };
+		A06E84164B964015BA69690567F41CA4 /* TrainingExplanationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E5CD480D7BE4F9E88ABFBBA6224B524 /* TrainingExplanationView.swift */; };
 		F53C79B9350F1FFE402037AF /* OfflineDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A3BB5B4BBCF8B1C40798FE /* OfflineDataView.swift */; };
 		F672F15D4509DB1C8BC19983 /* TrainingLessonResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74FE8DE6C5A1B639F573082B /* TrainingLessonResultsView.swift */; };
 		F78513EF56E8A3BD94982702 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8931B86F921F98C5CC2FCAE6 /* SettingsView.swift */; };
@@ -213,6 +214,7 @@
 		6F344A9B558456C4B1E85527 /* strategy_bonus_poker_8_5.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = strategy_bonus_poker_8_5.json; sourceTree = "<group>"; };
 		718CAE21049D757E7144D7B4 /* HundredPlayTallyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HundredPlayTallyView.swift; sourceTree = "<group>"; };
 		74FE8DE6C5A1B639F573082B /* TrainingLessonResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingLessonResultsView.swift; sourceTree = "<group>"; };
+		0E5CD480D7BE4F9E88ABFBBA6224B524 /* TrainingExplanationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingExplanationView.swift; sourceTree = "<group>"; };
 		7A38C3080B65008342707177 /* TrainingGameSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingGameSelectorView.swift; sourceTree = "<group>"; };
 		7A3AA5EB3F8AEB08D4548731 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		7CFB4AAA5B83232F32F7000C /* PlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayView.swift; sourceTree = "<group>"; };
@@ -323,6 +325,7 @@
 				BE9A2DDBF2E7F2EA01B235A6 /* TrainingLessonListView.swift */,
 				A19E5DCC9A440CE3A8294C78 /* TrainingLessonQuizView.swift */,
 				74FE8DE6C5A1B639F573082B /* TrainingLessonResultsView.swift */,
+				0E5CD480D7BE4F9E88ABFBBA6224B524 /* TrainingExplanationView.swift */,
 				618CFBFC52EBCA262656EDA2 /* Drills */,
 				0B34F8F9BC83D258097EC6D6 /* Lessons */,
 				8D0E60E69282CDFBC027226A /* Review */,
@@ -906,6 +909,7 @@
 				F3A9BDAC7AE3F7D7B4A69870 /* TrainingLessonQuizView.swift in Sources */,
 				AF79A89A9C8558D4569205E7 /* TrainingLessonQuizViewModel.swift in Sources */,
 				F672F15D4509DB1C8BC19983 /* TrainingLessonResultsView.swift in Sources */,
+				A06E84164B964015BA69690567F41CA4 /* TrainingExplanationView.swift in Sources */,
 				6056B217B5591AB68B8C7792 /* TrainingService.swift in Sources */,
 				DBA37BC532D1656848592981 /* UltimateXModels.swift in Sources */,
 				63DC6FD81016C70566283225 /* UltimateXStrategyService.swift in Sources */,

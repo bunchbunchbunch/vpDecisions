@@ -111,6 +111,43 @@ struct Card: Identifiable, Equatable, Hashable {
     static func shuffledDeck() -> [Card] {
         createDeck().shuffled()
     }
+
+    /// Parse a card string like "Ah", "Kc", "Td", "6h" into a Card.
+    /// Format: rank character(s) + single lowercase suit character.
+    static func from(string: String) -> Card? {
+        guard string.count >= 2 else { return nil }
+        let suitChar = String(string.suffix(1))
+        let rankStr = String(string.dropLast())
+
+        let suit: Suit
+        switch suitChar {
+        case "h": suit = .hearts
+        case "d": suit = .diamonds
+        case "c": suit = .clubs
+        case "s": suit = .spades
+        default: return nil
+        }
+
+        let rank: Rank
+        switch rankStr.uppercased() {
+        case "2": rank = .two
+        case "3": rank = .three
+        case "4": rank = .four
+        case "5": rank = .five
+        case "6": rank = .six
+        case "7": rank = .seven
+        case "8": rank = .eight
+        case "9": rank = .nine
+        case "T", "10": rank = .ten
+        case "J": rank = .jack
+        case "Q": rank = .queen
+        case "K": rank = .king
+        case "A": rank = .ace
+        default: return nil
+        }
+
+        return Card(rank: rank, suit: suit)
+    }
 }
 
 // MARK: - Color Extension

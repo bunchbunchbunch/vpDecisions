@@ -102,7 +102,19 @@ struct TrainingLessonQuizView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
-                    if let paytable = PayTable.allPayTables.first(where: { $0.id == viewModel.paytableId }) {
+                    if viewModel.showFeedback, let currentHand = viewModel.currentHand {
+                        TrainingExplanationView(
+                            isCorrect: viewModel.isCorrect,
+                            evLost: viewModel.evLost,
+                            explanation: currentHand.practiceHand.explanation,
+                            optimalHoldCards: currentHand.practiceHand.holdCards,
+                            userHeldCards: viewModel.selectedIndices.sorted().map { "\(currentHand.hand.cards[$0].rank.display)\(currentHand.hand.cards[$0].suit.code.lowercased())" },
+                            allCards: currentHand.hand.cards.map { "\($0.rank.display)\($0.suit.code.lowercased())" },
+                            showFullHand: false
+                        )
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                    } else if let paytable = PayTable.allPayTables.first(where: { $0.id == viewModel.paytableId }) {
                         CompactPayTableView(paytable: paytable)
                             .padding(.horizontal)
                             .padding(.bottom, 8)
@@ -118,9 +130,6 @@ struct TrainingLessonQuizView: View {
                                 .padding(.top, 8)
                         }
 
-                        explanationCard(for: currentHand)
-                            .padding(.horizontal)
-                            .padding(.top, 8)
                     }
                 }
             }
@@ -155,7 +164,6 @@ struct TrainingLessonQuizView: View {
                             if currentHand.strategyResult != nil {
                                 evOptionsTable(for: currentHand)
                             }
-                            explanationCard(for: currentHand)
                         }
                     }
                 } else {
@@ -171,7 +179,24 @@ struct TrainingLessonQuizView: View {
             VStack(spacing: 4) {
                 Spacer(minLength: 0)
 
-                landscapeCardsArea(width: rightWidth - 8, height: geometry.size.height * 0.60)
+                ZStack {
+                    landscapeCardsArea(width: rightWidth - 8, height: geometry.size.height * 0.60)
+
+                    if viewModel.showFeedback, let currentHand = viewModel.currentHand {
+                        TrainingExplanationView(
+                            isCorrect: viewModel.isCorrect,
+                            evLost: viewModel.evLost,
+                            explanation: currentHand.practiceHand.explanation,
+                            optimalHoldCards: currentHand.practiceHand.holdCards,
+                            userHeldCards: viewModel.selectedIndices.sorted().map { "\(currentHand.hand.cards[$0].rank.display)\(currentHand.hand.cards[$0].suit.code.lowercased())" },
+                            allCards: currentHand.hand.cards.map { "\($0.rank.display)\($0.suit.code.lowercased())" },
+                            showFullHand: true
+                        )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+                .frame(width: rightWidth - 8, height: geometry.size.height * 0.60)
 
                 actionButton
                     .padding(.horizontal, 4)
@@ -311,10 +336,7 @@ struct TrainingLessonQuizView: View {
 
                 Spacer()
 
-                if viewModel.showFeedback, let currentHand = viewModel.currentHand {
-                    feedbackOverlay(for: currentHand)
-                        .padding(.bottom, 4)
-                } else if viewModel.showSwipeTip {
+                if viewModel.showSwipeTip && !viewModel.showFeedback {
                     swipeTipOverlay
                         .padding(.bottom, 4)
                         .transition(.opacity)
@@ -397,15 +419,6 @@ struct TrainingLessonQuizView: View {
                 Spacer()
             }
 
-            // Feedback overlay
-            VStack {
-                Spacer()
-                if viewModel.showFeedback, let currentHand = viewModel.currentHand {
-                    feedbackOverlay(for: currentHand)
-                        .padding(.bottom, 8)
-                }
-            }
-
             // Swipe tip
             VStack {
                 Spacer()
@@ -449,28 +462,6 @@ struct TrainingLessonQuizView: View {
             .padding(.horizontal)
         }
         .padding(.top)
-    }
-
-    // MARK: - Feedback Overlay
-
-    private func feedbackOverlay(for quizHand: TrainingQuizHand) -> some View {
-        VStack(spacing: 4) {
-            Text(viewModel.isCorrect ? "Correct!" : "Incorrect")
-                .font(.headline)
-                .foregroundColor(.white)
-
-            if !viewModel.isCorrect && viewModel.evLost > 0 {
-                Text("EV Lost: \(String(format: "%.3f", viewModel.evLost))")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.9))
-            }
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(viewModel.isCorrect ? Color.green.opacity(0.9) : Color(hex: "FFA726").opacity(0.9))
-        )
     }
 
     // MARK: - Swipe Tip Overlay
@@ -575,27 +566,6 @@ struct TrainingLessonQuizView: View {
                 }
             }
             .padding(.vertical, 4)
-        )
-    }
-
-    // MARK: - Explanation Card
-
-    private func explanationCard(for quizHand: TrainingQuizHand) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Label("Explanation", systemImage: "lightbulb.fill")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(.yellow)
-
-            Text(quizHand.practiceHand.explanation)
-                .font(.system(size: 13))
-                .foregroundColor(.white.opacity(0.9))
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(hex: "1a1a3a"))
         )
     }
 

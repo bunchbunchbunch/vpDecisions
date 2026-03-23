@@ -54,9 +54,9 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 | # | Hand | Correct Hold | Lesson |
 |---|------|-------------|--------|
-| 1 | Qh Qd 7s 4c 2d | Qh Qd | High pair — it already pays, hold it |
-| 2 | 6h 6d As Kc 3s | 6h 6d | Low pair is better than unsuited AK — this surprises beginners |
-| 3 | 9s 9d Jh Tc 3c | 9s 9d | Low pair — don't be tempted by J or JT |
+| 1 | Qh Qd 7s 4c 2d | Qh Qd | High pair — Keep the pair, get rid of the rest to draw for better hands|
+| 2 | 6h 6d As Kc 3s | 6h 6d | Low pair - better than unsuited AK|
+| 3 | 9s 9d Jh Tc 3c | 9s 9d | Low pair — don't be tempted by J |
 | 4 | Ks Kd 7h 3h 2h | Ks Kd | High pair is better than 3 to a flush |
 | 5 | 4c 4d Ah Qh 9c | 4c 4d | Low pair is better than AQ unsuited |
 
@@ -90,8 +90,8 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 6 | Th 8d 6c 3s 2h | Draw All | A Ten is NOT a high card — pairing it won't pay, discard everything |
 | 7 | Ah 9d 6d 3d 2s | Ah | Keep the Ace — don't chase the 3-card flush in diamonds |
 | 8 | Qh 9c 8d 6s 5h | Qh | Lone Queen beats the inside straight (9-8-_-6-5) |
-| 9 | Js 7h 5c 4d 2s | Js | Lone Jack — it looks like nothing but the Jack gives you a shot |
-| 10 | Kd 8c 6h 4s 2d | Kd | Lone King — pure garbage around it, hold the King and draw 4 |
+| 9 | Js 7h 5c 4d 2s | Js | Lone Jack |
+| 10 | Kd 8c 6h 4s 2d | Kd | Lone King |
 
 ## Lesson 4: Garbage Hands
 *John Reviewed*
@@ -143,13 +143,13 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | # | Hand | Correct Hold | Lesson |
 |---|------|-------------|--------|
 | 1 | Qs Jd 8c 5h 3s | Qs Jd | QJ unsuited — the best 2-card unsuited combo |
-| 2 | As Qd 8c 5h 3s | As Qd | AQ unsuited — weaker than QJ, but still hold both |
+| 2 | As Qd 8c 5h 3s | As Qd | AQ unsuited  |
 | 3 | Ah Qd Jc 6s 3h | Qd Jc | AQJ unsuited — drop the A, keep QJ |
 | 4 | Ac Kd Qs 7c 3h | Kd Qs | AKQ unsuited — drop the A, keep KQ |
 | 5 | Ah Kd Jc 6s 2h | Kd Jc | AKJ unsuited — drop the A, keep KJ |
 | 6 | Ks Jd 8c 5h 2s | Ks Jd | KJ unsuited — solid 2-card hold |
 | 7 | As Kd 8c 5h 3s | As Kd | AK unsuited |
-| 8 | Ks Qd 9c 6h 2s | Ks Qd | KQ unsuited — weaker than QJ but stronger than AQ |
+| 8 | Ks Qd 9c 6h 2s | Ks Qd | KQ unsuited |
 | 9 | Kh Qd Js 7c 2h | Qd Js | Keep KQJ - This is the one time you keep 3 high cards |
 
 ---
@@ -177,12 +177,12 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 2 | Qs Jd 8c 5h 3d | Qs Jd | Unsuited QJ — still the best unsuited 2-card combo |
 | 3 | As Kd 8c 5h 3s | As Kd | AK unsuited |
 | 4 | Ah Qd Jc 6s 3h | Qd Jc | 3 unsuited high cards — drop the A, keep QJ |
-| 5 | Kh Jc Qc 5d 2s | Qc Jc | Suited QJ — the suit makes this much stronger |
+| 5 | Kh Jc Qc 5d 2s | Qc Jc | Suited QJ — drop the K |
 | 6 | 8s Jd Qc Ad 3d | Ad Jd | suited AJ — better than QJ offsuit |
 | 7 | Kd Qh Jd 6c 2h | Kd Qh Jd | Suited KJ — better than QJ offsuit |
 | 8 | Kd Qh Jc 6c 2h | Kd Jd | Unsuited KQJ — the only time you hold three high cards |
 | 9 | Ah Kd Qs 7c 3d | Kd Qs | 3 high cards — drop the Ace, keep KQ
-| 10 | 8s Jc Kd Ad 3d | Ad Kd | Suited AK — better than KJ offsuit ||
+| 10 | 8s Jc Kd Ad 3d | Ad Kd | Suited AK — better than KJ offsuit |
 
 
 ---
@@ -212,16 +212,16 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 | # | Hand | Correct Hold | Lesson |
 |---|------|-------------|--------|
-| 1 | Th Jh 8c 5d 2s | Th Jh | TJ suited — best of the T+HC group, with 4 shared straights |
-| 2 | Th Qh 9c 6d 3s | Th Qh | TQ suited — keep both for Royal, flush, and straight potential |
-| 3 | Th Kh 9c 7d 4s | Th Kh | TK suited — weakest of the three but still better than a lone King |
-| 4 | Th Ah 9c 7d 3s | Ah | AT suited is NOT a hold — just keep the Ace. A+T share only one straight |
-| 5 | Th Jh Kd 6c 3s | Th Jh | TJ suited beats KJ unsuited — the suit overcomes the extra high card |
-| 6 | Th Qh Ac 6d 5s | Th Qh | TQ suited beats AQ unsuited — the suit makes TQ stronger |
-| 7 | Th Jh Qc 6d 3s | Qc Jh | QJ unsuited beats TJ suited — QJ is the best unsuited 2-card combo |
-| 8 | Th Jh 5d 5c 3s | 5d 5c | Low pair of 5s beats TJ suited — a pair always wins here |
-| 9 | Th Kh Ad 3c 2s | Ad Kh | AK unsuited beats TK suited — two high cards outweigh the suit |
-| 10 | Th Qh Ks 3d 2c | Ks Qh | KQ unsuited beats TQ suited — K adds more value than the suited Ten |
+| 1 | Th Jh 8c 5d 2s | Th Jh | TJ suited — best of the T+HC group |
+| 2 | Th Qh 9c 6d 3s | Th Qh | TQ suited |
+| 3 | Th Kh 9c 7d 4s | Th Kh | TK suited - better than a lone King |
+| 4 | Th Ah 9c 7d 3s | Ah | AT suited is NOT a hold — just keep the Ace |
+| 5 | Th Jh Kd 6c 3s | Th Jh | TJ suited beats KJ unsuited |
+| 6 | Th Qh Ac 6d 5s | Th Qh | TQ suited beats AQ unsuited |
+| 7 | Th Jh Qc 6d 3s | Qc Jh | QJ unsuited beats TJ suited |
+| 8 | Th Jh 5d 5c 3s | 5d 5c | Low pair of 5s beats TJ suited |
+| 9 | Th Kh Ad 3c 2s | Ad Kh | AK unsuited beats TK suited |
+| 10 | Th Qh Ks 3d 2c | Ks Qh | KQ unsuited beats TQ suited |
 
 ---
 
@@ -246,9 +246,9 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | # | Hand | Correct Hold | Lesson |
 |---|------|-------------|--------|
 | 1 | Jh Ts 9d 8c 3h | Jh Ts 9d 8c | Open-ended with a high card — good draw |
-| 2 | 9h 8d 7c 6s Ks | 9h 8d 7c 6s | Open-ended — the K isn't helping |
-| 3 | 5h 5d 8s 6c 7d | 5h 5d | Low pair is better than open-ended with no high cards |
-| 4 | Jh Td Js 8c 9h | Jh Js | Keep the high pair |
+| 2 | 9h 8d 7c 6s Ks | 9h 8d 7c 6s | Open-ended — better than the lone K |
+| 3 | 5h 5d 8s 6c 7d | 5h 5d | Low pair is better than open-ended |
+| 4 | Jh Td Js 8c 9h | Jh Js | High pair is better than open-ended |
 | 5 | 8h 7d 5c 4s Kd | Kd | Inside draw (8-7-_-5-4) loses to a single high card |
 | 6 | 6s 6d Jh Tc 9d | 6s 6d | Low pair is better than an inside straight draw |
 | 7 | Th 9d 8c 6s 2d | Draw All | Never keep an inside straight draw |
@@ -273,9 +273,9 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 | # | Hand | Correct Hold | Lesson |
 |---|------|-------------|--------|
-| 1 | As Kd Qh Tc 6s | As Kd Qh Tc | AKQT inside straight — hold all 4 (needs J) |
-| 2 | As Kd Jh Tc 5s | As Kd Jh Tc | AKJT inside straight — hold all 4 (needs Q) |
-| 3 | Ah Qd Jc Ts 6h | Ah Qd Jc Ts | AQJT inside straight — hold all 4 (needs K) |
+| 1 | As Kd Qh Tc 6s | As Kd Qh Tc | AKQT inside straight  |
+| 2 | As Kd Jh Tc 5s | As Kd Jh Tc | AKJT inside straight  |
+| 3 | Ah Qd Jc Ts 6h | Ah Qd Jc Ts | AQJT inside straight  |
 | 4 | As Kd Qs Tc 6s | As Qs | AQ suited is better than AKQT |
 | 5 | As Kh Jh Tc 5s | As Kh Jh Tc | KJ suites is better than AKJT |
 | 6 | Ah Qd Jc Th 6c | Ah Qd Jc Th | AQJT is better than JT suited |
@@ -351,7 +351,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | 1 | Ah 9h 6h 3h Kc | Ah 9h 6h 3h | 4 to a flush — discard the off-suit King |
 | 2 | 8h 5h 3h 2h 8d | 8h 5h 3h 2h | 4 to a flush is better the pair of 8s |
 | 3 | Qh 9h 7h 4h Ks | Qh 9h 7h 4h | 4 to a flush is better than the off-suit KQ |
-| 4 | Kh Th 6h 2h Qs | Kh Th 6h 2h | 4 flush is better than a single high card (Q) |
+| 4 | Kh Th 6h 2h Qs | Kh Th 6h 2h | 4 flush - discard the off-suit Queen |
 | 5 | Jh 8h 4h 2h 5c | Jh 8h 4h 2h | 4 to a flush — even though J is high, the flush draw is much better |
 | 6 | Qh Qd 8h 5h 3h | Qg Qd | High pair Queens is better than 4 to a flush |
 | 7 | Ts 6s 4s 2s 6d | Ts 7s 4s 2s | 4 to a flush is better than a low pair of 6s |
@@ -379,11 +379,11 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 | # | Hand | Correct Hold | Lesson |
 |---|------|-------------|--------|
-| 1 | Ah Kh Qh 7d 3c | Ah Kh Qh | 3 to a Royal — much better than 2 high cards |
+| 1 | Ah Kh Qh 7d 3c | Ah Kh Qh | 3 to a Royal |
 | 2 | Kh Kd Kc Qh Jh | Kh Kd Kc | Trips are better than 3 to a Royal — keep the three Kings |
-| 3 | Ah Kh Th 9d 4c | Ah Kh Th | 3 to a Royal — discard the garbage |
-| 4 | Qh Jh Th 8c 5d | Qh Jh Th | 3 to a Royal — straightforward |
-| 5 | Ks Qh Js Ts 4h | Ks Js Ts | 3 to a Royal in spades — don't keep the open-ended straight draw |
+| 3 | Ah Kh Th 9d 4c | Ah Kh Th | 3 to a Royal  |
+| 4 | Qh Jh Th 8c 5d | Qh Jh Th | 3 to a Royal  |
+| 5 | Ks Qh Js Ts 4h | Ks Js Ts | 3 to a Royal — don't keep the open-ended straight draw |
 | 6 | Ah Kh Th 9h 3c | Ah Kh Th | 3 to a Royal is better than 4 to a flush — yes, drop the 9h |
 | 7 | Jh Tc Qh Th 6d | Qh Jh Th | Break the pair of Tens for 3 to a Royal |
 | 8 | Kh Qh Th 8s 8d | Kh Qh Th | 3 to a Royal is better than a low pair of 8s |
@@ -410,7 +410,7 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 | # | Hand | Correct Hold | Lesson |
 |---|------|-------------|--------|
 | 1 | 3h 5h 7h 9d 2s | 3h 5h 7h | Type 3 with pure garbage — barely better than discarding all 5 |
-| 2 | 4h 6h 8h 9d 2s | 4h 6h 8h | Type 3 — hold the SF draw over nothing |
+| 2 | 4h 6h 8h 9d 2s | 4h 6h 8h | Type 3 with pure garbage — barely better than discarding all 5 |
 | 3 | 3h 5h 7h 8d Jd | Jd | Lone Jack beats type 3 — any high card is better |
 | 4 | 4h 6h 8h Ad 3s | Ad | Lone Ace beats type 3 |
 
@@ -434,12 +434,12 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 | # | Hand | Correct Hold | Lesson |
 |---|------|-------------|--------|
-| 1 | 6h 7h 9h 4d 2s | 6h 7h 9h | Type 2: 1 gap, 0 high cards — basic hold |
-| 2 | 7h 9h Jh 5d 2s | 7h 9h Jh | Type 2: 2 gaps, 1 high card |
-| 3 | 6h 7h 9h Jd Qc | 6h 7h 9h | Type 2 beats unsuited JQ — the SF draw wins |
-| 4 | 6h 7h 9h Ts Js | 6h 7h 9h | Type 2 beats suited TJ |
-| 5 | 5s 6s 8s Ah Kh | Ah Kh | Suited KQ beats type 2 — the high cards outweigh the SF draw |
-| 6 | 7h 9h Jh Ks Qd | 7h 9h Jh | Type 2 beats KQ unsuited and KQJ9 straight draw |
+| 1 | 6h 7h 9h 4d 2s | 6h 7h 9h | Type 2 SF: 1 gap, 0 high cards |
+| 2 | 7h 9h Jh 5d 2s | 7h 9h Jh | Type 2 SF: 2 gaps, 1 high card |
+| 3 | 6h 7h 9h Jd Qc | 6h 7h 9h | Type 2 SF beats unsuited JQ |
+| 4 | 6h 7h 9h Ts Js | 6h 7h 9h | Type 2 SF beats suited TJ |
+| 5 | 5s 6s 8s Ah Kh | Ah Kh | Suited KQ beats type 2 SF |
+| 6 | 7h 9h Jh Ks Qd | 7h 9h Jh | Type 2 SF beats KQ unsuited and KQJ9 straight draw |
 
 ---
 
@@ -464,15 +464,15 @@ A structured curriculum to teach optimal 9/6 Jacks or Better video poker strateg
 
 | # | Hand | Correct Hold | Lesson |
 |---|------|-------------|--------|
-| 1 | 7h 8h 9h 4d 2s | 7h 8h 9h | Consecutive suited — basic 3-to-SF type 1 |
-| 2 | 9h Jh Qh 5d 2s | 9h Jh Qh | Strongest type 1 — 1 gap, 2 high cards |
-| 3 | 8h 9h Jh 4d 2s | 8h 9h Jh | 1 gap, 1 high — still type 1 |
-| 4 | 5h 6h 7h 4d 2s | 5h 6h 7h 4d | Open-ended Straight Draw is better than Type 1 Straight Flush Draw |
-| 5 | 8h Jh Qh 5d 2s | 8h Jh Qh | 3-to-SF type 1 beats just holding QJ suited (the 8 adds SF potential) |
-| 6 | 7h 8h 9h Qs Ks | 7h 8h 9h | Type 1 beats suited KQ — surprising but verified (EV 0.630 vs 0.589) |
-| 7 | 7h 8h 9h Qs Js | 7h 8h 9h | Type 1 beats suited QJ — the SF draw is much stronger |
-| 8 | 5h 5d 7s 8s 9s | 5h 5d | Low pair still beats type 1 — pairs are bread and butter |
-| 9 | 9h Th Jh Qd 3s | 9h Th Jh Qd | 4-to-outside straight with one high card beats the 3-to-SF even with one high card — add the off-suit Q |
-| 10 | 7h 8h 9h 3h Kd | 7h 8h 9h 3h | 4-to-flush beats 3-to-SF — take the extra flush card |
+| 1 | 7h 8h 9h 4d 2s | 7h 8h 9h | 3SF Type 1: 0 gap, 0 high cards |
+| 2 | 9h Jh Qh 5d 2s | 9h Jh Qh | 3SF Type 1: 1 gap, 2 high cards |
+| 3 | 8h 9h Jh 4d 2s | 8h 9h Jh | 3SF Type 1: 1 gap, 1 high cards |
+| 4 | 5h 6h 7h 4d 2s | 5h 6h 7h 4d | Open-ended Straight Draw is better than 3SF Type 1 |
+| 5 | 8h Jh Qh 5d 2s | 8h Jh Qh | 3SF Type 1 beats QJ suited |
+| 6 | 7h 8h 9h Qs Ks | 7h 8h 9h | 3SF Type 1 beats suited KQ |
+| 7 | 7h 8h 9h Qs Js | 7h 8h 9h | 3SF Type 1 beats suited QJ |
+| 8 | 5h 5d 7s 8s 9s | 5h 5d | Low pair beats SF Type 1 |
+| 9 | 9h Th Jh Qd 3s | 9h Th Jh Qd | 4-to-outside straight with one high card beats the 3SF Type 1 |
+| 10 | 7h 8h 9h 3h Kd | 7h 8h 9h 3h | 4-to-flush beats 3SF Type 1 — take the extra flush card |
 
 ---
