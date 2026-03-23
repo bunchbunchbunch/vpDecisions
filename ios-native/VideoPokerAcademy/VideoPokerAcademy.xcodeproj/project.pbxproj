@@ -10,6 +10,13 @@
 		02A44A06CB436A24C4B9837D /* strategy_double_double_bonus_9_6.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 154D712E326A00177B4FE711 /* strategy_double_double_bonus_9_6.json.gz */; };
 		0601943D840F0D365BD152E4 /* CourseCompletionCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2A90D1BCFCE54EE96B031B5 /* CourseCompletionCelebrationView.swift */; };
 		0D34973C733A0689B3E31F0A /* RatingPromptServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB91F54C372566A26093CE2C /* RatingPromptServiceTests.swift */; };
+		B3C323697BBD4D0FBDB1E011 /* AudioServiceSuspendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB56AD59708249188E00C130 /* AudioServiceSuspendTests.swift */; };
+		AA11BB22CC33DD44EE55FF66 /* VoiceServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11AA22BB33CC44DD55EE66FF /* VoiceServiceTests.swift */; };
+		CA51N0M0D3V1EWM0D3L0001A /* CasinoModeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA51N0M0D3V1EWM0D3L0000A /* CasinoModeViewModel.swift */; };
+		A1B2C3D4E5F6A1B2C3D4E5F6 /* StartCasinoListeningIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A1B2C3D4E5F7 /* StartCasinoListeningIntent.swift */; };
+		CA519E7UP31EWS37UP0001AA /* CasinoSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA519E7UP31EWS37UP0000AA /* CasinoSetupView.swift */; };
+		CA51M0D3V1EWC4S1N0V1EW01 /* CasinoModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA51M0D3V1EWC4S1N0V1EW00 /* CasinoModeView.swift */; };
+		CA51N0M0D3V1EWM0D3L0002A /* CasinoModeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA51N0M0D3V1EWM0D3L0003A /* CasinoModeViewModelTests.swift */; };
 		0D3FC3BF3A65F389FBEA8AC2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD43B3D7AD070484BDDAE526 /* Assets.xcassets */; };
 		0F2840AA831DD4E1984AB0D6 /* QuizResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A1A7FE15ED6DE1CCBACDFB /* QuizResultsView.swift */; };
 		100D88B5114F70FF4F74B865 /* SimulationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D29DC4D6A6DF4CD2CBF0E6 /* SimulationModels.swift */; };
@@ -43,6 +50,13 @@
 		4E482B2E9DFF76ECD760F8C6 /* QuizPlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4674AAE04F2C550DE4674B49 /* QuizPlayView.swift */; };
 		4FDF9E178DCF26881649C951 /* PlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CFB4AAA5B83232F32F7000C /* PlayView.swift */; };
 		50262034A1A179BB9FB3D2EC /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFBF0BB36C9BC8ED2080DD3 /* AudioService.swift */; };
+		480E824AB4CD46A5A67BCF30 /* VoiceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C47F833F92B4D23A769D2C3 /* VoiceService.swift */; };
+		D4E5F6A1B2C3D4E5F6A1B2C3 /* SpeechSynthesisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A1B2C3D4E5F6A1B2 /* SpeechSynthesisService.swift */; };
+		F6A1B2C3D4E5F6A1B2C3D4E5 /* SpeechSynthesisServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F6A1B2C3D4E5F6A1B2C3D4 /* SpeechSynthesisServiceTests.swift */; };
+		173DF0D5FEBC4F3F88D7B0FD /* CardParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 269B920BCECE4B0FA973967C /* CardParser.swift */; };
+		A7ED2107F8154B0898CC669B /* CardParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2CD3E94D23342A28E291A29 /* CardParserTests.swift */; };
+		1FB9037C3BB1489D836992AA /* ResponseFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F7BBC4E50345C595F9B8D1 /* ResponseFormatter.swift */; };
+		82C2B0DBE7FE4578BA93DECF /* ResponseFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F9913FB9334FF7B1D4E974 /* ResponseFormatterTests.swift */; };
 		51CBCC0F8C23CFBD0D76D5D4 /* coin-payout.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 98F5B531F0884E267C583CED /* coin-payout.mp3 */; };
 		532ED367C50F0D33B428BCBC /* TrainingLesson.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF8D78D7C6B3C9DD183D0C33 /* TrainingLesson.swift */; };
 		57355753AD255936E1F55327 /* PlayStartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B63F67879FD54C6B02456 /* PlayStartView.swift */; };
@@ -210,6 +224,13 @@
 		8A115FF11C8E1366E215658C /* strategy_triple_double_bonus_9_6.json.gz */ = {isa = PBXFileReference; lastKnownFileType = archive.gzip; path = strategy_triple_double_bonus_9_6.json.gz; sourceTree = "<group>"; };
 		8A9D90A4E1557A1120CA33F2 /* Drill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drill.swift; sourceTree = "<group>"; };
 		8AFBF0BB36C9BC8ED2080DD3 /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
+		3C47F833F92B4D23A769D2C3 /* VoiceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceService.swift; sourceTree = "<group>"; };
+		C3D4E5F6A1B2C3D4E5F6A1B2 /* SpeechSynthesisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechSynthesisService.swift; sourceTree = "<group>"; };
+		E5F6A1B2C3D4E5F6A1B2C3D4 /* SpeechSynthesisServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechSynthesisServiceTests.swift; sourceTree = "<group>"; };
+		269B920BCECE4B0FA973967C /* CardParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardParser.swift; sourceTree = "<group>"; };
+		C2CD3E94D23342A28E291A29 /* CardParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardParserTests.swift; sourceTree = "<group>"; };
+		A7F7BBC4E50345C595F9B8D1 /* ResponseFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseFormatter.swift; sourceTree = "<group>"; };
+		A1F9913FB9334FF7B1D4E974 /* ResponseFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseFormatterTests.swift; sourceTree = "<group>"; };
 		91345DF5464943346E6931C8 /* LessonQuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonQuizView.swift; sourceTree = "<group>"; };
 		9185EC480DFA6023916C3B3F /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		95A3BB5B4BBCF8B1C40798FE /* OfflineDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineDataView.swift; sourceTree = "<group>"; };
@@ -265,6 +286,13 @@
 		F8A94B38A9479BC5141B8392 /* LessonViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonViewModel.swift; sourceTree = "<group>"; };
 		F99E099CD1ACA3AA44E16426 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		FB0437103D05DE42B7E09A4F /* TourSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourSettingsView.swift; sourceTree = "<group>"; };
+		CB56AD59708249188E00C130 /* AudioServiceSuspendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioServiceSuspendTests.swift; sourceTree = "<group>"; };
+		11AA22BB33CC44DD55EE66FF /* VoiceServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceServiceTests.swift; sourceTree = "<group>"; };
+		CA51N0M0D3V1EWM0D3L0000A /* CasinoModeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CasinoModeViewModel.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A1B2C3D4E5F7 /* StartCasinoListeningIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartCasinoListeningIntent.swift; sourceTree = "<group>"; };
+		CA519E7UP31EWS37UP0000AA /* CasinoSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CasinoSetupView.swift; sourceTree = "<group>"; };
+		CA51M0D3V1EWC4S1N0V1EW00 /* CasinoModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CasinoModeView.swift; sourceTree = "<group>"; };
+		CA51N0M0D3V1EWM0D3L0003A /* CasinoModeViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CasinoModeViewModelTests.swift; sourceTree = "<group>"; };
 		FB91F54C372566A26093CE2C /* RatingPromptServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingPromptServiceTests.swift; sourceTree = "<group>"; };
 		FCF15F62A67B4B4619550553 /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
 		FD43B3D7AD070484BDDAE526 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -393,11 +421,29 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
+		CA519E7UP31EWGRP0000AA /* Casino */ = {
+			isa = PBXGroup;
+			children = (
+				CA519E7UP31EWS37UP0000AA /* CasinoSetupView.swift */,
+				CA51M0D3V1EWC4S1N0V1EW00 /* CasinoModeView.swift */,
+			);
+			path = Casino;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F6A1B2C3D4E500 /* AppIntents */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F6A1B2C3D4E5F7 /* StartCasinoListeningIntent.swift */,
+			);
+			path = AppIntents;
+			sourceTree = "<group>";
+		};
 		4E27A10EAFAC55ACD0647876 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				ED1CA1E4BE4863E264CBD819 /* Analyzer */,
 				09A8E21030412253693F96C6 /* Auth */,
+				CA519E7UP31EWGRP0000AA /* Casino */,
 				491B950A71CCE1A486C54D3F /* Components */,
 				76CE35A070A852A7BF6BC5D8 /* Home */,
 				3E0CC43D4B2B0193F402791C /* Mastery */,
@@ -436,6 +482,7 @@
 				A5A27473CDF37F098DA2C385 /* Info.plist */,
 				06E721E0AAC463C15947DBD8 /* VideoPokerAcademy.entitlements */,
 				FA28BF981C8EEB0722AB9020 /* App */,
+				A1B2C3D4E5F6A1B2C3D4E500 /* AppIntents */,
 				06878DD427920AEFDA300085 /* Models */,
 				AAD2F10E7ABD87773383B496 /* Resources */,
 				D77C876A55B35FD7472E7B06 /* Services */,
@@ -521,6 +568,7 @@
 			isa = PBXGroup;
 			children = (
 				6527D7465E271EF46688C0EE /* AnalyzerViewModel.swift */,
+				CA51N0M0D3V1EWM0D3L0000A /* CasinoModeViewModel.swift */,
 				22FC760A3A1295ED9600D8EC /* AuthViewModel.swift */,
 				B9126DA82F16427460806971 /* DrillViewModel.swift */,
 				F8A94B38A9479BC5141B8392 /* LessonViewModel.swift */,
@@ -571,6 +619,10 @@
 			isa = PBXGroup;
 			children = (
 				8AFBF0BB36C9BC8ED2080DD3 /* AudioService.swift */,
+				3C47F833F92B4D23A769D2C3 /* VoiceService.swift */,
+				269B920BCECE4B0FA973967C /* CardParser.swift */,
+				A7F7BBC4E50345C595F9B8D1 /* ResponseFormatter.swift */,
+				C3D4E5F6A1B2C3D4E5F6A1B2 /* SpeechSynthesisService.swift */,
 				DE6F790FB44A92186B80B397 /* BinaryStrategyStoreV2.swift */,
 				DF2171D8966579AC447912EA /* CertificatePinning.swift */,
 				B6DCBF01A6962E993279B541 /* DebugLog.swift */,
@@ -612,7 +664,13 @@
 		FEE264B8BDA246AB1AEAA581 /* VideoPokerAcademyTests */ = {
 			isa = PBXGroup;
 			children = (
+				CB56AD59708249188E00C130 /* AudioServiceSuspendTests.swift */,
+				CA51N0M0D3V1EWM0D3L0003A /* CasinoModeViewModelTests.swift */,
+				C2CD3E94D23342A28E291A29 /* CardParserTests.swift */,
+				A1F9913FB9334FF7B1D4E974 /* ResponseFormatterTests.swift */,
 				FB91F54C372566A26093CE2C /* RatingPromptServiceTests.swift */,
+				E5F6A1B2C3D4E5F6A1B2C3D4 /* SpeechSynthesisServiceTests.swift */,
+				11AA22BB33CC44DD55EE66FF /* VoiceServiceTests.swift */,
 			);
 			path = VideoPokerAcademyTests;
 			sourceTree = "<group>";
@@ -735,7 +793,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B3C323697BBD4D0FBDB1E011 /* AudioServiceSuspendTests.swift in Sources */,
+				CA51N0M0D3V1EWM0D3L0002A /* CasinoModeViewModelTests.swift in Sources */,
+				A7ED2107F8154B0898CC669B /* CardParserTests.swift in Sources */,
+				82C2B0DBE7FE4578BA93DECF /* ResponseFormatterTests.swift in Sources */,
 				0D34973C733A0689B3E31F0A /* RatingPromptServiceTests.swift in Sources */,
+				F6A1B2C3D4E5F6A1B2C3D4E5 /* SpeechSynthesisServiceTests.swift in Sources */,
+				AA11BB22CC33DD44EE55FF66 /* VoiceServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -744,8 +808,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				E54C28B923E0BDEF841949ED /* AnalyzerViewModel.swift in Sources */,
+				CA51N0M0D3V1EWM0D3L0001A /* CasinoModeViewModel.swift in Sources */,
+				CA519E7UP31EWS37UP0001AA /* CasinoSetupView.swift in Sources */,
+				CA51M0D3V1EWC4S1N0V1EW01 /* CasinoModeView.swift in Sources */,
+				A1B2C3D4E5F6A1B2C3D4E5F6 /* StartCasinoListeningIntent.swift in Sources */,
 				A749936E510BC6E6D3FDE7B8 /* AppTheme.swift in Sources */,
 				50262034A1A179BB9FB3D2EC /* AudioService.swift in Sources */,
+				480E824AB4CD46A5A67BCF30 /* VoiceService.swift in Sources */,
+				D4E5F6A1B2C3D4E5F6A1B2C3 /* SpeechSynthesisService.swift in Sources */,
+				173DF0D5FEBC4F3F88D7B0FD /* CardParser.swift in Sources */,
+				1FB9037C3BB1489D836992AA /* ResponseFormatter.swift in Sources */,
 				3F4582B91F313CAB57D27805 /* AuthView.swift in Sources */,
 				8C16BD688D36AFB8B62262AD /* AuthViewModel.swift in Sources */,
 				3B428D7C617D2DD10638AB1C /* BinaryStrategyStoreV2.swift in Sources */,
@@ -861,14 +933,14 @@
 				CODE_SIGN_ENTITLEMENTS = VideoPokerAcademy/VideoPokerAcademy.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = LDPWY39U2R;
 				INFOPLIST_FILE = VideoPokerAcademy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thoughtfulorg.vpacademy;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -901,14 +973,14 @@
 				CODE_SIGN_ENTITLEMENTS = VideoPokerAcademy/VideoPokerAcademy.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = LDPWY39U2R;
 				INFOPLIST_FILE = VideoPokerAcademy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thoughtfulorg.vpacademy;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;

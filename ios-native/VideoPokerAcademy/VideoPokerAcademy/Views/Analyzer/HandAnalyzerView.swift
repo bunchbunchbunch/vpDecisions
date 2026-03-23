@@ -6,6 +6,7 @@ struct HandAnalyzerView: View {
     @State private var selectedFamily: GameFamily = (PayTable.allPayTables.first(where: { $0.id == PayTable.lastSelectedId }) ?? PayTable.jacksOrBetter96).family
     @State private var selectedPaytableId: String = PayTable.lastSelectedId
     @State private var showPaytable = false
+    @State private var showCasinoSetup = false
 
     let allSuits: [Suit] = [.hearts, .diamonds, .clubs, .spades]
     let allRanks: [Rank] = Rank.allCases
@@ -49,6 +50,18 @@ struct HandAnalyzerView: View {
         }
         .withTour(.analyzer)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showCasinoSetup = true
+                } label: {
+                    Image(systemName: "mic.fill")
+                }
+            }
+        }
+        .navigationDestination(isPresented: $showCasinoSetup) {
+            CasinoSetupView(initialPaytableId: selectedPaytableId)
+        }
         .sheet(isPresented: $showPaytable) {
             AnalyzerPaytableSheet(paytable: viewModel.selectedPaytable, isPresented: $showPaytable)
         }

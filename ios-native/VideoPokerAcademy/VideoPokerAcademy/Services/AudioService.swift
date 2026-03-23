@@ -51,6 +51,8 @@ class AudioService: ObservableObject {
         }
     }
 
+    private(set) var isSuspended = false
+
     @Published var volume: Float = 0.7 {
         didSet {
             UserDefaults.standard.set(volume, forKey: "soundVolume")
@@ -108,59 +110,68 @@ class AudioService: ObservableObject {
 
     private func preloadSounds() {
         debugNSLog("🔊 AudioService: Starting to preload sounds...")
-        playerLock.lock()
-        defer { playerLock.unlock() }
+        playerLock.withLock {
+            for sound in SoundEffect.allCases {
+                // Try without subdirectory first (files copied to bundle root)
+                var url = Bundle.main.url(forResource: sound.filename, withExtension: "mp3")
 
-        for sound in SoundEffect.allCases {
-            // Try without subdirectory first (files copied to bundle root)
-            var url = Bundle.main.url(forResource: sound.filename, withExtension: "mp3")
-
-            // Fallback to subdirectory if needed
-            if url == nil {
-                url = Bundle.main.url(forResource: sound.filename, withExtension: "mp3", subdirectory: "Sounds")
-            }
-
-            if let url = url {
-                do {
-                    let player = try AVAudioPlayer(contentsOf: url)
-                    player.prepareToPlay()
-                    player.volume = volume
-                    players[sound] = player
-                    debugNSLog("🔊 AudioService: Loaded %@", sound.rawValue)
-                } catch {
-                    debugNSLog("🔊 AudioService: Failed to load %@: %@", sound.rawValue, error.localizedDescription)
+                // Fallback to subdirectory if needed
+                if url == nil {
+                    url = Bundle.main.url(forResource: sound.filename, withExtension: "mp3", subdirectory: "Sounds")
                 }
-            } else {
-                debugNSLog("🔊 AudioService: File not found: %@.mp3", sound.filename)
+
+                if let url = url {
+                    do {
+                        let player = try AVAudioPlayer(contentsOf: url)
+                        player.prepareToPlay()
+                        player.volume = volume
+                        players[sound] = player
+                        debugNSLog("🔊 AudioService: Loaded %@", sound.rawValue)
+                    } catch {
+                        debugNSLog("🔊 AudioService: Failed to load %@: %@", sound.rawValue, error.localizedDescription)
+                    }
+                } else {
+                    debugNSLog("🔊 AudioService: File not found: %@.mp3", sound.filename)
+                }
             }
+            debugNSLog("🔊 AudioService: Preloaded %d sounds", players.count)
         }
-        debugNSLog("🔊 AudioService: Preloaded %d sounds", players.count)
     }
 
     private func updatePlayerVolumes() {
-        playerLock.lock()
-        defer { playerLock.unlock() }
-
-        for player in players.values {
-            player.volume = volume
+        playerLock.withLock {
+            for player in players.values {
+                player.volume = volume
+            }
         }
     }
 
+    func suspend() {
+        isSuspended = true
+        playerLock.withLock {
+            players.values.forEach { $0.stop() }
+        }
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    func resume() {
+        guard isSuspended else { return }
+        isSuspended = false
+        configureAudioSession()
+    }
+
     func play(_ sound: SoundEffect) {
+        guard !isSuspended else { return }
         guard soundMode != .alwaysOff else { return }
 
         // Play sound on background queue to avoid blocking UI during rapid gestures
         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-            guard let self = self else { return }
-
-            self.playerLock.lock()
-            guard let player = self.players[sound] else {
-                self.playerLock.unlock()
-                return
+            guard let self else { return }
+            self.playerLock.withLock {
+                guard !self.isSuspended, let player = self.players[sound] else { return }
+                player.currentTime = 0
+                player.play()
             }
-            player.currentTime = 0
-            player.play()
-            self.playerLock.unlock()
         }
     }
 }

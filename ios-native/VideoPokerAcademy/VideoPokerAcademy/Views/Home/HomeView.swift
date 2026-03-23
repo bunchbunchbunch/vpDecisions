@@ -91,6 +91,7 @@ struct HomeView: View {
 
                 // Training Mode section
                 trainingModeSection
+
             }
             .padding(.horizontal)
             .padding(.top, 8)
@@ -191,6 +192,7 @@ struct HomeView: View {
                     ) {
                         navigationPath.append(AppScreen.simulationStart)
                     }
+
                 }
                 .frame(maxHeight: availableHeight * 0.45)
 

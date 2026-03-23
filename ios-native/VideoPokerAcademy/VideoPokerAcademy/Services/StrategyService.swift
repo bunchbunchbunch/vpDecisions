@@ -84,6 +84,40 @@ actor StrategyService {
 
     private init() {}
 
+    /// Lookup the best hold for a hand using a specific paytable ID.
+    /// Falls back to any paytable for the same family if the specific one is unavailable.
+    func bestHold(for hand: Hand, paytableId: String) async throws -> StrategyResult {
+        // Try the specific paytable first
+        if let result = try await lookup(hand: hand, paytableId: paytableId) {
+            return result
+        }
+        // Fall back to the game family approach
+        let gameFamily = PayTable.allPayTables.first(where: { $0.id == paytableId })?.family ?? .jacksOrBetter
+        return try await bestHold(for: hand, gameFamily: gameFamily)
+    }
+
+    /// Lookup the best hold for a hand given a game family.
+    /// Finds the first available paytable for that family and calls lookup.
+    func bestHold(for hand: Hand, gameFamily: GameFamily) async throws -> StrategyResult {
+        // Find all paytables for this game family
+        let candidates = PayTable.allPayTables.filter { $0.family == gameFamily }
+        // Prefer downloaded ones first, then any available
+        for paytable in candidates {
+            if await BinaryStrategyStoreV2.shared.hasStrategyFile(paytableId: paytable.id) {
+                if let result = try await lookup(hand: hand, paytableId: paytable.id) {
+                    return result
+                }
+            }
+        }
+        // Fallback: try any paytable for the family without checking if downloaded
+        for paytable in candidates {
+            if let result = try await lookup(hand: hand, paytableId: paytable.id) {
+                return result
+            }
+        }
+        throw VoiceStrategyError.noStrategyAvailable(gameFamily: gameFamily)
+    }
+
     /// Lookup optimal strategy for a hand using Binary V2 format
     func lookup(hand: Hand, paytableId: String) async throws -> StrategyResult? {
         let key = "\(paytableId):\(hand.canonicalKey)"
@@ -449,6 +483,19 @@ enum StrategyDownloadError: LocalizedError {
             return "Download failed: \(message)"
         case .saveFailed(let message):
             return "Failed to save file: \(message)"
+        }
+    }
+}
+
+// MARK: - Voice Strategy Errors
+
+enum VoiceStrategyError: LocalizedError {
+    case noStrategyAvailable(gameFamily: GameFamily)
+
+    var errorDescription: String? {
+        switch self {
+        case .noStrategyAvailable(let family):
+            return "No strategy available for \(family.displayName). Please download it first."
         }
     }
 }
