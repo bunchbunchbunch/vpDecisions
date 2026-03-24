@@ -236,19 +236,6 @@ struct SettingsView: View {
                                 )
                             }
 
-                            Divider()
-                                .background(Color.white.opacity(0.1))
-
-                            Button {
-                                showEVBenchmark = true
-                            } label: {
-                                SettingsRowContent(
-                                    icon: "function",
-                                    title: "UX EV Benchmark",
-                                    subtitle: "On-the-fly E[K] vs simplified formula",
-                                    showChevron: false
-                                )
-                            }
                         }
                         .padding(.top, 8)
                         #endif

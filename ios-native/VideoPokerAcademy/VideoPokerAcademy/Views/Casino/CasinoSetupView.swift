@@ -71,17 +71,6 @@ struct CasinoSetupView: View {
 
             GameSelectorView(selectedPaytableId: $selectedPaytableId)
 
-            VStack(spacing: 8) {
-                Label("Screen dims automatically", systemImage: "moon.fill")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text("Once you start, the screen will dim to conserve battery. Press the volume button or tap to activate listening.")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .multilineTextAlignment(.center)
-            }
-            .padding(.horizontal)
-
             Button("Start Voice Mode") {
                 navigationTarget = PaytableNavTarget(id: selectedPaytableId)
             }

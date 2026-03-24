@@ -5,7 +5,6 @@ struct CasinoModeView: View {
     // MARK: - State
 
     @State private var viewModel: CasinoModeViewModel
-    @State private var savedBrightness: CGFloat = UIScreen.main.brightness
     @Environment(\.scenePhase) private var scenePhase
 
     // MARK: - Init
@@ -67,15 +66,6 @@ struct CasinoModeView: View {
         }
         .onDisappear {
             viewModel.endSession()
-            UIScreen.main.brightness = savedBrightness
-        }
-        .onChange(of: viewModel.isSessionActive) { _, isActive in
-            if isActive {
-                savedBrightness = UIScreen.main.brightness
-                UIScreen.main.brightness = 0.1
-            } else {
-                UIScreen.main.brightness = savedBrightness
-            }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .background {
