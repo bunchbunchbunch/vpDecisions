@@ -10,6 +10,9 @@ struct SettingsView: View {
     @State private var showDeleteFinalConfirmation = false
     @State private var showAuthenticationError = false
     @State private var authenticationErrorMessage = ""
+    #if DEBUG
+    @State private var showEVBenchmark = false
+    #endif
 
     var body: some View {
         GeometryReader { geometry in
@@ -232,6 +235,20 @@ struct SettingsView: View {
                                     showChevron: false
                                 )
                             }
+
+                            Divider()
+                                .background(Color.white.opacity(0.1))
+
+                            Button {
+                                showEVBenchmark = true
+                            } label: {
+                                SettingsRowContent(
+                                    icon: "function",
+                                    title: "UX EV Benchmark",
+                                    subtitle: "On-the-fly E[K] vs simplified formula",
+                                    showChevron: false
+                                )
+                            }
                         }
                         .padding(.top, 8)
                         #endif
@@ -289,6 +306,11 @@ struct SettingsView: View {
         } message: {
             Text(authenticationErrorMessage)
         }
+        #if DEBUG
+        .sheet(isPresented: $showEVBenchmark) {
+            UltimateXEVBenchmarkView()
+        }
+        #endif
     }
 
     // MARK: - Biometric Authentication for Account Deletion

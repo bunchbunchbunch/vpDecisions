@@ -55,6 +55,9 @@
 		F6A1B2C3D4E5F6A1B2C3D4E5 /* SpeechSynthesisServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F6A1B2C3D4E5F6A1B2C3D4 /* SpeechSynthesisServiceTests.swift */; };
 		173DF0D5FEBC4F3F88D7B0FD /* CardParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 269B920BCECE4B0FA973967C /* CardParser.swift */; };
 		A7ED2107F8154B0898CC669B /* CardParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2CD3E94D23342A28E291A29 /* CardParserTests.swift */; };
+		1A2B3C4D5E6F7A8B9C0D1E2F /* HoldOutcomeCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E5F6A7B8C9D0E1F2A3B4C /* HoldOutcomeCalculatorTests.swift */; };
+		6B2C3D4E5F6A7B8C9D0E1F2A /* HoldOutcomeCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1B2C3D4E5F6A7B8C9D0E1F /* HoldOutcomeCalculator.swift */; };
+		7C8D9E0F1A2B3C4D5E6F7A8B /* UltimateXEVBenchmarkViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D9E0F1A2B3C4D5E6F7A8B9C /* UltimateXEVBenchmarkViewModel.swift */; };
 		1FB9037C3BB1489D836992AA /* ResponseFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F7BBC4E50345C595F9B8D1 /* ResponseFormatter.swift */; };
 		82C2B0DBE7FE4578BA93DECF /* ResponseFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F9913FB9334FF7B1D4E974 /* ResponseFormatterTests.swift */; };
 		51CBCC0F8C23CFBD0D76D5D4 /* coin-payout.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 98F5B531F0884E267C583CED /* coin-payout.mp3 */; };
@@ -140,6 +143,7 @@
 		F3A9BDAC7AE3F7D7B4A69870 /* TrainingLessonQuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A19E5DCC9A440CE3A8294C78 /* TrainingLessonQuizView.swift */; };
 		A06E84164B964015BA69690567F41CA4 /* TrainingExplanationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E5CD480D7BE4F9E88ABFBBA6224B524 /* TrainingExplanationView.swift */; };
 		F53C79B9350F1FFE402037AF /* OfflineDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A3BB5B4BBCF8B1C40798FE /* OfflineDataView.swift */; };
+		A1B2C3D4E5F60001A2B3C4D5 /* UltimateXEVBenchmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60002A2B3C4D5 /* UltimateXEVBenchmarkView.swift */; };
 		F672F15D4509DB1C8BC19983 /* TrainingLessonResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74FE8DE6C5A1B639F573082B /* TrainingLessonResultsView.swift */; };
 		F78513EF56E8A3BD94982702 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8931B86F921F98C5CC2FCAE6 /* SettingsView.swift */; };
 		F78B6D7A95BAFD16E73CFDBF /* ReviewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E6A89D0E2C7B69601E44D5 /* ReviewItem.swift */; };
@@ -192,6 +196,8 @@
 		435D1D6B99139BDC264FFD02 /* button-tap.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "button-tap.mp3"; sourceTree = "<group>"; };
 		4674AAE04F2C550DE4674B49 /* QuizPlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizPlayView.swift; sourceTree = "<group>"; };
 		477D78B1353F5D8FEBC3AF98 /* HandEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandEvaluator.swift; sourceTree = "<group>"; };
+		5A1B2C3D4E5F6A7B8C9D0E1F /* HoldOutcomeCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldOutcomeCalculator.swift; sourceTree = "<group>"; };
+		8D9E0F1A2B3C4D5E6F7A8B9C /* UltimateXEVBenchmarkViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXEVBenchmarkViewModel.swift; sourceTree = "<group>"; };
 		49D29DC4D6A6DF4CD2CBF0E6 /* SimulationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationModels.swift; sourceTree = "<group>"; };
 		4CAEB3689258109EA53DE58B /* PlayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayViewModel.swift; sourceTree = "<group>"; };
 		525F1DE06BD8B044BADE8E84 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
@@ -231,11 +237,13 @@
 		E5F6A1B2C3D4E5F6A1B2C3D4 /* SpeechSynthesisServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechSynthesisServiceTests.swift; sourceTree = "<group>"; };
 		269B920BCECE4B0FA973967C /* CardParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardParser.swift; sourceTree = "<group>"; };
 		C2CD3E94D23342A28E291A29 /* CardParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardParserTests.swift; sourceTree = "<group>"; };
+		3D4E5F6A7B8C9D0E1F2A3B4C /* HoldOutcomeCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldOutcomeCalculatorTests.swift; sourceTree = "<group>"; };
 		A7F7BBC4E50345C595F9B8D1 /* ResponseFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseFormatter.swift; sourceTree = "<group>"; };
 		A1F9913FB9334FF7B1D4E974 /* ResponseFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseFormatterTests.swift; sourceTree = "<group>"; };
 		91345DF5464943346E6931C8 /* LessonQuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonQuizView.swift; sourceTree = "<group>"; };
 		9185EC480DFA6023916C3B3F /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		95A3BB5B4BBCF8B1C40798FE /* OfflineDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineDataView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60002A2B3C4D5 /* UltimateXEVBenchmarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXEVBenchmarkView.swift; sourceTree = "<group>"; };
 		98F5B531F0884E267C583CED /* coin-payout.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "coin-payout.mp3"; sourceTree = "<group>"; };
 		9A4B54C283367FC285DD47FF /* UserDataSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataSyncService.swift; sourceTree = "<group>"; };
 		9B3C4C6AC76626B632FF575D /* TrainingLessonListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingLessonListViewModel.swift; sourceTree = "<group>"; };
@@ -583,6 +591,7 @@
 				B30C8681CDCFD847A79A6AF4 /* TrainingHubViewModel.swift */,
 				9B3C4C6AC76626B632FF575D /* TrainingLessonListViewModel.swift */,
 				F207D69A2F3A81734D6D31DF /* TrainingLessonQuizViewModel.swift */,
+				8D9E0F1A2B3C4D5E6F7A8B9C /* UltimateXEVBenchmarkViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -595,6 +604,7 @@
 				95A3BB5B4BBCF8B1C40798FE /* OfflineDataView.swift */,
 				8931B86F921F98C5CC2FCAE6 /* SettingsView.swift */,
 				FB0437103D05DE42B7E09A4F /* TourSettingsView.swift */,
+				A1B2C3D4E5F60002A2B3C4D5 /* UltimateXEVBenchmarkView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -630,6 +640,7 @@
 				DF2171D8966579AC447912EA /* CertificatePinning.swift */,
 				B6DCBF01A6962E993279B541 /* DebugLog.swift */,
 				477D78B1353F5D8FEBC3AF98 /* HandEvaluator.swift */,
+				5A1B2C3D4E5F6A7B8C9D0E1F /* HoldOutcomeCalculator.swift */,
 				6002F3C49DEAB543783F3190 /* HapticService.swift */,
 				9185EC480DFA6023916C3B3F /* NetworkMonitor.swift */,
 				0A964A0B68AD28F50ACAB678 /* PendingAttemptsStore.swift */,
@@ -670,6 +681,7 @@
 				CB56AD59708249188E00C130 /* AudioServiceSuspendTests.swift */,
 				CA51N0M0D3V1EWM0D3L0003A /* CasinoModeViewModelTests.swift */,
 				C2CD3E94D23342A28E291A29 /* CardParserTests.swift */,
+			3D4E5F6A7B8C9D0E1F2A3B4C /* HoldOutcomeCalculatorTests.swift */,
 				A1F9913FB9334FF7B1D4E974 /* ResponseFormatterTests.swift */,
 				FB91F54C372566A26093CE2C /* RatingPromptServiceTests.swift */,
 				E5F6A1B2C3D4E5F6A1B2C3D4 /* SpeechSynthesisServiceTests.swift */,
@@ -799,6 +811,7 @@
 				B3C323697BBD4D0FBDB1E011 /* AudioServiceSuspendTests.swift in Sources */,
 				CA51N0M0D3V1EWM0D3L0002A /* CasinoModeViewModelTests.swift in Sources */,
 				A7ED2107F8154B0898CC669B /* CardParserTests.swift in Sources */,
+				1A2B3C4D5E6F7A8B9C0D1E2F /* HoldOutcomeCalculatorTests.swift in Sources */,
 				82C2B0DBE7FE4578BA93DECF /* ResponseFormatterTests.swift in Sources */,
 				0D34973C733A0689B3E31F0A /* RatingPromptServiceTests.swift in Sources */,
 				F6A1B2C3D4E5F6A1B2C3D4E5 /* SpeechSynthesisServiceTests.swift in Sources */,
@@ -845,6 +858,7 @@
 				71B37C150971DA2E0D4CF7EB /* HandAnalyzerView.swift in Sources */,
 				E0E0CFF562A4350BB0017A06 /* HandCategory.swift in Sources */,
 				384884ACA8310839577029A6 /* HandEvaluator.swift in Sources */,
+				6B2C3D4E5F6A7B8C9D0E1F2A /* HoldOutcomeCalculator.swift in Sources */,
 				BBBBCB929328B549BBD651C4 /* HapticService.swift in Sources */,
 				49C472234B92C6F7803967BA /* HomeView.swift in Sources */,
 				A8218BB889F7303C0FC0A260 /* HundredPlayTallyView.swift in Sources */,
@@ -861,6 +875,7 @@
 				2758C786DA69D37C5A02FE1A /* MultiHandGrid.swift in Sources */,
 				58B9DCD74F66F2B70DEB9B4D /* NetworkMonitor.swift in Sources */,
 				F53C79B9350F1FFE402037AF /* OfflineDataView.swift in Sources */,
+				A1B2C3D4E5F60001A2B3C4D5 /* UltimateXEVBenchmarkView.swift in Sources */,
 				B2F1C28C6CAAE17C84B5FA29 /* PayTable.swift in Sources */,
 				5E4C4E3C2358DDA6483D8AA5 /* PayTableData.swift in Sources */,
 				1C1CDCD801C4668B440B5803 /* PendingAttemptsStore.swift in Sources */,
@@ -908,6 +923,7 @@
 				E4E0982F09D8D35A59A39C1E /* TrainingLessonListViewModel.swift in Sources */,
 				F3A9BDAC7AE3F7D7B4A69870 /* TrainingLessonQuizView.swift in Sources */,
 				AF79A89A9C8558D4569205E7 /* TrainingLessonQuizViewModel.swift in Sources */,
+				7C8D9E0F1A2B3C4D5E6F7A8B /* UltimateXEVBenchmarkViewModel.swift in Sources */,
 				F672F15D4509DB1C8BC19983 /* TrainingLessonResultsView.swift in Sources */,
 				A06E84164B964015BA69690567F41CA4 /* TrainingExplanationView.swift in Sources */,
 				6056B217B5591AB68B8C7792 /* TrainingService.swift in Sources */,
