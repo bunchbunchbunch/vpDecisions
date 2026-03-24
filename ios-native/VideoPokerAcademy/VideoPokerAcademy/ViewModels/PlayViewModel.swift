@@ -685,14 +685,15 @@ class PlayViewModel: ObservableObject {
         let numDeuces = rankCounts[2, default: 0]
 
         // Check hand types based on paytable
-        if paytableId.contains("deuces-wild") {
+        if paytableId.hasPrefix("deuces-wild") || paytableId.hasPrefix("loose-deuces") {
             return evaluateDeucesWildHand(cards: cards, rankCounts: rankCounts, numDeuces: numDeuces)
         } else {
-            return evaluateStandardHand(cards: cards, pairs: pairs, trips: trips, quads: quads, paytableId: paytableId)
+            let paytableRowNames = Set(currentPaytable?.rows.map { $0.handName } ?? [])
+            return evaluateStandardHand(cards: cards, pairs: pairs, trips: trips, quads: quads, paytableRowNames: paytableRowNames)
         }
     }
 
-    private func evaluateStandardHand(cards: [Card], pairs: [Int], trips: [Int], quads: [Int], paytableId: String) -> HandEvaluation {
+    private func evaluateStandardHand(cards: [Card], pairs: [Int], trips: [Int], quads: [Int], paytableRowNames: Set<String>) -> HandEvaluation {
         // Royal Flush
         if isRoyalFlush(cards) {
             return HandEvaluation(handName: "Royal Flush", winningIndices: Array(0..<5))
@@ -706,7 +707,8 @@ class PlayViewModel: ObservableObject {
         // Four of a Kind (with kicker checks for bonus games)
         if let quadRank = quads.first {
             let quadIndices = getCardIndices(cards: cards, rank: quadRank)
-            let handName = getFourOfAKindName(quadRank: quadRank, cards: cards, paytableId: paytableId)
+            let kicker = cards.first { $0.rank.rawValue != quadRank }?.rank.rawValue ?? 0
+            let handName = HandEvaluator.resolveQuadHandName(quadRank: quadRank, kickerRank: kicker, paytableRowNames: paytableRowNames)
             return HandEvaluation(handName: handName, winningIndices: quadIndices)
         }
 
@@ -738,13 +740,13 @@ class PlayViewModel: ObservableObject {
             return HandEvaluation(handName: "Two Pair", winningIndices: indices1 + indices2)
         }
 
-        // High pair (Jacks or Better / Tens or Better)
-        let minPairRank = paytableId.contains("tens-or-better") ? 10 : 11
-        for pairRank in pairs {
-            if pairRank >= minPairRank {
-                let indices = getCardIndices(cards: cards, rank: pairRank)
-                let handName = paytableId.contains("tens-or-better") ? "Tens or Better" : "Jacks or Better"
-                return HandEvaluation(handName: handName, winningIndices: indices)
+        // High pair (data-driven: Pair of Aces / Kings or Better / Jacks or Better / Tens or Better)
+        if let pairInfo = HandEvaluator.resolveHighPairInfo(paytableRowNames: paytableRowNames) {
+            for pairRank in pairs {
+                if pairRank >= pairInfo.minRank {
+                    let indices = getCardIndices(cards: cards, rank: pairRank)
+                    return HandEvaluation(handName: pairInfo.name, winningIndices: indices)
+                }
             }
         }
 
@@ -788,8 +790,8 @@ class PlayViewModel: ObservableObject {
             return HandEvaluation(handName: "Full House", winningIndices: Array(0..<5))
         }
 
-        // Flush
-        if isFlush(cards) {
+        // Flush (deuces are wild for suit)
+        if isFlushWithWilds(cards) {
             return HandEvaluation(handName: "Flush", winningIndices: Array(0..<5))
         }
 
@@ -804,37 +806,6 @@ class PlayViewModel: ObservableObject {
         }
 
         return HandEvaluation(handName: nil, winningIndices: [])
-    }
-
-    private func getFourOfAKindName(quadRank: Int, cards: [Card], paytableId: String) -> String {
-        // For bonus poker variants, check kicker
-        if paytableId.contains("double-double") || paytableId.contains("triple-double") {
-            let kicker = cards.first { $0.rank.rawValue != quadRank }?.rank.rawValue ?? 0
-
-            if quadRank == 14 { // Aces
-                if kicker >= 2 && kicker <= 4 {
-                    return "Four Aces + 2-4"
-                }
-                return "Four Aces"
-            } else if quadRank >= 2 && quadRank <= 4 {
-                if kicker == 14 || (kicker >= 2 && kicker <= 4) {
-                    return "Four 2-4 + A-4"
-                }
-                return "Four 2-4"
-            } else {
-                return "Four 5-K"
-            }
-        } else if paytableId.contains("bonus") || paytableId.contains("double-bonus") {
-            if quadRank == 14 {
-                return "Four Aces"
-            } else if quadRank >= 2 && quadRank <= 4 {
-                return "Four 2-4"
-            } else {
-                return "Four 5-K"
-            }
-        }
-
-        return "Four of a Kind"
     }
 
     private func calculatePayout(handName: String?) -> Int {
@@ -858,6 +829,13 @@ class PlayViewModel: ObservableObject {
     private func isFlush(_ cards: [Card]) -> Bool {
         let firstSuit = cards[0].suit
         return cards.allSatisfy { $0.suit == firstSuit }
+    }
+
+    private func isFlushWithWilds(_ cards: [Card]) -> Bool {
+        let nonDeuceCards = cards.filter { $0.rank.rawValue != 2 }
+        guard !nonDeuceCards.isEmpty else { return true }
+        let firstSuit = nonDeuceCards[0].suit
+        return nonDeuceCards.allSatisfy { $0.suit == firstSuit }
     }
 
     private func isStraight(_ cards: [Card]) -> Bool {

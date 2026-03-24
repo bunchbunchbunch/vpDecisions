@@ -28,7 +28,7 @@ struct UltimateXEVBenchmarkView: View {
                         runButton
 
                         if viewModel.isRunning {
-                            ProgressView("Computing full E[K] for all holds…")
+                            ProgressView("Computing E[K] for top-5 holds…")
                                 .foregroundColor(AppTheme.Colors.textSecondary)
                                 .padding()
                         }
@@ -178,21 +178,48 @@ struct UltimateXEVBenchmarkView: View {
             }
         }
 
-        // Computation time
+        // Computation time + per-hold-size breakdown
         benchmarkSection(title: "Performance") {
-            HStack {
-                Image(systemName: "clock")
-                    .foregroundColor(AppTheme.Colors.textSecondary)
-                Text("Full E[K] computation:")
-                    .foregroundColor(AppTheme.Colors.textSecondary)
-                Spacer()
-                Text(String(format: "%.1f ms", result.computationTimeMs))
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(result.computationTimeMs < 50
-                        ? AppTheme.Colors.mintGreen
-                        : .orange)
+            VStack(spacing: 0) {
+                HStack {
+                    Image(systemName: "clock")
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                    Text("Total (\(result.evaluatedHoldCount) of 31 holds):")
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                    Spacer()
+                    Text(String(format: "%.1f ms", result.computationTimeMs))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(result.computationTimeMs < 500
+                            ? AppTheme.Colors.mintGreen
+                            : .orange)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+
+                if !result.timingByHoldSize.isEmpty {
+                    Divider().background(Color.white.opacity(0.1))
+
+                    ForEach(result.timingByHoldSize.keys.sorted(by: >), id: \.self) { holdSize in
+                        if let ms = result.timingByHoldSize[holdSize] {
+                            let combosLabel = holdSize == 5 ? "1 combo" : holdSizeCombosLabel(holdSize)
+                            HStack {
+                                Text("Hold \(holdSize)")
+                                    .foregroundColor(AppTheme.Colors.textSecondary)
+                                Text(combosLabel)
+                                    .font(.system(size: 11))
+                                    .foregroundColor(AppTheme.Colors.textSecondary.opacity(0.6))
+                                Spacer()
+                                Text(String(format: "%.1f ms", ms))
+                                    .font(.system(size: 13, design: .monospaced))
+                                    .foregroundColor(.white)
+                            }
+                            .font(.system(size: 13))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 6)
+                        }
+                    }
+                }
             }
-            .padding()
         }
     }
 
@@ -237,6 +264,23 @@ struct UltimateXEVBenchmarkView: View {
         if canonicalIndices.count == 5 { return "Hold all" }
         let originalIndices = hand.canonicalIndicesToOriginal(canonicalIndices)
         return originalIndices.map { hand.cards[$0].displayText }.joined(separator: " ")
+    }
+
+    /// Human-readable combo count label for a given hold size (draw count = 5 - holdSize).
+    private func holdSizeCombosLabel(_ holdSize: Int) -> String {
+        let drawCount = 5 - holdSize
+        let combos: Int
+        switch drawCount {
+        case 1: combos = 47
+        case 2: combos = 1_081
+        case 3: combos = 16_215
+        case 4: combos = 178_365
+        default: combos = 0
+        }
+        let formatted = combos >= 1_000
+            ? String(format: "%gK combos", Double(combos) / 1_000)
+            : "\(combos) combo"
+        return "(\(formatted))"
     }
 
     private func benchmarkSection<Content: View>(

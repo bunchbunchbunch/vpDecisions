@@ -297,17 +297,18 @@ class SimulationViewModel: ObservableObject {
 
         var handName: String?
 
-        if paytableId.contains("deuces-wild") {
+        if paytableId.hasPrefix("deuces-wild") || paytableId.hasPrefix("loose-deuces") {
             handName = evaluateDeucesWildHand(cards: cards, rankCounts: rankCounts, numDeuces: numDeuces)
         } else {
-            handName = evaluateStandardHand(cards: cards, pairs: pairs, trips: trips, quads: quads, paytableId: paytableId)
+            let paytableRowNames = Set(PayTable.allPayTables.first { $0.id == paytableId }?.rows.map { $0.handName } ?? [])
+            handName = evaluateStandardHand(cards: cards, pairs: pairs, trips: trips, quads: quads, paytableRowNames: paytableRowNames)
         }
 
         let payout = calculatePayout(handName: handName, paytableId: paytableId)
         return SingleHandResult(handName: handName, payout: payout)
     }
 
-    private func evaluateStandardHand(cards: [Card], pairs: [Int], trips: [Int], quads: [Int], paytableId: String) -> String? {
+    private func evaluateStandardHand(cards: [Card], pairs: [Int], trips: [Int], quads: [Int], paytableRowNames: Set<String>) -> String? {
         // Royal Flush
         if isRoyalFlush(cards) {
             return "Royal Flush"
@@ -320,7 +321,8 @@ class SimulationViewModel: ObservableObject {
 
         // Four of a Kind
         if let quadRank = quads.first {
-            return getFourOfAKindName(quadRank: quadRank, cards: cards, paytableId: paytableId)
+            let kicker = cards.first { $0.rank.rawValue != quadRank }?.rank.rawValue ?? 0
+            return HandEvaluator.resolveQuadHandName(quadRank: quadRank, kickerRank: kicker, paytableRowNames: paytableRowNames)
         }
 
         // Full House
@@ -348,11 +350,12 @@ class SimulationViewModel: ObservableObject {
             return "Two Pair"
         }
 
-        // High pair (Jacks or Better / Tens or Better)
-        let minPairRank = paytableId.contains("tens-or-better") ? 10 : 11
-        for pairRank in pairs {
-            if pairRank >= minPairRank {
-                return paytableId.contains("tens-or-better") ? "Tens or Better" : "Jacks or Better"
+        // High pair (data-driven: Pair of Aces / Kings or Better / Jacks or Better / Tens or Better)
+        if let pairInfo = HandEvaluator.resolveHighPairInfo(paytableRowNames: paytableRowNames) {
+            for pairRank in pairs {
+                if pairRank >= pairInfo.minRank {
+                    return pairInfo.name
+                }
             }
         }
 
@@ -396,8 +399,8 @@ class SimulationViewModel: ObservableObject {
             return "Full House"
         }
 
-        // Flush
-        if isFlush(cards) {
+        // Flush (deuces are wild for suit)
+        if isFlushWithWilds(cards) {
             return "Flush"
         }
 
@@ -412,36 +415,6 @@ class SimulationViewModel: ObservableObject {
         }
 
         return nil
-    }
-
-    private func getFourOfAKindName(quadRank: Int, cards: [Card], paytableId: String) -> String {
-        if paytableId.contains("double-double") || paytableId.contains("triple-double") {
-            let kicker = cards.first { $0.rank.rawValue != quadRank }?.rank.rawValue ?? 0
-
-            if quadRank == 14 {
-                if kicker >= 2 && kicker <= 4 {
-                    return "Four Aces + 2-4"
-                }
-                return "Four Aces"
-            } else if quadRank >= 2 && quadRank <= 4 {
-                if kicker == 14 || (kicker >= 2 && kicker <= 4) {
-                    return "Four 2-4 + A-4"
-                }
-                return "Four 2-4"
-            } else {
-                return "Four 5-K"
-            }
-        } else if paytableId.contains("bonus") || paytableId.contains("double-bonus") {
-            if quadRank == 14 {
-                return "Four Aces"
-            } else if quadRank >= 2 && quadRank <= 4 {
-                return "Four 2-4"
-            } else {
-                return "Four 5-K"
-            }
-        }
-
-        return "Four of a Kind"
     }
 
     private func calculatePayout(handName: String?, paytableId: String) -> Int {
@@ -467,6 +440,13 @@ class SimulationViewModel: ObservableObject {
     private func isFlush(_ cards: [Card]) -> Bool {
         let firstSuit = cards[0].suit
         return cards.allSatisfy { $0.suit == firstSuit }
+    }
+
+    private func isFlushWithWilds(_ cards: [Card]) -> Bool {
+        let nonDeuceCards = cards.filter { $0.rank.rawValue != 2 }
+        guard !nonDeuceCards.isEmpty else { return true }
+        let firstSuit = nonDeuceCards[0].suit
+        return nonDeuceCards.allSatisfy { $0.suit == firstSuit }
     }
 
     private func isStraight(_ cards: [Card]) -> Bool {

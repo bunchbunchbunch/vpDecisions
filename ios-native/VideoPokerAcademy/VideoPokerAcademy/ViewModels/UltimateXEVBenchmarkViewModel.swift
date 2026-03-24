@@ -24,6 +24,12 @@ struct EVBenchmarkResult {
     /// Elapsed time for full E[K] computation
     let computationTimeMs: Double
 
+    /// Time spent per hold-size bucket (key = number of cards held, 1–5)
+    let timingByHoldSize: [Int: Double]
+
+    /// How many bitmasks had E[K] computed (out of 31 possible)
+    let evaluatedHoldCount: Int
+
     /// Whether simplified and full formulas agree on the best hold
     var formulasAgree: Bool { simplifiedBestHold == fullBestHold }
 
@@ -53,6 +59,11 @@ final class UltimateXEVBenchmarkViewModel {
 
     private let paytableId = "jacks-or-better-9-6"
     private let playCount: UltimateXPlayCount = .three
+
+    /// Only compute E[K] for the top-N holds by base EV.
+    /// Holds ranked below this threshold are extremely unlikely to become
+    /// optimal under the full formula since base_EV is weighted by M×2.
+    private let topNHolds = 5
 
     func runBenchmark() async {
         isRunning = true
@@ -86,26 +97,43 @@ final class UltimateXEVBenchmarkViewModel {
             throw BenchmarkError.strategyNotAvailable
         }
 
+        // 4. Select top-N bitmasks by base EV (skip bitmask 0 = discard all)
+        let candidateBitmasks = baseStrategyResult.holdEvs
+            .compactMap { key, value -> (bitmask: Int, ev: Double)? in
+                guard let bitmask = Int(key), bitmask != 0 else { return nil }
+                return (bitmask: bitmask, ev: value)
+            }
+            .sorted { $0.ev > $1.ev }
+            .prefix(topNHolds)
+            .map { $0.bitmask }
+
         let calculator = HoldOutcomeCalculator()
 
-        // 4. Measure full E[K] computation time across all non-zero bitmasks
-        // Use timestamp approach to avoid @Sendable closure capture issues with Swift 6
+        // 5. Compute E[K] for each candidate, tracking per-hold-size timing
         let clock = ContinuousClock()
         let start = clock.now
         var holdDetails: [EVBenchmarkResult.HoldDetail] = []
+        var timingByHoldSize: [Int: Double] = [:]
+        let attosecondsPerMillisecond: Double = 1_000_000_000_000_000
 
-        // Bitmask 0 (discard all) is excluded — HoldOutcomeCalculator skips it for
-        // performance (C(47,5) = 1.5M combos) and it is never the optimal hold.
-        for bitmask in 1...31 {
-            guard let baseEVForHold = baseStrategyResult.holdEvs[String(bitmask)] else {
-                continue
-            }
+        for bitmask in candidateBitmasks {
+            guard let baseEVForHold = baseStrategyResult.holdEvs[String(bitmask)] else { continue }
+
+            let holdSize = bitmask.nonzeroBitCount
+            let holdStart = clock.now
+
             let eK = await calculator.computeEK(
                 hand: hand,
                 holdBitmask: bitmask,
                 paytableId: paytableId,
                 playCount: playCount
             )
+
+            let holdElapsed = clock.now - holdStart
+            let holdMs = Double(holdElapsed.components.seconds) * 1000.0
+                + Double(holdElapsed.components.attoseconds) / attosecondsPerMillisecond
+            timingByHoldSize[holdSize, default: 0] += holdMs
+
             let simplifiedEV = 2.0 * baseEVForHold + Double(multiplier - 1)
             let fullEV = Double(multiplier) * 2.0 * baseEVForHold + eK - 1.0
 
@@ -123,7 +151,7 @@ final class UltimateXEVBenchmarkViewModel {
 
         let elapsed = clock.now - start
 
-        // 5. Find best holds for each formula
+        // 6. Find best holds for each formula
         guard let fullBest = holdDetails.max(by: { $0.fullAdjustedEV < $1.fullAdjustedEV }),
               let simplifiedBest = holdDetails.max(by: { $0.simplifiedAdjustedEV < $1.simplifiedAdjustedEV }) else {
             throw BenchmarkError.strategyNotAvailable
@@ -135,11 +163,10 @@ final class UltimateXEVBenchmarkViewModel {
             holdDetails[i].isSimplifiedBest = holdDetails[i].bitmask == simplifiedBest.bitmask
         }
 
-        // 6. Top 5 holds by full EV for display
+        // 7. Top 5 holds by full EV for display
         let topHolds = Array(holdDetails.sorted { $0.fullAdjustedEV > $1.fullAdjustedEV }.prefix(5))
 
-        // 7. Compute time in milliseconds
-        let attosecondsPerMillisecond: Double = 1_000_000_000_000_000
+        // 8. Total time in milliseconds
         let timeMs = Double(elapsed.components.seconds) * 1000.0
             + Double(elapsed.components.attoseconds) / attosecondsPerMillisecond
 
@@ -153,7 +180,9 @@ final class UltimateXEVBenchmarkViewModel {
             fullBestHold: fullBest.bitmask,
             fullBestEV: fullBest.fullAdjustedEV,
             topHoldDetails: topHolds,
-            computationTimeMs: timeMs
+            computationTimeMs: timeMs,
+            timingByHoldSize: timingByHoldSize,
+            evaluatedHoldCount: candidateBitmasks.count
         )
     }
 }

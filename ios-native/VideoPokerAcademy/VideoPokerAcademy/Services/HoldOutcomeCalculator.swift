@@ -35,7 +35,7 @@ actor HoldOutcomeCalculator {
 
         // drawCount == 0: evaluate the hand as-is (hold all 5)
         if drawCount == 0 {
-            let result = await HandEvaluator.shared.evaluateDealtHand(
+            let result = HandEvaluator.shared.evaluateDealtHand(
                 hand: hand,
                 paytableId: paytableId
             )
@@ -69,7 +69,7 @@ actor HoldOutcomeCalculator {
             }
 
             let drawHand = Hand(cards: finalCards)
-            let result = await HandEvaluator.shared.evaluateDealtHand(
+            let result = HandEvaluator.shared.evaluateDealtHand(
                 hand: drawHand,
                 paytableId: paytableId
             )
