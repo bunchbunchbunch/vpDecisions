@@ -17,101 +17,254 @@ enum UltimateXPlayCount: Int, CaseIterable, Identifiable {
 
 // MARK: - Ultimate X Multiplier Table
 
-/// Multiplier tables for Ultimate X poker
-/// Multipliers are awarded based on winning hand type and apply to the NEXT hand
+/// Per-game-family multiplier tables for Ultimate X poker.
+/// Multiplier values sourced from Wizard of Odds (IGT-provided tables).
 struct UltimateXMultiplierTable {
-    /// Get the multiplier awarded for a winning hand type
-    /// - Parameters:
-    ///   - handName: The winning hand name (e.g., "Full House", "Flush")
-    ///   - playCount: The Ultimate X play configuration (3, 5, or 10)
-    /// - Returns: The multiplier to apply to the next hand (1 = no multiplier)
-    static func multiplier(for handName: String, playCount: UltimateXPlayCount) -> Int {
-        // Normalize hand name for lookup
+
+    // MARK: - Public API
+
+    /// Returns the multiplier for a given hand name, play count, and game family.
+    static func multiplier(for handName: String, playCount: UltimateXPlayCount, family: GameFamily) -> Int {
         let normalized = handName.lowercased()
-
+        let group = multiplierGroup(for: family)
         switch playCount {
-        case .three:
-            return threePlayMultipliers[normalized] ?? 1
-        case .five:
-            return fivePlayMultipliers[normalized] ?? 1
-        case .ten:
-            return tenPlayMultipliers[normalized] ?? 1
+        case .three: return group.threePlay[normalized] ?? 1
+        case .five:  return group.fivePlay[normalized]  ?? 1
+        case .ten:   return group.tenPlay[normalized]   ?? 1
         }
     }
 
-    /// Get all possible multiplier values for a play count
-    static func possibleMultipliers(for playCount: UltimateXPlayCount) -> [Int] {
+    /// Returns all distinct multiplier values that can be awarded for a game family and play count.
+    static func possibleMultipliers(for playCount: UltimateXPlayCount, family: GameFamily) -> [Int] {
+        let group = multiplierGroup(for: family)
+        let table: [String: Int]
         switch playCount {
-        case .three:
-            return [1, 2, 3, 4, 7, 11, 12]
-        case .five:
-            return [1, 2, 3, 4, 7, 11, 12]
-        case .ten:
-            return [1, 2, 3, 4, 7, 11, 12]
+        case .three: table = group.threePlay
+        case .five:  table = group.fivePlay
+        case .ten:   table = group.tenPlay
         }
+        return Array(Set(table.values)).sorted()
     }
 
-    /// Maximum possible multiplier
+    /// Maximum possible multiplier across all game families and play counts.
     static let maxMultiplier = 12
 
-    // MARK: - Jacks or Better Multiplier Tables
+    // MARK: - Group Mapping
 
-    /// 3-Play multipliers for Jacks or Better family
-    private static let threePlayMultipliers: [String: Int] = [
-        "royal flush": 2,
-        "straight flush": 2,
-        "four of a kind": 2,
-        "four aces": 2,
-        "four 2-4": 2,
-        "four 5-k": 2,
-        "four aces + 2-4": 2,
-        "four 2-4 + a-4": 2,
-        "full house": 12,
-        "flush": 11,
-        "straight": 7,
-        "three of a kind": 4,
-        "two pair": 3,
-        "jacks or better": 2,
-        "tens or better": 2
-    ]
+    private static func multiplierGroup(for family: GameFamily) -> MultiplierGroup {
+        switch family {
+        case .jacksOrBetter, .tensOrBetter, .bonusPokerDeluxe, .allAmerican:
+            return .jacksOrBetter
+        case .bonusPoker, .bonusPokerPlus:
+            return .bonusPoker
+        case .doubleBonus, .doubleDoubleBonus, .superDoubleBonus,
+             .doubleJackpot, .doubleDoubleJackpot,
+             .acesBonus, .acesAndEights, .acesAndFaces, .bonusAcesFaces,
+             .superAces, .royalAcesBonus, .whiteHotAces,
+             .ddbAcesFaces, .ddbPlus:
+            return .doubleBonus
+        case .tripleDoubleBonus, .tripleBonus, .tripleBonusPlus, .tripleTripleBonus:
+            return .tripleDoubleBonus
+        case .deucesWild, .looseDeuces:
+            return .deucesWild
+        }
+    }
 
-    /// 5-Play multipliers for Jacks or Better family
-    private static let fivePlayMultipliers: [String: Int] = [
-        "royal flush": 2,
-        "straight flush": 2,
-        "four of a kind": 3,
-        "four aces": 2,
-        "four 2-4": 3,
-        "four 5-k": 3,
-        "four aces + 2-4": 2,
-        "four 2-4 + a-4": 2,
-        "full house": 12,
-        "flush": 11,
-        "straight": 7,
-        "three of a kind": 4,
-        "two pair": 3,
-        "jacks or better": 2,
-        "tens or better": 2
-    ]
+    // MARK: - Multiplier Group Data
 
-    /// 10-Play multipliers for Jacks or Better family
-    private static let tenPlayMultipliers: [String: Int] = [
-        "royal flush": 7,
-        "straight flush": 7,
-        "four of a kind": 3,
-        "four aces": 2,
-        "four 2-4": 3,
-        "four 5-k": 3,
-        "four aces + 2-4": 2,
-        "four 2-4 + a-4": 2,
-        "full house": 12,
-        "flush": 11,
-        "straight": 7,
-        "three of a kind": 4,
-        "two pair": 3,
-        "jacks or better": 2,
-        "tens or better": 2
-    ]
+    private struct MultiplierGroup {
+        let threePlay: [String: Int]
+        let fivePlay:  [String: Int]
+        let tenPlay:   [String: Int]
+    }
+
+    // MARK: Group 1: Jacks or Better
+    // Source: Wizard of Odds — confirmed for JoB, BonusPokerDeluxe, AllAmerican, TensOrBetter
+    // Note: "tens or better" included here because tensOrBetter family maps to this group.
+    //       Non-JoB groups do not need this key since tensOrBetter is never assigned to them.
+    // Note: "no win": 1 is included explicitly so possibleMultipliers() returns 1 via Set(table.values).
+
+    private static let jacksOrBetter = MultiplierGroup(
+        threePlay: [
+            "royal flush": 2, "straight flush": 2,
+            "four of a kind": 2, "four aces": 2, "four 2-4": 2, "four 5-k": 2,
+            "four aces + 2-4": 2, "four 2-4 + a-4": 2,
+            "four aces + face": 2, "four j-k": 2, "four j-k + a-4": 2,
+            "four face": 2, "four face + a-k": 2, "four k/q/j": 2, "four k/q/j + face": 2,
+            "four 2-10": 2, "four 2-6/9-k": 2, "four sevens": 2, "four aces/eights": 2,
+            "four 2-4 + 2-4": 2,
+            "full house": 12, "flush": 11, "straight": 7,
+            "three of a kind": 4, "two pair": 3,
+            "jacks or better": 2, "tens or better": 2, "no win": 1,
+        ],
+        fivePlay: [
+            "royal flush": 2, "straight flush": 2,
+            "four of a kind": 3, "four aces": 3, "four 2-4": 3, "four 5-k": 3,
+            "four aces + 2-4": 3, "four 2-4 + a-4": 3,
+            "four aces + face": 3, "four j-k": 3, "four j-k + a-4": 3,
+            "four face": 3, "four face + a-k": 3, "four k/q/j": 3, "four k/q/j + face": 3,
+            "four 2-10": 3, "four 2-6/9-k": 3, "four sevens": 3, "four aces/eights": 3,
+            "four 2-4 + 2-4": 3,
+            "full house": 12, "flush": 11, "straight": 7,
+            "three of a kind": 4, "two pair": 3,
+            "jacks or better": 2, "tens or better": 2, "no win": 1,
+        ],
+        tenPlay: [
+            "royal flush": 7, "straight flush": 7,
+            "four of a kind": 3, "four aces": 3, "four 2-4": 3, "four 5-k": 3,
+            "four aces + 2-4": 3, "four 2-4 + a-4": 3,
+            "four aces + face": 3, "four j-k": 3, "four j-k + a-4": 3,
+            "four face": 3, "four face + a-k": 3, "four k/q/j": 3, "four k/q/j + face": 3,
+            "four 2-10": 3, "four 2-6/9-k": 3, "four sevens": 3, "four aces/eights": 3,
+            "four 2-4 + 2-4": 3,
+            "full house": 12, "flush": 11, "straight": 7,
+            "three of a kind": 4, "two pair": 3,
+            "jacks or better": 2, "tens or better": 2, "no win": 1,
+        ]
+    )
+
+    // MARK: Group 2: Bonus Poker
+    // Source: Wizard of Odds — Straight 8x (not 7x), RF 10-play 4x (not 7x)
+
+    private static let bonusPoker = MultiplierGroup(
+        threePlay: [
+            "royal flush": 2, "straight flush": 2,
+            "four aces": 2, "four aces + 2-4": 2, "four aces + face": 2,
+            "four 2-4": 2, "four 2-4 + a-4": 2, "four 2-4 + 2-4": 2,
+            "four 5-k": 2, "four of a kind": 2,
+            "four j-k": 2, "four j-k + a-4": 2, "four face": 2,
+            "four face + a-k": 2, "four k/q/j": 2, "four k/q/j + face": 2,
+            "four 2-10": 2, "four 2-6/9-k": 2, "four sevens": 2, "four aces/eights": 2,
+            "full house": 12, "flush": 11, "straight": 8,
+            "three of a kind": 4, "two pair": 3, "jacks or better": 2, "no win": 1,
+        ],
+        fivePlay: [
+            "royal flush": 2, "straight flush": 2,
+            "four aces": 2, "four aces + 2-4": 2, "four aces + face": 2,
+            "four 2-4": 2, "four 2-4 + a-4": 2, "four 2-4 + 2-4": 2,
+            "four 5-k": 3, "four of a kind": 3,
+            "four j-k": 3, "four j-k + a-4": 3, "four face": 3,
+            "four face + a-k": 3, "four k/q/j": 3, "four k/q/j + face": 3,
+            "four 2-10": 3, "four 2-6/9-k": 3, "four sevens": 3, "four aces/eights": 3,
+            "full house": 12, "flush": 11, "straight": 8,
+            "three of a kind": 4, "two pair": 3, "jacks or better": 2, "no win": 1,
+        ],
+        tenPlay: [
+            "royal flush": 4, "straight flush": 4,
+            "four aces": 4, "four aces + 2-4": 4, "four aces + face": 4,
+            "four 2-4": 4, "four 2-4 + a-4": 4, "four 2-4 + 2-4": 4,
+            "four 5-k": 3, "four of a kind": 3,
+            "four j-k": 3, "four j-k + a-4": 3, "four face": 3,
+            "four face + a-k": 3, "four k/q/j": 3, "four k/q/j + face": 3,
+            "four 2-10": 3, "four 2-6/9-k": 3, "four sevens": 3, "four aces/eights": 3,
+            "full house": 12, "flush": 11, "straight": 8,
+            "three of a kind": 4, "two pair": 3, "jacks or better": 2, "no win": 1,
+        ]
+    )
+
+    // MARK: Group 3: Double Bonus
+    // Source: Wizard of Odds — Flush 10x (not 11x), Straight 8x, RF 10-play 4x
+
+    private static let doubleBonus = MultiplierGroup(
+        threePlay: [
+            "royal flush": 2, "straight flush": 2,
+            "four aces": 2, "four aces + 2-4": 2, "four aces + face": 2,
+            "four 2-4": 2, "four 2-4 + a-4": 2, "four 2-4 + 2-4": 2,
+            "four 5-k": 2, "four of a kind": 2,
+            "four j-k": 2, "four j-k + a-4": 2, "four face": 2,
+            "four face + a-k": 2, "four k/q/j": 2, "four k/q/j + face": 2,
+            "four 2-10": 2, "four 2-6/9-k": 2, "four sevens": 2, "four aces/eights": 2,
+            "full house": 12, "flush": 10, "straight": 8,
+            "three of a kind": 4, "two pair": 3, "jacks or better": 2, "no win": 1,
+        ],
+        fivePlay: [
+            "royal flush": 2, "straight flush": 2,
+            "four aces": 2, "four aces + 2-4": 2, "four aces + face": 2,
+            "four 2-4": 2, "four 2-4 + a-4": 2, "four 2-4 + 2-4": 2,
+            "four 5-k": 3, "four of a kind": 3,
+            "four j-k": 3, "four j-k + a-4": 3, "four face": 3,
+            "four face + a-k": 3, "four k/q/j": 3, "four k/q/j + face": 3,
+            "four 2-10": 3, "four 2-6/9-k": 3, "four sevens": 3, "four aces/eights": 3,
+            "full house": 12, "flush": 10, "straight": 8,
+            "three of a kind": 4, "two pair": 3, "jacks or better": 2, "no win": 1,
+        ],
+        tenPlay: [
+            "royal flush": 4, "straight flush": 4,
+            "four aces": 4, "four aces + 2-4": 4, "four aces + face": 4,
+            "four 2-4": 4, "four 2-4 + a-4": 4, "four 2-4 + 2-4": 4,
+            "four 5-k": 3, "four of a kind": 3,
+            "four j-k": 3, "four j-k + a-4": 3, "four face": 3,
+            "four face + a-k": 3, "four k/q/j": 3, "four k/q/j + face": 3,
+            "four 2-10": 3, "four 2-6/9-k": 3, "four sevens": 3, "four aces/eights": 3,
+            "full house": 12, "flush": 10, "straight": 8,
+            "three of a kind": 4, "two pair": 3, "jacks or better": 2, "no win": 1,
+        ]
+    )
+
+    // MARK: Group 4: Triple Double Bonus
+    // Source: Wizard of Odds — ALL quads flat 2x regardless of play count
+
+    private static let tripleDoubleBonus = MultiplierGroup(
+        threePlay: [
+            "royal flush": 2, "straight flush": 2,
+            "four aces": 2, "four aces + 2-4": 2, "four aces + face": 2,
+            "four 2-4": 2, "four 2-4 + a-4": 2, "four 2-4 + 2-4": 2,
+            "four 5-k": 2, "four of a kind": 2,
+            "four j-k": 2, "four j-k + a-4": 2, "four face": 2,
+            "four face + a-k": 2, "four k/q/j": 2, "four k/q/j + face": 2,
+            "four 2-10": 2, "four 2-6/9-k": 2, "four sevens": 2, "four aces/eights": 2,
+            "full house": 12, "flush": 10, "straight": 8,
+            "three of a kind": 4, "two pair": 3, "jacks or better": 2, "no win": 1,
+        ],
+        fivePlay: [
+            "royal flush": 2, "straight flush": 2,
+            "four aces": 2, "four aces + 2-4": 2, "four aces + face": 2,
+            "four 2-4": 2, "four 2-4 + a-4": 2, "four 2-4 + 2-4": 2,
+            "four 5-k": 2, "four of a kind": 2,
+            "four j-k": 2, "four j-k + a-4": 2, "four face": 2,
+            "four face + a-k": 2, "four k/q/j": 2, "four k/q/j + face": 2,
+            "four 2-10": 2, "four 2-6/9-k": 2, "four sevens": 2, "four aces/eights": 2,
+            "full house": 12, "flush": 10, "straight": 8,
+            "three of a kind": 4, "two pair": 3, "jacks or better": 2, "no win": 1,
+        ],
+        tenPlay: [
+            "royal flush": 2, "straight flush": 2,
+            "four aces": 2, "four aces + 2-4": 2, "four aces + face": 2,
+            "four 2-4": 2, "four 2-4 + a-4": 2, "four 2-4 + 2-4": 2,
+            "four 5-k": 2, "four of a kind": 2,
+            "four j-k": 2, "four j-k + a-4": 2, "four face": 2,
+            "four face + a-k": 2, "four k/q/j": 2, "four k/q/j + face": 2,
+            "four 2-10": 2, "four 2-6/9-k": 2, "four sevens": 2, "four aces/eights": 2,
+            "full house": 12, "flush": 10, "straight": 8,
+            "three of a kind": 4, "two pair": 3, "jacks or better": 2, "no win": 1,
+        ]
+    )
+
+    // MARK: Group 5: Deuces Wild
+    // Source: Wizard of Odds — completely different structure; SF=12x, 4oK=7x, FH=Flush=5x
+    // KEY NOTE: HandEvaluator.evaluateDeucesWild returns "Natural Royal" and "Wild Royal"
+    // (not "Natural Royal Flush" / "Wild Royal Flush"). Keys must match after lowercasing.
+
+    private static let deucesWild = MultiplierGroup(
+        threePlay: [
+            "natural royal": 2, "four deuces": 2, "wild royal": 2,
+            "five of a kind": 2, "straight flush": 12, "four of a kind": 7,
+            "full house": 5, "flush": 5, "straight": 3, "three of a kind": 2,
+            "no win": 1,
+        ],
+        fivePlay: [
+            "natural royal": 2, "four deuces": 2, "wild royal": 2,
+            "five of a kind": 3, "straight flush": 12, "four of a kind": 7,
+            "full house": 5, "flush": 5, "straight": 3, "three of a kind": 2,
+            "no win": 1,
+        ],
+        tenPlay: [
+            "natural royal": 4, "four deuces": 4, "wild royal": 4,
+            "five of a kind": 3, "straight flush": 12, "four of a kind": 7,
+            "full house": 5, "flush": 5, "straight": 3, "three of a kind": 2,
+            "no win": 1,
+        ]
+    )
 }
 
 // MARK: - Ultimate X Strategy Result
