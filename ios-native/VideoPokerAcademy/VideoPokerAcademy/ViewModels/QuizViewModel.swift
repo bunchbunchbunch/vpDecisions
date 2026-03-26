@@ -5,6 +5,8 @@ struct QuizHand: Identifiable {
     let id = UUID()
     let hand: Hand
     let strategyResult: StrategyResult
+    var currentMultiplier: Double = 1.0
+    var uxResult: UltimateXStrategyResult? = nil
     var userHoldIndices: [Int] = []
     var isCorrect: Bool = false
     var category: HandCategory = .mixedDecisions
@@ -25,6 +27,9 @@ class QuizViewModel: ObservableObject {
     @Published var correctCount = 0
     @Published var evLost: Double = 0
     @Published var showSwipeTip = true
+    @Published var isComputingHandUX: Bool = false
+
+    private var uxPrefetchTask: Task<Void, Never>?
 
     // Dealt winner celebration
     @Published var showDealtWinner = false
@@ -33,21 +38,33 @@ class QuizViewModel: ObservableObject {
     let quizSize: Int
     let paytableId: String
     let weakSpotsMode: Bool
+    let isUltimateXMode: Bool
+    let ultimateXPlayCount: UltimateXPlayCount
 
     private var handStartTime: Date?
     private let audioService = AudioService.shared
     private let hapticService = HapticService.shared
 
-    init(paytableId: String, weakSpotsMode: Bool = false, quizSize: Int = 25) {
+    init(paytableId: String, weakSpotsMode: Bool = false, quizSize: Int = 25,
+         isUltimateXMode: Bool = false, ultimateXPlayCount: UltimateXPlayCount = .ten) {
         self.paytableId = paytableId
         self.weakSpotsMode = weakSpotsMode
         self.quizSize = quizSize
+        self.isUltimateXMode = isUltimateXMode
+        self.ultimateXPlayCount = ultimateXPlayCount
         debugNSLog("📊 QuizViewModel initialized with paytableId: %@, quizSize: %d", paytableId, quizSize)
     }
 
     var currentHand: QuizHand? {
         guard currentIndex < hands.count else { return nil }
         return hands[currentIndex]
+    }
+
+    /// Display string for the current hand's multiplier (UX mode only), e.g. "3×".
+    /// Returns nil for a 1× multiplier to suppress the badge on non-bonus hands.
+    var currentMultiplierDisplay: String? {
+        guard isUltimateXMode, let hand = currentHand, hand.currentMultiplier > 1.0 else { return nil }
+        return String(format: "%.0f×", hand.currentMultiplier)
     }
 
     var progressText: String {
@@ -104,9 +121,19 @@ class QuizViewModel: ObservableObject {
                         debugNSLog("🔍 First hand lookup using paytableId: %@, hand: %@", paytableId, hand.canonicalKey)
                     }
 
-                    let quizHand = QuizHand(hand: hand, strategyResult: result)
-                    foundHands.append(quizHand)
-                    loadingProgress = foundHands.count
+                    if isUltimateXMode {
+                        // Assign multiplier now; UX result computed lazily
+                        let family = PayTable.allPayTables.first(where: { $0.id == paytableId })?.family ?? .jacksOrBetter
+                        let possibleMults = UltimateXMultiplierTable.possibleMultipliers(for: ultimateXPlayCount, family: family)
+                        var quizHand = QuizHand(hand: hand, strategyResult: result)
+                        quizHand.currentMultiplier = Double(possibleMults.randomElement() ?? 1)
+                        foundHands.append(quizHand)
+                        loadingProgress = foundHands.count
+                    } else {
+                        let quizHand = QuizHand(hand: hand, strategyResult: result)
+                        foundHands.append(quizHand)
+                        loadingProgress = foundHands.count
+                    }
                 }
             } catch {
                 debugLog("Error looking up strategy: \(error)")
@@ -114,6 +141,12 @@ class QuizViewModel: ObservableObject {
         }
 
         hands = foundHands
+
+        // UX mode: compute hand 0 before showing quiz
+        if isUltimateXMode && !hands.isEmpty {
+            await computeUX(for: 0)
+        }
+
         isLoading = false
         handStartTime = Date()
 
@@ -122,6 +155,11 @@ class QuizViewModel: ObservableObject {
 
         // Check if first hand is a dealt winner
         await checkDealtWinner()
+
+        // Start background prefetch for hands 1+ (after checkDealtWinner)
+        if isUltimateXMode {
+            startUXPrefetch(from: 1)
+        }
     }
 
     func toggleCard(_ index: Int) {
@@ -138,6 +176,21 @@ class QuizViewModel: ObservableObject {
 
     func submit() {
         guard let currentHand = currentHand, !showFeedback else { return }
+
+        // Safety net: if UX result not yet ready (rare race condition), compute it first
+        if isUltimateXMode, currentHand.uxResult == nil {
+            Task {
+                isComputingHandUX = true
+                await computeUX(for: currentIndex)
+                isComputingHandUX = false
+                if hands[currentIndex].uxResult != nil {
+                    submit()
+                }
+                // If uxResult still nil after lookup (e.g. network failure), don't loop —
+                // isComputingHandUX is reset to false so user can try again.
+            }
+            return
+        }
 
         audioService.play(.submit)
 
@@ -168,10 +221,20 @@ class QuizViewModel: ObservableObject {
         }
 
         // Check if user's hold is tied for best EV (not just exact match with bestHold)
-        let correct = currentHand.strategyResult.isHoldTiedForBest(userCanonicalHold)
+        let correct: Bool
+        if isUltimateXMode, let uxResult = currentHand.uxResult {
+            correct = uxResult.isAdjustedHoldTiedForBest(userCanonicalHold)
+        } else {
+            correct = currentHand.strategyResult.isHoldTiedForBest(userCanonicalHold)
+        }
 
         // For category assignment, use the primary best hold
-        let canonicalBestHold = currentHand.strategyResult.bestHoldIndices
+        let canonicalBestHold: [Int]
+        if isUltimateXMode, let uxResult = currentHand.uxResult {
+            canonicalBestHold = uxResult.adjustedBestHoldIndices
+        } else {
+            canonicalBestHold = currentHand.strategyResult.bestHoldIndices
+        }
         let correctHold = currentHand.hand.canonicalIndicesToOriginal(canonicalBestHold).sorted()
 
         // Update the current hand
@@ -185,10 +248,14 @@ class QuizViewModel: ObservableObject {
         // Calculate EV difference if wrong
         evLost = 0
         if !correct {
-            let userCanonicalHold = currentHand.hand.originalIndicesToCanonical(userHold)
-            let userCanonicalBitmask = Hand.bitmaskFromHoldIndices(userCanonicalHold)
-            if let userEv = currentHand.strategyResult.holdEvs[String(userCanonicalBitmask)] {
-                evLost = currentHand.strategyResult.bestEv - userEv
+            if isUltimateXMode, let uxResult = currentHand.uxResult {
+                if let userAdjustedEv = uxResult.adjustedHoldEvs[String(userBitmask)] {
+                    evLost = uxResult.adjustedBestEv - userAdjustedEv
+                }
+            } else {
+                if let userEv = currentHand.strategyResult.holdEvs[String(userBitmask)] {
+                    evLost = currentHand.strategyResult.bestEv - userEv
+                }
             }
         }
 
@@ -275,6 +342,34 @@ class QuizViewModel: ObservableObject {
 
     // MARK: - Helpers
 
+    /// Computes and stores the UX strategy result for the hand at `index`.
+    /// No-op if uxResult is already set or index is out of bounds.
+    private func computeUX(for index: Int) async {
+        guard index < hands.count, hands[index].uxResult == nil else { return }
+        let quizHand = hands[index]
+        if let uxResult = try? await UltimateXStrategyService.shared.lookup(
+            hand: quizHand.hand,
+            paytableId: paytableId,
+            currentMultiplier: quizHand.currentMultiplier,
+            playCount: ultimateXPlayCount
+        ) {
+            hands[index].uxResult = uxResult
+        }
+    }
+
+    /// Starts a background Task that computes UX results for hands starting at `startIndex`.
+    /// Cancels any existing prefetch task first.
+    private func startUXPrefetch(from startIndex: Int) {
+        uxPrefetchTask?.cancel()
+        uxPrefetchTask = Task { [weak self] in
+            guard let self else { return }
+            for i in startIndex..<self.hands.count {
+                guard !Task.isCancelled else { return }
+                await self.computeUX(for: i)
+            }
+        }
+    }
+
     private func saveAttempt() async {
         guard let user = SupabaseService.shared.currentUser,
               let currentHand = currentHand else { return }
@@ -290,7 +385,12 @@ class QuizViewModel: ObservableObject {
         let userHold = Array(selectedIndices).sorted()
 
         // Convert canonical best hold to original order for storage
-        let canonicalBestHold = currentHand.strategyResult.bestHoldIndices
+        let canonicalBestHold: [Int]
+        if isUltimateXMode, let uxResult = currentHand.uxResult {
+            canonicalBestHold = uxResult.adjustedBestHoldIndices
+        } else {
+            canonicalBestHold = currentHand.strategyResult.bestHoldIndices
+        }
         let correctHold = currentHand.hand.canonicalIndicesToOriginal(canonicalBestHold)
 
         // Calculate EV difference if wrong
@@ -299,8 +399,14 @@ class QuizViewModel: ObservableObject {
             // Convert user's hold from original to canonical order for EV lookup
             let userCanonicalHold = currentHand.hand.originalIndicesToCanonical(userHold)
             let userCanonicalBitmask = Hand.bitmaskFromHoldIndices(userCanonicalHold)
-            if let userEv = currentHand.strategyResult.holdEvs[String(userCanonicalBitmask)] {
-                evDifference = currentHand.strategyResult.bestEv - userEv
+            if isUltimateXMode, let uxResult = currentHand.uxResult {
+                if let userAdjustedEv = uxResult.adjustedHoldEvs[String(userCanonicalBitmask)] {
+                    evDifference = uxResult.adjustedBestEv - userAdjustedEv
+                }
+            } else {
+                if let userEv = currentHand.strategyResult.holdEvs[String(userCanonicalBitmask)] {
+                    evDifference = currentHand.strategyResult.bestEv - userEv
+                }
             }
         }
 
@@ -330,5 +436,8 @@ class QuizViewModel: ObservableObject {
         loadingProgress = 0
         isQuizComplete = false
         correctCount = 0
+        uxPrefetchTask?.cancel()
+        uxPrefetchTask = nil
+        isComputingHandUX = false
     }
 }

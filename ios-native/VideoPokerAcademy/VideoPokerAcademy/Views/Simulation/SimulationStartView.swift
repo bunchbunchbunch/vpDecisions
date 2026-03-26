@@ -45,6 +45,14 @@ struct SimulationStartView: View {
                             linesPicker
                         }
 
+                        // Variant selector
+                        variantSection
+
+                        // Play count (UX only)
+                        if viewModel.isUltimateXMode {
+                            playCountSection
+                        }
+
                         // Hands per simulation
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Hands per Simulation")
@@ -164,6 +172,42 @@ struct SimulationStartView: View {
             presets: [1, 5, 10, 100],
             color: AppTheme.Colors.simulation
         )
+    }
+
+    private var variantSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Variant")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            FlowLayout(spacing: 8) {
+                SelectionChip(title: "Standard", isSelected: !viewModel.isUltimateXMode) {
+                    viewModel.isUltimateXMode = false
+                }
+                SelectionChip(title: "Ult X", isSelected: viewModel.isUltimateXMode) {
+                    viewModel.isUltimateXMode = true
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var playCountSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Play Count")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            FlowLayout(spacing: 8) {
+                ForEach(UltimateXPlayCount.allCases) { count in
+                    SelectionChip(
+                        title: count.displayName,
+                        isSelected: viewModel.ultimateXPlayCount == count
+                    ) {
+                        viewModel.ultimateXPlayCount = count
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     private var handsPerSimPicker: some View {

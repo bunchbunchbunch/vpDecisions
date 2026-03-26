@@ -28,6 +28,9 @@
 		8720FF5D6D5648168660707E /* UltimateXEKTableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D694C0DDBBC4FACA4543603 /* UltimateXEKTableTests.swift */; };
 		7C313BD7433D064BEE34C358 /* UltimateXStrategyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F62D765B4396467ADCF3478 /* UltimateXStrategyServiceTests.swift */; };
 		D8EB5726E611400B977771C1 /* UltimateXPlayModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2514F49F380F49DEAC52EDBD /* UltimateXPlayModeTests.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* UltimateXQuizTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5067182930A4B5D /* UltimateXQuizTests.swift */; };
+		C2D3E4F5A6B70819304A5B6D /* UltimateXSimulationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E4F5A6B7C80920415B6C7E /* UltimateXSimulationTests.swift */; };
+		D3E4F5A6B7C80920415B6C7F /* UXSimulationStatsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F5A6B7C80920415B6C7E00 /* UXSimulationStatsTests.swift */; };
 		2758C786DA69D37C5A02FE1A /* MultiHandGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FC587C11E7733A811504448 /* MultiHandGrid.swift */; };
 		29231BE1D31D2CDB1820DA76 /* strategy_bonus_poker_8_5.json in Resources */ = {isa = PBXBuildFile; fileRef = 6F344A9B558456C4B1E85527 /* strategy_bonus_poker_8_5.json */; };
 		2A7838060FFE53454673F542 /* ResetPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23BCDCB40917EDC8ED7B5AB4 /* ResetPasswordView.swift */; };
@@ -213,6 +216,9 @@
 		9D694C0DDBBC4FACA4543603 /* UltimateXEKTableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXEKTableTests.swift; sourceTree = "<group>"; };
 		9F62D765B4396467ADCF3478 /* UltimateXStrategyServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXStrategyServiceTests.swift; sourceTree = "<group>"; };
 		2514F49F380F49DEAC52EDBD /* UltimateXPlayModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXPlayModeTests.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5067182930A4B5D /* UltimateXQuizTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXQuizTests.swift; sourceTree = "<group>"; };
+		D3E4F5A6B7C80920415B6C7E /* UltimateXSimulationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXSimulationTests.swift; sourceTree = "<group>"; };
+		E4F5A6B7C80920415B6C7E00 /* UXSimulationStatsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UXSimulationStatsTests.swift; sourceTree = "<group>"; };
 		49D29DC4D6A6DF4CD2CBF0E6 /* SimulationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationModels.swift; sourceTree = "<group>"; };
 		4CAEB3689258109EA53DE58B /* PlayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayViewModel.swift; sourceTree = "<group>"; };
 		525F1DE06BD8B044BADE8E84 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
@@ -709,6 +715,9 @@
 				9D694C0DDBBC4FACA4543603 /* UltimateXEKTableTests.swift */,
 				9F62D765B4396467ADCF3478 /* UltimateXStrategyServiceTests.swift */,
 				2514F49F380F49DEAC52EDBD /* UltimateXPlayModeTests.swift */,
+				B1C2D3E4F5067182930A4B5D /* UltimateXQuizTests.swift */,
+			D3E4F5A6B7C80920415B6C7E /* UltimateXSimulationTests.swift */,
+			E4F5A6B7C80920415B6C7E00 /* UXSimulationStatsTests.swift */,
 			A74BA337321B74B9C1E403A4 /* VoiceServiceTests.swift */,
 			);
 			path = VideoPokerAcademyTests;
@@ -843,6 +852,9 @@
 				8720FF5D6D5648168660707E /* UltimateXEKTableTests.swift in Sources */,
 				7C313BD7433D064BEE34C358 /* UltimateXStrategyServiceTests.swift in Sources */,
 				D8EB5726E611400B977771C1 /* UltimateXPlayModeTests.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* UltimateXQuizTests.swift in Sources */,
+			C2D3E4F5A6B70819304A5B6D /* UltimateXSimulationTests.swift in Sources */,
+			D3E4F5A6B7C80920415B6C7F /* UXSimulationStatsTests.swift in Sources */,
 			698DDD3FA6BAA41CE5361936 /* VoiceServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -7,6 +7,7 @@ struct SimulationResultsView: View {
     @State private var showBankrollChart = true
     @State private var showWinDistribution = true
     @State private var showRunDetails = false
+    @State private var showUXStats = true
 
     var body: some View {
         GeometryReader { geometry in
@@ -23,6 +24,9 @@ struct SimulationResultsView: View {
 
                     // Statistics grid
                     statisticsGrid
+
+                    // UX multiplier stats (UX mode only)
+                    uxStatsSection
 
                     // Charts section
                     chartsSection
@@ -179,6 +183,144 @@ struct SimulationResultsView: View {
                 runDetailsTable(runs: results.runs)
                     .padding(.bottom)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var uxStatsSection: some View {
+        if let results = viewModel.results, results.config.isUltimateXMode {
+            VStack(spacing: 16) {
+                Text("ULTIMATE X MULTIPLIERS")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                chartToggle(title: "Multiplier Distribution", icon: "waveform.badge.magnifyingglass", isExpanded: $showUXStats)
+
+                if showUXStats {
+                    VStack(spacing: 16) {
+                        multiplierDistributionChart(results: results)
+                        topWinsList(results: results)
+                    }
+                    .padding(.bottom)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func multiplierDistributionChart(results: SimulationResults) -> some View {
+        let dist = results.aggregatedUXMultiplierDistribution
+        if dist.isEmpty {
+            EmptyView()
+        } else {
+            let total = dist.values.reduce(0, +)
+            let sortedDist = dist.sorted { $0.key < $1.key }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("% of Lines by Active Multiplier")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                Chart {
+                    ForEach(sortedDist, id: \.key) { multiplier, count in
+                        let pct = total > 0 ? Double(count) / Double(total) * 100 : 0
+                        BarMark(
+                            x: .value("Frequency", pct),
+                            y: .value("Multiplier", "\(multiplier)×")
+                        )
+                        .foregroundStyle(multiplierColor(multiplier).gradient)
+                        .annotation(position: .trailing) {
+                            Text(String(format: "%.1f%%", pct))
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .chartXAxisLabel("% of Lines")
+                .frame(height: CGFloat(sortedDist.count) * 36 + 40)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func topWinsList(results: SimulationResults) -> some View {
+        let wins = results.topUXBigWins
+        if wins.isEmpty {
+            EmptyView()
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Top Multiplied Wins")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                VStack(spacing: 4) {
+                    ForEach(Array(wins.enumerated()), id: \.offset) { rank, win in
+                        HStack(spacing: 10) {
+                            Text("#\(rank + 1)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .frame(width: 28, alignment: .leading)
+
+                            Text(win.handName)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(handColor(win.handName))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            Text("\(win.multiplier)×")
+                                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                                .foregroundColor(Color(hex: "FFD700"))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color(hex: "FFD700").opacity(0.15))
+                                .cornerRadius(4)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(Color(hex: "FFD700").opacity(0.4), lineWidth: 1)
+                                )
+
+                            Text(formatCurrency(win.payoutDollars))
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.green)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                                .frame(width: 80, alignment: .trailing)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(rank % 2 == 0 ? Color(.systemGray6) : Color.clear)
+                        .cornerRadius(6)
+                    }
+                }
+            }
+        }
+    }
+
+    private func multiplierColor(_ multiplier: Int) -> Color {
+        switch multiplier {
+        case 12: return .purple
+        case 11: return .indigo
+        case 7:  return .blue
+        case 5:  return .mint
+        case 4:  return .teal
+        case 3:  return .cyan
+        case 2:  return AppTheme.Colors.simulation
+        default: return Color(.systemGray3)
+        }
+    }
+
+    private func handColor(_ handName: String) -> Color {
+        switch handName {
+        case "Royal Flush", "Natural Royal": return .purple
+        case "Straight Flush":              return .blue
+        case "Four of a Kind", "Four Aces", "Four 2-4", "Four 5-K", "Five of a Kind": return .indigo
+        case "Full House", "Wild Royal":    return .teal
+        case "Flush":                       return .cyan
+        case "Straight":                    return .green
+        default:                            return .primary
         }
     }
 

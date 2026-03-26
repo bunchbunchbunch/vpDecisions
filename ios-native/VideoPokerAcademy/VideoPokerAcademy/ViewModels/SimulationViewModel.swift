@@ -18,6 +18,8 @@ class SimulationViewModel: ObservableObject {
     @Published var selectedLinesPerHand: Int = 10
     @Published var selectedHandsPerSim: Int = 1000
     @Published var selectedNumSims: Int = 100
+    @Published var isUltimateXMode: Bool = false
+    @Published var ultimateXPlayCount: UltimateXPlayCount = .ten
 
     // Cancellation support
     private var simulationTask: Task<Void, Never>?
@@ -34,9 +36,16 @@ class SimulationViewModel: ObservableObject {
     }
 
     var totalWageredSummary: String {
-        let betPerHand = Double(5 * selectedLinesPerHand) * selectedDenomination.rawValue
-        let total = betPerHand * Double(selectedHandsPerSim * selectedNumSims)
-        return formatCurrency(total) + " total wagered"
+        let previewConfig = SimulationConfig(
+            paytableId: selectedPaytableId,
+            denomination: selectedDenomination,
+            linesPerHand: selectedLinesPerHand,
+            handsPerSimulation: selectedHandsPerSim,
+            numberOfSimulations: selectedNumSims,
+            isUltimateXMode: isUltimateXMode,
+            playCount: ultimateXPlayCount
+        )
+        return formatCurrency(previewConfig.totalWagered) + " total wagered"
     }
 
     // MARK: - Actions
@@ -48,7 +57,9 @@ class SimulationViewModel: ObservableObject {
             denomination: selectedDenomination,
             linesPerHand: selectedLinesPerHand,
             handsPerSimulation: selectedHandsPerSim,
-            numberOfSimulations: selectedNumSims
+            numberOfSimulations: selectedNumSims,
+            isUltimateXMode: isUltimateXMode,
+            playCount: ultimateXPlayCount
         )
 
         // Initialize state
@@ -100,6 +111,8 @@ class SimulationViewModel: ObservableObject {
         let linesPerHand = config.linesPerHand
         let handsPerSim = config.handsPerSimulation
         let numSims = config.numberOfSimulations
+        let isUltimateX = config.isUltimateXMode
+        let playCount = config.playCount
 
         simulationTask = Task.detached(priority: .userInitiated) { [weak self] in
             for runNum in 0..<numSims {
@@ -110,7 +123,9 @@ class SimulationViewModel: ObservableObject {
                     paytableId: paytableId,
                     denomination: denomination,
                     linesPerHand: linesPerHand,
-                    handsPerSimulation: handsPerSim
+                    handsPerSimulation: handsPerSim,
+                    isUltimateX: isUltimateX,
+                    playCount: playCount
                 )
 
                 if let run = run {
@@ -167,12 +182,23 @@ class SimulationViewModel: ObservableObject {
         paytableId: String,
         denomination: BetDenomination,
         linesPerHand: Int,
-        handsPerSimulation: Int
+        handsPerSimulation: Int,
+        isUltimateX: Bool,
+        playCount: UltimateXPlayCount
     ) async -> SimulationRun {
         var run = SimulationRun(runNumber: runNumber)
         var bankroll: Double = 0
 
-        let betPerHand = Double(5 * linesPerHand) * denomination.rawValue
+        // UX: each line maintains its own multiplier state across hands
+        var lineMultipliers = Array(repeating: 1, count: linesPerHand)
+        // Cache family lookup to avoid O(n) scan inside the inner loop
+        let family: GameFamily = isUltimateX
+            ? (PayTable.allPayTables.first(where: { $0.id == paytableId })?.family ?? .jacksOrBetter)
+            : .jacksOrBetter
+
+        // UX: bet is 2× coins per line (10 coins vs 5 for standard)
+        let coinsPerLine = isUltimateX ? 10 : 5
+        let betPerHand = Double(coinsPerLine * linesPerHand) * denomination.rawValue
 
         for handNum in 0..<handsPerSimulation {
             // Check cancellation periodically
@@ -196,7 +222,7 @@ class SimulationViewModel: ObservableObject {
 
             // Play all lines
             var lineWinnings: Double = 0
-            for _ in 0..<linesPerHand {
+            for lineIdx in 0..<linesPerHand {
                 // Fresh deck for each line (minus dealt cards)
                 var lineDeck = Card.shuffledDeck()
                 lineDeck.removeAll { card in
@@ -211,7 +237,8 @@ class SimulationViewModel: ObservableObject {
                 )
 
                 let result = evaluateHand(finalHand, paytableId: paytableId)
-                let payoutCredits = result.payout
+                let lineMultiplier = isUltimateX ? lineMultipliers[lineIdx] : 1
+                let payoutCredits = result.payout * lineMultiplier
                 let payoutDollars = Double(payoutCredits) * denomination.rawValue
 
                 lineWinnings += payoutDollars
@@ -223,6 +250,27 @@ class SimulationViewModel: ObservableObject {
 
                 if let handName = result.handName {
                     run.winsByHandType[handName, default: 0] += 1
+                }
+
+                // UX: update this line's multiplier for next hand
+                if isUltimateX {
+                    // Track multiplier distribution (the multiplier active for this line-hand)
+                    run.uxMultiplierDistribution[lineMultiplier, default: 0] += 1
+
+                    // Track top wins (only non-zero payouts)
+                    if let handName = result.handName, payoutDollars > 0 {
+                        run.uxTopWins.append(UXBigWin(handName: handName, multiplier: lineMultiplier, payoutDollars: payoutDollars))
+                        run.uxTopWins.sort { $0.payoutDollars > $1.payoutDollars }
+                        if run.uxTopWins.count > 5 {
+                            run.uxTopWins = Array(run.uxTopWins.prefix(5))
+                        }
+                    }
+
+                    lineMultipliers[lineIdx] = UltimateXMultiplierTable.multiplier(
+                        for: result.handName ?? "",
+                        playCount: playCount,
+                        family: family
+                    )
                 }
             }
 

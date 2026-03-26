@@ -284,6 +284,9 @@ struct QuizPlayView: View {
                 )
                 .shadow(radius: 3)
 
+            // Multiplier badge (UX mode only)
+            multiplierBadge
+
             VStack(spacing: 4) {
                 // Dealt winner banner at top
                 if viewModel.showDealtWinner, let handName = viewModel.dealtWinnerName {
@@ -367,6 +370,33 @@ struct QuizPlayView: View {
         .frame(width: width, height: height)
     }
 
+    // MARK: - Multiplier Badge
+
+    @ViewBuilder
+    private var multiplierBadge: some View {
+        if let display = viewModel.currentMultiplierDisplay {
+            VStack {
+                HStack {
+                    Spacer()
+                    Text(display)
+                        .font(.system(size: 15, weight: .bold, design: .monospaced))
+                        .foregroundColor(Color(hex: "FFD700"))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Color(hex: "FFD700").opacity(0.15))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color(hex: "FFD700").opacity(0.4), lineWidth: 1)
+                        )
+                    Spacer()
+                }
+                .padding(.top, 8)
+                Spacer()
+            }
+        }
+    }
+
     // MARK: - Portrait Cards Area View
 
     private func cardsAreaView(geometry: GeometryProxy) -> some View {
@@ -438,6 +468,9 @@ struct QuizPlayView: View {
                 .frame(height: 100)
                 .padding(.horizontal)
             }
+
+            // Multiplier badge (UX mode only)
+            multiplierBadge
 
             // Dealt winner banner (overlay above cards)
             VStack {
@@ -546,7 +579,16 @@ struct QuizPlayView: View {
 
     // MARK: - EV Options Table
 
+    @ViewBuilder
     private func evOptionsTable(for quizHand: QuizHand) -> some View {
+        if viewModel.isUltimateXMode, let uxResult = quizHand.uxResult {
+            uxEvOptionsTable(for: quizHand, uxResult: uxResult)
+        } else {
+            baseEvOptionsTable(for: quizHand)
+        }
+    }
+
+    private func baseEvOptionsTable(for quizHand: QuizHand) -> some View {
         // Get user's hold in canonical order for prioritization
         let userCanonicalHold = quizHand.hand.originalIndicesToCanonical(quizHand.userHoldIndices)
         let options = quizHand.strategyResult.sortedHoldOptionsPrioritizingUser(userCanonicalHold)
@@ -628,6 +670,110 @@ struct QuizPlayView: View {
         .padding(.vertical, 4)
     }
 
+    private func uxEvOptionsTable(for quizHand: QuizHand, uxResult: UltimateXStrategyResult) -> some View {
+        let holdOpts = uxResult.holdOptions(for: quizHand.hand)
+        let userCanonicalHold = quizHand.hand.originalIndicesToCanonical(quizHand.userHoldIndices)
+        let userBitmask = Hand.bitmaskFromHoldIndices(userCanonicalHold)
+
+        // Top 5 + user's pick if outside top 5
+        let top5 = Array(holdOpts.prefix(5))
+        let userInTop5 = top5.contains { $0.id == userBitmask }
+        let displayedOpts: [UltimateXHoldOption]
+        if !userInTop5, let userOpt = holdOpts.first(where: { $0.id == userBitmask }) {
+            displayedOpts = top5 + [userOpt]
+        } else {
+            displayedOpts = top5
+        }
+
+        return VStack(spacing: 8) {
+            // Header
+            HStack {
+                Text("Rank")
+                    .font(.caption).fontWeight(.bold)
+                    .frame(width: 36, alignment: .leading)
+                Text("Hold")
+                    .font(.caption).fontWeight(.bold)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("Base")
+                    .font(.caption).fontWeight(.bold)
+                    .foregroundColor(.secondary)
+                    .frame(width: 50, alignment: .trailing)
+                Text("E[K]")
+                    .font(.caption).fontWeight(.bold)
+                    .foregroundColor(Color(hex: "FFD700"))
+                    .frame(width: 44, alignment: .trailing)
+                Text("Adj EV")
+                    .font(.caption).fontWeight(.bold)
+                    .frame(width: 56, alignment: .trailing)
+            }
+            .padding(.horizontal, 12).padding(.vertical, 6)
+            .background(Color(.systemGray5)).cornerRadius(8)
+
+            // Rows
+            VStack(spacing: 4) {
+                ForEach(Array(displayedOpts.enumerated()), id: \.element.id) { idx, option in
+                    let actualIndex = holdOpts.firstIndex { $0.id == option.id } ?? idx
+                    let isBest = uxResult.rankForAdjustedOption(at: actualIndex) == 1
+                    let isUserSelection = viewModel.showFeedback && option.id == userBitmask
+                    let optionCards = option.holdIndices.map { quizHand.hand.cards[$0] }
+
+                    HStack(spacing: 8) {
+                        // Rank (handles ties)
+                        Text("\(uxResult.rankForAdjustedOption(at: actualIndex))")
+                            .font(.subheadline)
+                            .fontWeight(isBest ? .bold : .regular)
+                            .frame(width: 36, alignment: .leading)
+
+                        // Hold cards
+                        if optionCards.isEmpty {
+                            Text("Discard All")
+                                .font(.subheadline)
+                                .fontWeight(isBest ? .bold : .regular)
+                                .italic()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            HStack(spacing: 4) {
+                                ForEach(optionCards, id: \.id) { card in
+                                    Text(card.displayText)
+                                        .font(.subheadline)
+                                        .foregroundColor(card.suit.color)
+                                        .fontWeight(isBest ? .bold : .regular)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+
+                        // Base EV
+                        Text(String(format: "%.3f", option.baseEV))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(width: 50, alignment: .trailing)
+
+                        // E[K] (expected multiplier awarded)
+                        Text(String(format: "%.2f×", option.eKAwarded))
+                            .font(.caption)
+                            .foregroundColor(Color(hex: "FFD700"))
+                            .frame(width: 44, alignment: .trailing)
+
+                        // Adj EV
+                        Text(String(format: "%.3f", option.adjustedEV))
+                            .font(.subheadline)
+                            .fontWeight(isBest ? .bold : .regular)
+                            .frame(width: 56, alignment: .trailing)
+                    }
+                    .padding(.horizontal, 12).padding(.vertical, 8)
+                    .background(
+                        isUserSelection && !viewModel.isCorrect
+                            ? Color(hex: "FFA726").opacity(0.3)
+                            : (isBest ? Color(hex: "667eea").opacity(0.2) : Color(.systemGray6))
+                    )
+                    .cornerRadius(6)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
     // MARK: - Action Button
 
     private var actionButton: some View {
@@ -645,6 +791,7 @@ struct QuizPlayView: View {
         }
         .buttonStyle(.borderedProminent)
         .tint(viewModel.showFeedback ? Color(hex: "3498db") : Color(hex: "667eea"))
+        .disabled(viewModel.isComputingHandUX)
     }
 
     private var buttonText: String {

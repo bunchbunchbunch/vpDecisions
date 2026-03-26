@@ -2,7 +2,7 @@ import SwiftUI
 
 enum AppScreen: Hashable {
     case quizStart
-    case quizPlay(paytableId: String, weakSpotsMode: Bool, quizSize: Int)
+    case quizPlay(paytableId: String, weakSpotsMode: Bool, quizSize: Int, isUltimateXMode: Bool, playCount: UltimateXPlayCount)
     case quizResults
     case mastery
     case analyzer
@@ -371,12 +371,14 @@ struct HomeView: View {
                 selectedPaytable: $selectedPaytable,
                 weakSpotsMode: $weakSpotsMode
             )
-        case .quizPlay(let paytableId, let weakSpotsMode, let quizSize):
+        case .quizPlay(let paytableId, let weakSpotsMode, let quizSize, let isUltimateXMode, let playCount):
             QuizPlayView(
                 viewModel: QuizViewModel(
                     paytableId: paytableId,
                     weakSpotsMode: weakSpotsMode,
-                    quizSize: quizSize
+                    quizSize: quizSize,
+                    isUltimateXMode: isUltimateXMode,
+                    ultimateXPlayCount: playCount
                 ),
                 navigationPath: $navigationPath
             )
@@ -538,6 +540,8 @@ struct QuizStartView: View {
 
     @State private var selectedPaytableId: String = PayTable.jacksOrBetter96.id
     @State private var selectedQuizSize: Int = 25
+    @State private var isUltimateXMode: Bool = false
+    @State private var ultimateXPlayCount: UltimateXPlayCount = .ten
     @State private var networkMonitor = NetworkMonitor.shared
     @State private var showOfflineAlert = false
 
@@ -591,6 +595,10 @@ struct QuizStartView: View {
                 popularGamesSection
                 allGamesSection
                 quizSizeSection
+                variantSection
+                if isUltimateXMode {
+                    playCountSection
+                }
                 Spacer(minLength: 20)
                 startButtonSection
                     .frame(maxWidth: .infinity)
@@ -623,6 +631,12 @@ struct QuizStartView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     quizSizeSection
+                    Spacer(minLength: 8)
+                    variantSection
+                    if isUltimateXMode {
+                        playCountSection
+                        Spacer(minLength: 8)
+                    }
                     Spacer(minLength: 16)
                     startButtonSection
                     Spacer(minLength: 8)
@@ -745,6 +759,48 @@ struct QuizStartView: View {
         .tourTarget("quizSizeSelector")
     }
 
+    // MARK: - Variant Section
+
+    private var variantSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Variant")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(AppTheme.Colors.textSecondary)
+            FlowLayout(spacing: 8) {
+                SelectionChip(title: "Standard", isSelected: !isUltimateXMode) {
+                    isUltimateXMode = false
+                }
+                SelectionChip(title: "Ult X", isSelected: isUltimateXMode) {
+                    isUltimateXMode = true
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: - Play Count Section
+
+    private var playCountSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Play Count")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(AppTheme.Colors.textSecondary)
+            FlowLayout(spacing: 8) {
+                ForEach(UltimateXPlayCount.allCases) { count in
+                    SelectionChip(
+                        title: count.displayName,
+                        isSelected: ultimateXPlayCount == count
+                    ) {
+                        ultimateXPlayCount = count
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     // MARK: - Start Button Section
 
     private var startButtonSection: some View {
@@ -763,7 +819,9 @@ struct QuizStartView: View {
                     navigationPath.append(AppScreen.quizPlay(
                         paytableId: selectedPaytable.id,
                         weakSpotsMode: weakSpotsMode,
-                        quizSize: selectedQuizSize
+                        quizSize: selectedQuizSize,
+                        isUltimateXMode: isUltimateXMode,
+                        playCount: ultimateXPlayCount
                     ))
                 }
             } label: {

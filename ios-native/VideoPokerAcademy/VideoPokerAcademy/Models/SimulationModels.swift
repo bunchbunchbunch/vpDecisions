@@ -8,6 +8,8 @@ struct SimulationConfig {
     var linesPerHand: Int
     var handsPerSimulation: Int
     var numberOfSimulations: Int
+    var isUltimateXMode: Bool = false
+    var playCount: UltimateXPlayCount = .ten
 
     static let `default` = SimulationConfig(
         paytableId: PayTable.jacksOrBetter96.id,
@@ -24,7 +26,8 @@ struct SimulationConfig {
 
     /// Total amount that will be wagered
     var totalWagered: Double {
-        let betPerHand = Double(5 * linesPerHand) * denomination.rawValue
+        let coinsPerLine = isUltimateXMode ? 10 : 5  // UX: 2 coins/credit → 10 total
+        let betPerHand = Double(coinsPerLine * linesPerHand) * denomination.rawValue
         return betPerHand * Double(handsPerSimulation * numberOfSimulations)
     }
 }
@@ -42,6 +45,10 @@ struct SimulationRun: Identifiable {
     var winsOver2000: Int = 0  // W2G taxable wins
     var bankrollHistory: [Double] = []
     var winsByHandType: [String: Int] = [:]
+
+    // UX mode: multiplier tracking
+    var uxMultiplierDistribution: [Int: Int] = [:]  // multiplier value → count of line-hands
+    var uxTopWins: [UXBigWin] = []                   // top 5 biggest single-line payouts
 
     var netResult: Double {
         totalWon - totalBet
@@ -127,6 +134,23 @@ struct SimulationResults {
         }
         return result
     }
+
+    /// Aggregated multiplier distribution across all runs (UX mode only)
+    var aggregatedUXMultiplierDistribution: [Int: Int] {
+        var result: [Int: Int] = [:]
+        for run in runs {
+            for (multiplier, count) in run.uxMultiplierDistribution {
+                result[multiplier, default: 0] += count
+            }
+        }
+        return result
+    }
+
+    /// Top 5 biggest single-line payouts across all runs (UX mode only)
+    var topUXBigWins: [UXBigWin] {
+        let all = runs.flatMap { $0.uxTopWins }
+        return Array(all.sorted { $0.payoutDollars > $1.payoutDollars }.prefix(5))
+    }
 }
 
 // MARK: - Simulation Phase
@@ -172,6 +196,14 @@ struct SimulationProgress {
 struct SingleHandResult {
     let handName: String?
     let payout: Int  // In credits
+}
+
+// MARK: - UX Big Win Record
+
+struct UXBigWin: Equatable {
+    let handName: String
+    let multiplier: Int
+    let payoutDollars: Double
 }
 
 // MARK: - Hands Per Simulation Options
