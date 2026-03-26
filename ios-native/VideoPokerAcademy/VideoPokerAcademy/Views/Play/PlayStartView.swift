@@ -48,6 +48,7 @@ struct PlayStartView: View {
                 headerSection
                 popularGamesSection
                 allGamesSection
+                variantSection
                 linesSection
                 denominationSection
                 optimalFeedbackToggle
@@ -73,6 +74,8 @@ struct PlayStartView: View {
                     popularGamesSection
                     Spacer(minLength: 10)
                     allGamesSection
+                    Spacer(minLength: 10)
+                    variantSection
                     Spacer(minLength: 10)
                     linesSection
                     Spacer(minLength: 8)
@@ -204,6 +207,42 @@ struct PlayStartView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .tourTarget("linesSelector")
+    }
+
+    // MARK: - Variant Section
+
+    private var variantSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Variant")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(AppTheme.Colors.textSecondary)
+
+            FlowLayout(spacing: 8) {
+                // Standard chip
+                SelectionChip(
+                    title: "Standard",
+                    isSelected: settings.variant == .standard
+                ) {
+                    settings.variant = .standard
+                }
+
+                // Ultimate X chip
+                SelectionChip(
+                    title: "Ult X",
+                    isSelected: settings.variant == .ultimateX
+                ) {
+                    settings.variant = .ultimateX
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if settings.variant == .ultimateX {
+                Text("2× bet cost · \(settings.lineCount.rawValue) simultaneous hands")
+                    .font(.system(size: 12))
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: - Denomination Section

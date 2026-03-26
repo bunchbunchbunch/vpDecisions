@@ -1,5 +1,33 @@
 import Foundation
 
+// MARK: - Play Variant
+
+enum PlayVariant: String, Codable, Equatable, Hashable {
+    case standard
+    case ultimateX
+
+    var isUltimateX: Bool { self == .ultimateX }
+
+    var coinsPerLine: Int { isUltimateX ? 10 : 5 }
+
+    var displayName: String {
+        switch self {
+        case .standard:  return "Standard"
+        case .ultimateX: return "Ult X"
+        }
+    }
+}
+
+// MARK: - Ultimate X Hold Option
+
+struct UltimateXHoldOption: Identifiable {
+    let id: Int           // bitmask
+    let holdIndices: [Int]
+    let baseEV: Double
+    let eKAwarded: Double
+    let adjustedEV: Double  // avgMultiplier × 2 × baseEV + eKAwarded - 1
+}
+
 // MARK: - Bet Denomination
 
 enum BetDenomination: Double, CaseIterable, Codable {
@@ -24,6 +52,7 @@ enum BetDenomination: Double, CaseIterable, Codable {
 
 enum LineCount: Int, CaseIterable, Codable {
     case one = 1
+    case three = 3
     case five = 5
     case ten = 10
     case oneHundred = 100
@@ -31,6 +60,7 @@ enum LineCount: Int, CaseIterable, Codable {
     var displayName: String {
         switch self {
         case .one: return "1 Line"
+        case .three: return "3 Lines"
         case .five: return "5 Lines"
         case .ten: return "10 Lines"
         case .oneHundred: return "100 Lines"
@@ -43,9 +73,10 @@ enum LineCount: Int, CaseIterable, Codable {
 struct HundredPlayTallyResult: Identifiable {
     let id = UUID()
     let handName: String
-    let payPerHand: Int  // Credits per hand at 5 coins
+    let payPerHand: Int  // Credits per hand at 5 coins (base, before multiplier)
     let count: Int
-    let subtotal: Int    // count * payPerHand
+    let subtotal: Int    // Actual total payout (multiplied for UX)
+    var avgAppliedMultiplier: Double = 1.0  // Average multiplier applied (UX only, 1.0 otherwise)
 
     var subtotalDollars: Double {
         Double(subtotal)
@@ -61,14 +92,43 @@ struct PlayHandResult: Identifiable, Codable {
     let handName: String?
     let payout: Int  // In credits (multiply by denomination for dollars)
     let winningIndices: [Int]
+    let appliedMultiplier: Int  // Multiplier applied to THIS hand's payout (1 if none)
+    let earnedMultiplier: Int   // Multiplier this hand earns for NEXT hand (1 if no qualifying win)
 
-    init(lineNumber: Int, finalHand: [Card], handName: String?, payout: Int, winningIndices: [Int]) {
+    init(
+        lineNumber: Int,
+        finalHand: [Card],
+        handName: String?,
+        payout: Int,
+        winningIndices: [Int],
+        appliedMultiplier: Int = 1,
+        earnedMultiplier: Int = 1
+    ) {
         self.id = UUID()
         self.lineNumber = lineNumber
         self.finalHand = finalHand.map { CardData(rank: $0.rank, suit: $0.suit) }
         self.handName = handName
         self.payout = payout
         self.winningIndices = winningIndices
+        self.appliedMultiplier = appliedMultiplier
+        self.earnedMultiplier = earnedMultiplier
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, lineNumber, finalHand, handName, payout, winningIndices
+        case appliedMultiplier, earnedMultiplier
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        lineNumber = try c.decode(Int.self, forKey: .lineNumber)
+        finalHand = try c.decode([CardData].self, forKey: .finalHand)
+        handName = try c.decodeIfPresent(String.self, forKey: .handName)
+        payout = try c.decode(Int.self, forKey: .payout)
+        winningIndices = try c.decode([Int].self, forKey: .winningIndices)
+        appliedMultiplier = try c.decodeIfPresent(Int.self, forKey: .appliedMultiplier) ?? 1
+        earnedMultiplier = try c.decodeIfPresent(Int.self, forKey: .earnedMultiplier) ?? 1
     }
 }
 
@@ -165,16 +225,68 @@ struct PlaySettings: Codable {
     var lineCount: LineCount = .one
     var showOptimalFeedback: Bool = true
     var selectedPaytableId: String = PayTable.lastSelectedId
+    var variant: PlayVariant = .standard
 
-    // Always bet 5 coins per line (max bet)
-    var coinsPerLine: Int { 5 }
+    // Coins per line depends on variant (UX = 10, standard = 5)
+    var coinsPerLine: Int { variant.coinsPerLine }
+
+    var effectiveLineCount: Int { lineCount.rawValue }
+
+    /// Derives UltimateXPlayCount from lineCount for multiplier table lookups.
+    /// Only meaningful when variant == .ultimateX.
+    /// Note: 1-line UX uses the same multiplier table as 3-play (smallest available table).
+    var effectiveUXPlayCount: UltimateXPlayCount {
+        switch lineCount {
+        case .one, .three:      return .three   // 1-line uses 3-play table (smallest available)
+        case .five:             return .five
+        case .ten, .oneHundred: return .ten
+        }
+    }
 
     var totalBetCredits: Int {
-        lineCount.rawValue * coinsPerLine
+        effectiveLineCount * coinsPerLine
     }
 
     var totalBetDollars: Double {
         Double(totalBetCredits) * denomination.rawValue
+    }
+
+    /// Paytable key for stats storage, incorporating the variant suffix.
+    var statsPaytableKey: String {
+        switch variant {
+        case .standard:  return selectedPaytableId
+        case .ultimateX: return selectedPaytableId + "-ux-\(effectiveUXPlayCount.rawValue)play"
+        }
+    }
+
+    // MARK: - Codable (backward-compatible)
+
+    enum CodingKeys: String, CodingKey {
+        case denomination
+        case lineCount
+        case showOptimalFeedback
+        case selectedPaytableId
+        case variant
+    }
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        denomination = try container.decodeIfPresent(BetDenomination.self, forKey: .denomination) ?? .one
+        lineCount = try container.decodeIfPresent(LineCount.self, forKey: .lineCount) ?? .one
+        showOptimalFeedback = try container.decodeIfPresent(Bool.self, forKey: .showOptimalFeedback) ?? true
+        selectedPaytableId = try container.decodeIfPresent(String.self, forKey: .selectedPaytableId) ?? PayTable.lastSelectedId
+        variant = try container.decodeIfPresent(PlayVariant.self, forKey: .variant) ?? .standard
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(denomination, forKey: .denomination)
+        try container.encode(lineCount, forKey: .lineCount)
+        try container.encode(showOptimalFeedback, forKey: .showOptimalFeedback)
+        try container.encode(selectedPaytableId, forKey: .selectedPaytableId)
+        try container.encode(variant, forKey: .variant)
     }
 }
 

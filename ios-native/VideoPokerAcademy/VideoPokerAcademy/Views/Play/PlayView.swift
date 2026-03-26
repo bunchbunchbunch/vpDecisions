@@ -154,9 +154,15 @@ struct PlayView: View {
                 resetWinAnimation()
             }
         }
+        .onAppear {
+            if viewModel.settings.variant.isUltimateX {
+                viewModel.initializeUXMultipliers()
+            }
+        }
         .onDisappear {
             countingTimer?.invalidate()
             countingTimer = nil
+            viewModel.resetUXState()
         }
     }
 
@@ -330,20 +336,32 @@ struct PlayView: View {
             VStack(spacing: 0) {
                 // Multi-hand grid (for 5/10 line modes)
                 if viewModel.settings.lineCount == .oneHundred {
-                    HundredPlayTallyView(
-                        tallyResults: viewModel.phase == .result ? viewModel.hundredPlayTally : [],
-                        denomination: viewModel.settings.denomination.rawValue
-                    )
-                    .frame(height: 160)
+                    VStack(spacing: 0) {
+                        HundredPlayTallyView(
+                            tallyResults: viewModel.phase == .result ? viewModel.hundredPlayTally : [],
+                            denomination: viewModel.settings.denomination.rawValue
+                        )
+                        .frame(height: 160)
+
+                        if viewModel.settings.variant.isUltimateX && viewModel.phase == .result {
+                            Text(String(format: "Avg next-hand multiplier: %.1f×", viewModel.averageNextHandMultiplier))
+                                .font(.system(size: 13))
+                                .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.0))
+                                .padding(.top, 4)
+                        }
+                    }
                     .padding(.horizontal, 8)
-                } else if viewModel.settings.lineCount != .one {
-                    MultiHandGrid(
-                        lineCount: viewModel.settings.lineCount,
-                        results: gridResults,
-                        phase: viewModel.phase,
-                        denomination: viewModel.settings.denomination.rawValue,
-                        showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
-                    )
+                } else if viewModel.settings.effectiveLineCount > 1 {
+                    if let lineCount = LineCount(rawValue: viewModel.settings.effectiveLineCount) {
+                        MultiHandGrid(
+                            lineCount: lineCount,
+                            results: gridResults,
+                            phase: viewModel.phase,
+                            denomination: viewModel.settings.denomination.rawValue,
+                            showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false,
+                            multipliers: viewModel.ultimateXMultipliers
+                        )
+                    }
                 }
 
                 // Compact Paytable Display
@@ -372,8 +390,24 @@ struct PlayView: View {
 
                 Spacer(minLength: 0)
 
-                // EV Options Table (scrollable when visible)
-                if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
+                // UX Strategy Panel (result only) or standard EV table (result only)
+                if viewModel.settings.variant.isUltimateX
+                    && viewModel.settings.showOptimalFeedback
+                    && viewModel.phase == .result {
+                    ScrollView {
+                        UltimateXStrategyPanel(
+                            topHolds: viewModel.ultimateXTopHolds,
+                            selectedIndices: viewModel.selectedIndices,
+                            dealtCards: viewModel.dealtCards,
+                            isComputing: viewModel.isComputingUXStrategy,
+                            userHold: viewModel.ultimateXUserHold,
+                            isComputingUserHold: viewModel.isComputingUXUserHold,
+                            avgMultiplier: viewModel.uxAvgMultiplierUsed
+                        )
+                        .padding(.horizontal)
+                    }
+                    .frame(maxHeight: 200)
+                } else if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
                     ScrollView {
                         evOptionsTable
                             .padding(.horizontal)
@@ -440,25 +474,50 @@ struct PlayView: View {
 
                 // Multi-hand grid area (for 5/10/100 line modes)
                 if viewModel.settings.lineCount == .oneHundred {
-                    HundredPlayTallyView(
-                        tallyResults: viewModel.phase == .result ? viewModel.hundredPlayTally : [],
-                        denomination: viewModel.settings.denomination.rawValue
-                    )
-                    .frame(maxHeight: 100)
+                    VStack(spacing: 0) {
+                        HundredPlayTallyView(
+                            tallyResults: viewModel.phase == .result ? viewModel.hundredPlayTally : [],
+                            denomination: viewModel.settings.denomination.rawValue
+                        )
+                        .frame(maxHeight: 100)
+
+                        if viewModel.settings.variant.isUltimateX && viewModel.phase == .result {
+                            Text(String(format: "Avg next-hand multiplier: %.1f×", viewModel.averageNextHandMultiplier))
+                                .font(.system(size: 13))
+                                .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.0))
+                                .padding(.top, 4)
+                        }
+                    }
                     .padding(.horizontal, 8)
-                } else if viewModel.settings.lineCount != .one {
-                    MultiHandGrid(
-                        lineCount: viewModel.settings.lineCount,
-                        results: gridResults,
-                        phase: viewModel.phase,
-                        denomination: viewModel.settings.denomination.rawValue,
-                        showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false
-                    )
-                    .padding(.horizontal, 8)
+                } else if viewModel.settings.effectiveLineCount > 1 {
+                    if let lineCount = LineCount(rawValue: viewModel.settings.effectiveLineCount) {
+                        MultiHandGrid(
+                            lineCount: lineCount,
+                            results: gridResults,
+                            phase: viewModel.phase,
+                            denomination: viewModel.settings.denomination.rawValue,
+                            showAsWild: viewModel.currentPaytable?.isDeucesWild ?? false,
+                            multipliers: viewModel.ultimateXMultipliers
+                        )
+                        .padding(.horizontal, 8)
+                    }
                 }
 
                 // Strategy/EV options table (when feedback is shown)
-                if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
+                if viewModel.settings.variant.isUltimateX
+                    && viewModel.settings.showOptimalFeedback
+                    && viewModel.phase == .result {
+                    UltimateXStrategyPanel(
+                        topHolds: viewModel.ultimateXTopHolds,
+                        selectedIndices: viewModel.selectedIndices,
+                        dealtCards: viewModel.dealtCards,
+                        isComputing: viewModel.isComputingUXStrategy,
+                        userHold: viewModel.ultimateXUserHold,
+                        isComputingUserHold: viewModel.isComputingUXUserHold,
+                        avgMultiplier: viewModel.uxAvgMultiplierUsed
+                    )
+                    .padding(.horizontal, 8)
+                } else if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {
                     landscapeEvOptionsTable
                         .padding(.horizontal, 8)
                 }
@@ -913,6 +972,40 @@ struct PlayView: View {
                                                 viewModel.toggleCard(index)
                                             }
                                         }
+                                    }
+                                }
+                                // Applied (current hand) multiplier — bottom right
+                                .overlay(alignment: .bottomTrailing) {
+                                    if viewModel.settings.variant.isUltimateX {
+                                        let multiplier: Int = viewModel.phase == .result
+                                            ? (viewModel.lineResults.first?.appliedMultiplier ?? 1)
+                                            : (viewModel.ultimateXMultipliers.first ?? 1)
+                                        if multiplier > 1 {
+                                            Text("\(multiplier)x")
+                                                .font(.system(size: 16, weight: .black))
+                                                .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.0))
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 4)
+                                                .background(Color.black.opacity(0.7))
+                                                .cornerRadius(6)
+                                                .padding(8)
+                                        }
+                                    }
+                                }
+                                // Next hand multiplier — bottom left (result phase only)
+                                .overlay(alignment: .bottomLeading) {
+                                    if viewModel.settings.variant.isUltimateX,
+                                       viewModel.phase == .result,
+                                       let earned = viewModel.lineResults.first?.earnedMultiplier,
+                                       earned > 1 {
+                                        Text("NH: \(earned)x")
+                                            .font(.system(size: 16, weight: .black))
+                                            .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.0))
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(Color.black.opacity(0.75))
+                                            .cornerRadius(6)
+                                            .padding(8)
                                     }
                                 }
                                 .simultaneousGesture(

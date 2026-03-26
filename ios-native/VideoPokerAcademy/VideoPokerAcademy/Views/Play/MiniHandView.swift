@@ -11,6 +11,9 @@ struct MiniHandView: View {
     let denomination: Double
     let cardWidth: CGFloat
     var showAsWild: Bool = false
+    var appliedMultiplier: Int = 1
+    var earnedMultiplier: Int = 1
+    var showNextHandMultiplier: Bool = false
 
     // Overlap as percentage of card width (negative spacing)
     private var cardOverlap: CGFloat {
@@ -54,6 +57,30 @@ struct MiniHandView: View {
                     }
                 }
             )
+            .overlay(alignment: .bottomTrailing) {
+                if appliedMultiplier > 1 {
+                    Text("\(appliedMultiplier)x")
+                        .font(.system(size: 11, weight: .black))
+                        .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.0))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Color.black.opacity(0.7))
+                        .cornerRadius(4)
+                        .padding(3)
+                }
+            }
+            .overlay(alignment: .bottomLeading) {
+                if showNextHandMultiplier {
+                    Text("NH: \(earnedMultiplier)x")
+                        .font(.system(size: 11, weight: .black))
+                        .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.0))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Color.black.opacity(0.75))
+                        .cornerRadius(4)
+                        .padding(3)
+                }
+            }
         }
     }
 

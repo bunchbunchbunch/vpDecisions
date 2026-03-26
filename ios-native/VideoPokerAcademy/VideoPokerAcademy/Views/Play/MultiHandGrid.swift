@@ -7,11 +7,14 @@ struct MultiHandGrid: View {
     let phase: PlayPhase
     let denomination: Double
     var showAsWild: Bool = false
+    var multipliers: [Int] = []
 
     private var gridConfig: (columns: Int, rows: Int, handCount: Int) {
         switch lineCount {
         case .one, .oneHundred:
             return (0, 0, 0)  // No grid for 1-line or 100-play (100-play uses tally view)
+        case .three:
+            return (2, 1, 2)  // 2x1 grid, 2 hands (3rd in main area)
         case .five:
             return (2, 2, 4)  // 2x2 grid, 4 hands (5th in main area)
         case .ten:
@@ -85,7 +88,8 @@ struct MultiHandGrid: View {
                 showAsCardBacks: true,
                 denomination: denomination,
                 cardWidth: cardWidth,
-                showAsWild: showAsWild
+                showAsWild: showAsWild,
+                appliedMultiplier: index < multipliers.count ? multipliers[index] : 1
             )
         } else if index < results.count {
             // Post-draw: show actual result
@@ -99,7 +103,10 @@ struct MultiHandGrid: View {
                 showAsCardBacks: false,
                 denomination: denomination,
                 cardWidth: cardWidth,
-                showAsWild: showAsWild
+                showAsWild: showAsWild,
+                appliedMultiplier: result.appliedMultiplier,
+                earnedMultiplier: result.earnedMultiplier,
+                showNextHandMultiplier: result.earnedMultiplier > 1
             )
         } else {
             // Fallback: show card backs

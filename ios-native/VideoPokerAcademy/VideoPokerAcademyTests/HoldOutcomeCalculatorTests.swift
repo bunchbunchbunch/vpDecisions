@@ -109,8 +109,8 @@ struct HoldOutcomeCalculatorTests {
         #expect(ek >= 2.3 && ek <= 2.6)
     }
 
-    @Test("E[K] for bitmask 0 (discard all) returns 1.0")
-    func testEKForDiscardAllReturns1() async throws {
+    @Test("E[K] for bitmask 0 (discard all) returns pre-computed table value > 1.0")
+    func testEKForDiscardAllReturnsTableValue() async throws {
         let cards = [
             Card.from(string: "Jh")!, Card.from(string: "Jd")!,
             Card.from(string: "9h")!, Card.from(string: "8h")!,
@@ -124,6 +124,8 @@ struct HoldOutcomeCalculatorTests {
             paytableId: "jacks-or-better-9-6",
             playCount: .three
         )
-        #expect(ek == 1.0)    // discard all skipped for performance → returns 1.0
+        // Now uses pre-computed table instead of hardcoded 1.0
+        #expect(ek == UltimateXEKTable.eKDrawAll(playCount: .three, family: .jacksOrBetter))
+        #expect(ek > 1.0)
     }
 }

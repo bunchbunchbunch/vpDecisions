@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Ultimate X Play Count
 
 /// The number of hands played simultaneously in Ultimate X
-enum UltimateXPlayCount: Int, CaseIterable, Identifiable {
+enum UltimateXPlayCount: Int, CaseIterable, Identifiable, Codable {
     case three = 3
     case five = 5
     case ten = 10
@@ -54,19 +54,19 @@ struct UltimateXMultiplierTable {
     private static func multiplierGroup(for family: GameFamily) -> MultiplierGroup {
         switch family {
         case .jacksOrBetter, .tensOrBetter, .bonusPokerDeluxe, .allAmerican:
-            return .jacksOrBetter
+            return jacksOrBetter
         case .bonusPoker, .bonusPokerPlus:
-            return .bonusPoker
+            return bonusPoker
         case .doubleBonus, .doubleDoubleBonus, .superDoubleBonus,
              .doubleJackpot, .doubleDoubleJackpot,
              .acesBonus, .acesAndEights, .acesAndFaces, .bonusAcesFaces,
              .superAces, .royalAcesBonus, .whiteHotAces,
              .ddbAcesFaces, .ddbPlus:
-            return .doubleBonus
+            return doubleBonus
         case .tripleDoubleBonus, .tripleBonus, .tripleBonusPlus, .tripleTripleBonus:
-            return .tripleDoubleBonus
+            return tripleDoubleBonus
         case .deucesWild, .looseDeuces:
-            return .deucesWild
+            return deucesWild
         }
     }
 

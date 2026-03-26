@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var authenticationErrorMessage = ""
     #if DEBUG
     @State private var showEVBenchmark = false
+    @State private var isGeneratingEKTable = false
     #endif
 
     var body: some View {
@@ -246,6 +247,26 @@ struct SettingsView: View {
                                     icon: "function",
                                     title: "UX EV Benchmark",
                                     subtitle: "On-the-fly E[K] vs simplified formula",
+                                    showChevron: false
+                                )
+                            }
+
+                            Divider()
+                                .background(Color.white.opacity(0.1))
+
+                            Button {
+                                guard !isGeneratingEKTable else { return }
+                                isGeneratingEKTable = true
+                                Task { @MainActor in
+                                    let output = await EKTableGenerator.shared.generateAll()
+                                    print("\n=== EKTableGenerator OUTPUT — paste into UltimateXEKTable.swift ===\n\(output)\n=== END ===\n")
+                                    isGeneratingEKTable = false
+                                }
+                            } label: {
+                                SettingsRowContent(
+                                    icon: isGeneratingEKTable ? "hourglass" : "tablecells",
+                                    title: isGeneratingEKTable ? "Generating E[K] Table..." : "Generate E[K] Table",
+                                    subtitle: "Outputs Swift code for UltimateXEKTable to Xcode console",
                                     showChevron: false
                                 )
                             }

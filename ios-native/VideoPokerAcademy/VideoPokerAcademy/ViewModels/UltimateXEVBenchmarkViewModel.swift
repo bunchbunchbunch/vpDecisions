@@ -83,8 +83,9 @@ final class UltimateXEVBenchmarkViewModel {
         // 1. Random hand
         let hand = Hand.deal()
 
-        // 2. Random valid UX multiplier from [1, 2, 3, 4, 7, 11, 12]
-        let validMultipliers = UltimateXMultiplierTable.possibleMultipliers(for: playCount)
+        // 2. Random valid UX multiplier (set varies by game family)
+        let family = PayTable.allPayTables.first(where: { $0.id == paytableId })?.family ?? .jacksOrBetter
+        let validMultipliers = UltimateXMultiplierTable.possibleMultipliers(for: playCount, family: family)
         guard let multiplier = validMultipliers.randomElement() else {
             throw BenchmarkError.strategyNotAvailable
         }

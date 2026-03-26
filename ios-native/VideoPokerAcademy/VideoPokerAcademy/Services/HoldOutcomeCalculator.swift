@@ -19,11 +19,25 @@ actor HoldOutcomeCalculator {
         paytableId: String,
         playCount: UltimateXPlayCount
     ) async -> Double {
-        guard holdBitmask != 0 else { return 1.0 }
+        // Resolve family once — used for table lookups and inner-loop multiplier calls
+        let family = PayTable.allPayTables.first(where: { $0.id == paytableId })?.family ?? .jacksOrBetter
+
+        // Use pre-computed table for draw-all: C(47,5) = 1.53M combos
+        guard holdBitmask != 0 else {
+            return UltimateXEKTable.eKDrawAll(playCount: playCount, family: family)
+        }
 
         let canonicalIndices = Hand.holdIndicesFromBitmask(holdBitmask)
         let originalIndices = hand.canonicalIndicesToOriginal(canonicalIndices)
         let drawCount = 5 - originalIndices.count
+
+        // Use pre-computed table for single-card holds: C(47,4) = 178K combos
+        if originalIndices.count == 1 {
+            let heldCard = hand.cards[originalIndices[0]]
+            return UltimateXEKTable.eKSingleCard(rank: heldCard.rank, playCount: playCount, family: family)
+        }
+
+        // For 2-5 card holds: live computation (fast — max C(47,3) = 16K combos)
 
         // Build remaining deck: all 52 cards minus the 5 dealt cards
         // Card's Hashable conformance is UUID-based, not rank/suit-based, so we
@@ -41,7 +55,8 @@ actor HoldOutcomeCalculator {
             )
             let multiplier = UltimateXMultiplierTable.multiplier(
                 for: result.handName ?? "",
-                playCount: playCount
+                playCount: playCount,
+                family: family
             )
             return Double(multiplier)
         }
@@ -75,7 +90,8 @@ actor HoldOutcomeCalculator {
             )
             let multiplier = UltimateXMultiplierTable.multiplier(
                 for: result.handName ?? "",
-                playCount: playCount
+                playCount: playCount,
+                family: family
             )
             totalMultiplier += Double(multiplier)
         }

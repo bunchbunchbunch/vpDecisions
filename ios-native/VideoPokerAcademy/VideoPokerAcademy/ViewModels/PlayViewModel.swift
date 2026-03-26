@@ -38,6 +38,14 @@ class PlayViewModel: ObservableObject {
     @Published var showDealtWinner = false
     @Published var dealtWinnerName: String? = nil
 
+    // Ultimate X state
+    @Published var ultimateXMultipliers: [Int] = []  // per-line, 1–12; empty when standard
+    @Published var ultimateXTopHolds: [UltimateXHoldOption] = []
+    @Published var isComputingUXStrategy = false
+    @Published var ultimateXUserHold: UltimateXHoldOption? = nil
+    @Published var isComputingUXUserHold = false
+    @Published var uxAvgMultiplierUsed: Double = 1.0
+
     // Session tracking
     private var sessionStartDate: Date?
     private var allTimeStats: PlayStats
@@ -71,6 +79,11 @@ class PlayViewModel: ObservableObject {
         totalPayout > 0
     }
 
+    var averageNextHandMultiplier: Double {
+        guard !ultimateXMultipliers.isEmpty else { return 1.0 }
+        return Double(ultimateXMultipliers.reduce(0, +)) / Double(ultimateXMultipliers.count)
+    }
+
     // MARK: - Initialization
 
     init() {
@@ -87,13 +100,18 @@ class PlayViewModel: ObservableObject {
     private func loadPersistedData() async {
         self.settings = await PlayPersistence.shared.loadSettings()
         self.balance = await PlayPersistence.shared.loadBalance()
-        self.allTimeStats = await PlayPersistence.shared.loadStats(for: settings.selectedPaytableId)
+        self.allTimeStats = await PlayPersistence.shared.loadStats(for: settings.statsPaytableKey)
 
         // Check for orphaned hand (app was terminated with active hand)
         await checkForOrphanedHand()
 
         // Prepare the paytable if needed
         await prepareCurrentPaytable()
+
+        // Initialize UX multipliers if the loaded variant is UX
+        if settings.variant.isUltimateX {
+            initializeUXMultipliers()
+        }
     }
 
     /// Checks if there's a saved hand state from a previous session that was terminated.
@@ -190,6 +208,17 @@ class PlayViewModel: ObservableObject {
 
         // Lookup optimal strategy
         await lookupOptimalStrategy()
+
+        // For UX mode: fire-and-forget top-5 strategy computation
+        if settings.variant.isUltimateX {
+            isComputingUXStrategy = true
+            ultimateXTopHolds = []
+            ultimateXUserHold = nil
+            isComputingUXUserHold = false
+            Task {
+                await computeUXTopHolds()
+            }
+        }
     }
 
     func toggleCard(_ index: Int) {
@@ -244,7 +273,10 @@ class PlayViewModel: ObservableObject {
         var results: [PlayHandResult] = []
         var deckCopy = remainingDeck
 
-        for lineNum in 0..<settings.lineCount.rawValue {
+        let isUX = settings.variant.isUltimateX
+        let family = currentPaytable?.family ?? .jacksOrBetter
+
+        for lineNum in 0..<settings.effectiveLineCount {
             let (finalHand, newDeck) = performDraw(
                 dealtCards: dealtCards,
                 heldIndices: selectedIndices,
@@ -253,19 +285,49 @@ class PlayViewModel: ObservableObject {
             deckCopy = newDeck
 
             let evaluation = evaluateFinalHand(finalHand)
-            let payout = calculatePayout(handName: evaluation.handName)
+            let basePayout = calculatePayout(handName: evaluation.handName)
+
+            // For UX: multiply payout by the active multiplier for this line
+            let lineMultiplier = (isUX && lineNum < ultimateXMultipliers.count)
+                ? ultimateXMultipliers[lineNum] : 1
+            let payout = basePayout * lineMultiplier
+
+            let earnedMultiplier: Int
+            if isUX {
+                earnedMultiplier = UltimateXMultiplierTable.multiplier(
+                    for: evaluation.handName ?? "no win",
+                    playCount: settings.effectiveUXPlayCount,
+                    family: family
+                )
+            } else {
+                earnedMultiplier = 1
+            }
 
             let result = PlayHandResult(
                 lineNumber: lineNum + 1,
                 finalHand: finalHand,
                 handName: evaluation.handName,
                 payout: payout,
-                winningIndices: evaluation.winningIndices
+                winningIndices: evaluation.winningIndices,
+                appliedMultiplier: isUX ? lineMultiplier : 1,
+                earnedMultiplier: earnedMultiplier
             )
             results.append(result)
         }
 
+        // After all lines resolved: update UX multipliers for next hand
+        if isUX {
+            for (i, result) in results.enumerated() where i < ultimateXMultipliers.count {
+                ultimateXMultipliers[i] = result.earnedMultiplier
+            }
+        }
+
         lineResults = results
+
+        // For UX mode: compute user's hold EV if it isn't in the top-5
+        if isUX {
+            Task { await computeUXUserHoldIfNeeded() }
+        }
 
         // Update balance with winnings
         let winAmount = totalPayoutDollars
@@ -282,8 +344,8 @@ class PlayViewModel: ObservableObject {
 
             // Track wins by hand type and check for big wins
             var hasBigWin = false
-            for result in results where result.handName != nil {
-                let handName = result.handName!
+            for result in results {
+                guard let handName = result.handName else { continue }
                 currentStats.winsByHandType[handName, default: 0] += 1
                 if currentPaytable?.isBigWin(handName: handName) == true {
                     hasBigWin = true
@@ -301,14 +363,22 @@ class PlayViewModel: ObservableObject {
     }
 
     private func performHundredPlayDraw() async {
-        // Track hand counts for tally
+        let isUX = settings.variant.isUltimateX
+        let family = currentPaytable?.family ?? .jacksOrBetter
+
+        // Track hand counts and actual payouts for tally
         var handCounts: [String: Int] = [:]
+        var handActualPayouts: [String: Int] = [:]   // summed actual payouts per hand type (for UX)
+        var handMultiplierSums: [String: Double] = [:]  // sum of multipliers applied per hand type
         var totalCreditsWon = 0
         var biggestSingleWin = 0
         var biggestWinHand: String?
 
+        // Track earned multipliers per line for UX
+        var newMultipliers: [Int] = isUX ? Array(repeating: 1, count: 100) : []
+
         // Perform 100 draws
-        for _ in 0..<100 {
+        for i in 0..<100 {
             // Create a fresh deck for each hand (minus dealt cards)
             var freshDeck = Card.shuffledDeck()
             freshDeck.removeAll { card in
@@ -322,10 +392,26 @@ class PlayViewModel: ObservableObject {
             )
 
             let evaluation = evaluateFinalHand(finalHand)
-            let payout = calculatePayout(handName: evaluation.handName)
+            let basePayout = calculatePayout(handName: evaluation.handName)
+
+            // For UX: apply the per-line multiplier
+            let lineMultiplier = (isUX && i < ultimateXMultipliers.count) ? ultimateXMultipliers[i] : 1
+            let payout = basePayout * lineMultiplier
+
+            // For UX: compute earned multiplier for this line
+            if isUX {
+                let earned = UltimateXMultiplierTable.multiplier(
+                    for: evaluation.handName ?? "no win",
+                    playCount: settings.effectiveUXPlayCount,
+                    family: family
+                )
+                newMultipliers[i] = earned
+            }
 
             if let handName = evaluation.handName {
                 handCounts[handName, default: 0] += 1
+                handActualPayouts[handName, default: 0] += payout
+                handMultiplierSums[handName, default: 0.0] += Double(lineMultiplier)
                 totalCreditsWon += payout
 
                 if payout > biggestSingleWin {
@@ -335,16 +421,28 @@ class PlayViewModel: ObservableObject {
             }
         }
 
+        // After all 100 lines: update UX multipliers for next hand
+        if isUX {
+            for i in 0..<min(newMultipliers.count, ultimateXMultipliers.count) {
+                ultimateXMultipliers[i] = newMultipliers[i]
+            }
+        }
+
         // Build tally results sorted by pay value (highest first)
+        // For UX: use actual summed payouts as subtotal (since each line pays differently)
         var tallyResults: [HundredPlayTallyResult] = []
         for (handName, count) in handCounts {
             let payPerHand = calculatePayout(handName: handName)
-            let subtotal = count * payPerHand
+            let subtotal = isUX ? (handActualPayouts[handName] ?? count * payPerHand) : count * payPerHand
+            let avgMult = isUX
+                ? (handMultiplierSums[handName] ?? Double(count)) / Double(count)
+                : 1.0
             tallyResults.append(HundredPlayTallyResult(
                 handName: handName,
                 payPerHand: payPerHand,
                 count: count,
-                subtotal: subtotal
+                subtotal: subtotal,
+                avgAppliedMultiplier: avgMult
             ))
         }
         tallyResults.sort { $0.payPerHand > $1.payPerHand }
@@ -397,14 +495,20 @@ class PlayViewModel: ObservableObject {
         userEvLost = 0
         showMistakeFeedback = false
         strategyResult = nil
+        ultimateXTopHolds = []
+        isComputingUXStrategy = false
+        ultimateXUserHold = nil
+        isComputingUXUserHold = false
+        uxAvgMultiplierUsed = 1.0
     }
 
     // MARK: - Settings Management
 
     func updateSettings(_ newSettings: PlaySettings) async {
-        // If paytable changed, load new stats and prepare paytable
-        if newSettings.selectedPaytableId != settings.selectedPaytableId {
-            allTimeStats = await PlayPersistence.shared.loadStats(for: newSettings.selectedPaytableId)
+        // If paytable or variant changed, load new stats and prepare paytable
+        if newSettings.selectedPaytableId != settings.selectedPaytableId
+            || newSettings.variant != settings.variant {
+            allTimeStats = await PlayPersistence.shared.loadStats(for: newSettings.statsPaytableKey)
         }
 
         settings = newSettings
@@ -542,6 +646,24 @@ class PlayViewModel: ObservableObject {
         return allTimeStats
     }
 
+    // MARK: - Ultimate X State
+
+    func initializeUXMultipliers() {
+        guard settings.variant.isUltimateX else { return }
+        let lineCount = settings.lineCount == .oneHundred ? 100 : settings.effectiveLineCount
+        ultimateXMultipliers = Array(repeating: 1, count: lineCount)
+        ultimateXTopHolds = []
+    }
+
+    func resetUXState() {
+        ultimateXMultipliers = []
+        ultimateXTopHolds = []
+        isComputingUXStrategy = false
+        ultimateXUserHold = nil
+        isComputingUXUserHold = false
+        uxAvgMultiplierUsed = 1.0
+    }
+
     // MARK: - Private Helpers
 
     private func evaluateDealtHandForBanner() {
@@ -584,9 +706,148 @@ class PlayViewModel: ObservableObject {
         }
     }
 
+    /// Computes the top-5 optimal holds for Ultimate X using the full EV formula.
+    /// Fires as a background Task after deal; updates ultimateXTopHolds when done.
+    private func computeUXTopHolds() async {
+        defer { isComputingUXStrategy = false }
+        guard settings.variant.isUltimateX else { return }
+        let pc = settings.effectiveUXPlayCount
+
+        // Snapshot the dealt hand before any awaits so we can detect stale results
+        let handSnapshot = dealtCards
+
+        let hand = Hand(cards: dealtCards)
+        let paytableId = settings.selectedPaytableId
+
+        // 1. Get base strategy result (all holdEvs)
+        guard let baseResult = try? await StrategyService.shared.lookup(hand: hand, paytableId: paytableId) else { return }
+
+        // 2. Pick top-5 bitmasks by base EV (bitmask 0 = draw all is included)
+        let topBitmasks = baseResult.holdEvs
+            .compactMap { key, ev -> (bitmask: Int, ev: Double)? in
+                guard let bitmask = Int(key) else { return nil }
+                return (bitmask: bitmask, ev: ev)
+            }
+            .sorted { $0.ev > $1.ev }
+            .prefix(5)
+            .map { $0.bitmask }
+
+        // 3. Average multiplier across all lines
+        let avgMultiplier: Double = ultimateXMultipliers.isEmpty
+            ? 1.0
+            : Double(ultimateXMultipliers.reduce(0, +)) / Double(ultimateXMultipliers.count)
+        uxAvgMultiplierUsed = avgMultiplier
+
+        let calculator = HoldOutcomeCalculator()
+        var holdOptions: [UltimateXHoldOption] = []
+
+        for bitmask in topBitmasks {
+            guard let baseEV = baseResult.holdEvs[String(bitmask)] else { continue }
+
+            let eK = await calculator.computeEK(
+                hand: hand,
+                holdBitmask: bitmask,
+                paytableId: paytableId,
+                playCount: pc
+            )
+            let adjustedEV = avgMultiplier * 2.0 * baseEV + eK - 1.0
+
+            // Convert canonical indices back to original positions for display
+            let canonicalIndices = Hand.holdIndicesFromBitmask(bitmask)
+            let originalIndices = hand.canonicalIndicesToOriginal(canonicalIndices).sorted()
+
+            holdOptions.append(UltimateXHoldOption(
+                id: bitmask,
+                holdIndices: originalIndices,
+                baseEV: baseEV,
+                eKAwarded: eK,
+                adjustedEV: adjustedEV
+            ))
+        }
+
+        // 4. Sort by adjustedEV descending
+        holdOptions.sort { $0.adjustedEV > $1.adjustedEV }
+
+        // Guard: if the user dealt a new hand while we were computing, discard stale results
+        guard dealtCards == handSnapshot else { return }
+
+        ultimateXTopHolds = holdOptions
+    }
+
+    /// Computes the user's actual hold EV after draw, adding it to the panel if not already in top-5.
+    @MainActor
+    private func computeUXUserHoldIfNeeded() async {
+        guard settings.variant.isUltimateX else { return }
+        guard !dealtCards.isEmpty else { return }
+
+        // If top-5 is still computing, skip — panel will show computing spinner for top-5
+        guard !isComputingUXStrategy else { return }
+
+        let hand = Hand(cards: dealtCards)
+        let paytableId = settings.selectedPaytableId
+        let pc = settings.effectiveUXPlayCount
+
+        // Convert original selectedIndices → canonical → bitmask
+        let userOriginalIndices = Array(selectedIndices).sorted()
+        let userCanonicalIndices = hand.originalIndicesToCanonical(userOriginalIndices)
+        let userBitmask = Hand.bitmaskFromHoldIndices(userCanonicalIndices)
+
+        // Check if user's hold is already in the top-5
+        if ultimateXTopHolds.contains(where: { $0.id == userBitmask }) {
+            ultimateXUserHold = nil
+            return
+        }
+
+        // Not in top-5 — compute on the fly
+        isComputingUXUserHold = true
+        defer { isComputingUXUserHold = false }
+
+        let avgMultiplier: Double = ultimateXMultipliers.isEmpty
+            ? 1.0
+            : Double(ultimateXMultipliers.reduce(0, +)) / Double(ultimateXMultipliers.count)
+
+        // Get base EV for user's bitmask from StrategyService
+        let baseEV: Double
+        if let baseResult = try? await StrategyService.shared.lookup(hand: hand, paytableId: paytableId),
+           let ev = baseResult.holdEvs[String(userBitmask)] {
+            baseEV = ev
+        } else {
+            baseEV = 0.0
+        }
+
+        // Compute E[K] for this hold
+        let eK = await HoldOutcomeCalculator().computeEK(
+            hand: hand,
+            holdBitmask: userBitmask,
+            paytableId: paytableId,
+            playCount: pc
+        )
+
+        let adjustedEV = avgMultiplier * 2.0 * baseEV + eK - 1.0
+
+        // Convert canonical indices back to original positions for display
+        let canonicalDisplayIndices = Hand.holdIndicesFromBitmask(userBitmask)
+        let originalDisplayIndices = hand.canonicalIndicesToOriginal(canonicalDisplayIndices).sorted()
+
+        ultimateXUserHold = UltimateXHoldOption(
+            id: userBitmask,
+            holdIndices: originalDisplayIndices,
+            baseEV: baseEV,
+            eKAwarded: eK,
+            adjustedEV: adjustedEV
+        )
+    }
+
     private func checkForMistake() {
         let userHold = Array(selectedIndices).sorted()
-        let optimal = optimalHoldIndices.sorted()
+
+        // For UX: use the top hold from adjustedEV-ranked list; fall back to base EV if not yet computed
+        let optimal: [Int]
+        if settings.variant.isUltimateX, let topHold = ultimateXTopHolds.first {
+            optimal = topHold.holdIndices.sorted()
+        } else {
+            optimal = optimalHoldIndices.sorted()
+        }
 
         if userHold != optimal {
             showMistakeFeedback = true
@@ -645,6 +906,27 @@ class PlayViewModel: ObservableObject {
     }
 
     private func calculateEvLoss() async {
+        // For UX mode: use adjustedEV values from ultimateXTopHolds
+        if settings.variant.isUltimateX, !ultimateXTopHolds.isEmpty {
+            let userHold = Array(selectedIndices).sorted()
+            let bestAdjustedEV = ultimateXTopHolds[0].adjustedEV
+
+            // Find the user's hold in the top holds list, or use ultimateXUserHold
+            let userAdjustedEV: Double?
+            if let userHoldOption = ultimateXUserHold {
+                userAdjustedEV = userHoldOption.adjustedEV
+            } else {
+                userAdjustedEV = ultimateXTopHolds.first(where: { $0.holdIndices.sorted() == userHold })?.adjustedEV
+            }
+
+            if let userEV = userAdjustedEV {
+                let evLost = bestAdjustedEV - userEV
+                userEvLost = evLost
+                currentStats.totalEvLost += evLost * settings.totalBetDollars
+            }
+            return
+        }
+
         let hand = Hand(cards: dealtCards)
         let userHold = Array(selectedIndices).sorted()
 
@@ -812,12 +1094,15 @@ class PlayViewModel: ObservableObject {
         guard let handName = handName,
               let paytable = currentPaytable else { return 0 }
 
-        let coinIndex = settings.coinsPerLine - 1
-        guard coinIndex >= 0 && coinIndex < 5 else { return 0 }
+        // UX bets 10 coins but uses the 5-coin paytable payout column
+        let paytableCoinIndex = min(settings.coinsPerLine, 5) - 1
+        guard paytableCoinIndex >= 0,
+              paytableCoinIndex < 5 else { return 0 }
 
         for row in paytable.rows {
             if row.handName == handName {
-                return row.payouts[coinIndex]
+                guard paytableCoinIndex < row.payouts.count else { return 0 }
+                return row.payouts[paytableCoinIndex]
             }
         }
 
