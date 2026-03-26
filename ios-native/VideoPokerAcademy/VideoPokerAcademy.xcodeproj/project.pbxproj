@@ -26,6 +26,7 @@
 		22FFD9C0441D50B198CE0E85 /* CasinoModeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EADD77F2965DB7E7B82D60E /* CasinoModeViewModelTests.swift */; };
 		25008CE2024C3C7BF74ECB32 /* HandEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48012F087B9F057F5D29098A /* HandEvaluatorTests.swift */; };
 		8720FF5D6D5648168660707E /* UltimateXEKTableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D694C0DDBBC4FACA4543603 /* UltimateXEKTableTests.swift */; };
+		7C313BD7433D064BEE34C358 /* UltimateXStrategyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F62D765B4396467ADCF3478 /* UltimateXStrategyServiceTests.swift */; };
 		D8EB5726E611400B977771C1 /* UltimateXPlayModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2514F49F380F49DEAC52EDBD /* UltimateXPlayModeTests.swift */; };
 		2758C786DA69D37C5A02FE1A /* MultiHandGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FC587C11E7733A811504448 /* MultiHandGrid.swift */; };
 		29231BE1D31D2CDB1820DA76 /* strategy_bonus_poker_8_5.json in Resources */ = {isa = PBXBuildFile; fileRef = 6F344A9B558456C4B1E85527 /* strategy_bonus_poker_8_5.json */; };
@@ -73,6 +74,7 @@
 		6D3CFC2FC7702EA266B4AA3C /* GameSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47EF9D466BFBC97BC9F5EF6 /* GameSelectorView.swift */; };
 		6DD2CBA5C511B2726E17C752 /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6DCBF01A6962E993279B541 /* DebugLog.swift */; };
 		71B37C150971DA2E0D4CF7EB /* HandAnalyzerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD95619B564F1912B0DB27E7 /* HandAnalyzerView.swift */; };
+		D5AAE0D75CE04121BB2359DA /* AnalyzerStartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D28FE906D02246218C8EE340 /* AnalyzerStartView.swift */; };
 		71CEA7C820E115BAE216CBEC /* strategy_jacks_or_better_9_6.vpstrat2 in Resources */ = {isa = PBXBuildFile; fileRef = F17EDA1FE70C854DEF79CCB0 /* strategy_jacks_or_better_9_6.vpstrat2 */; };
 		757AF95FBD6D36D570D42A0F /* Hand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A47BFA4F0D0FBA097129438 /* Hand.swift */; };
 		7B9C0BF5AB9C84D0B85391B7 /* VoiceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DAEAA73EE9A5F3B4DA9D275 /* VoiceService.swift */; };
@@ -209,6 +211,7 @@
 		477D78B1353F5D8FEBC3AF98 /* HandEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandEvaluator.swift; sourceTree = "<group>"; };
 		48012F087B9F057F5D29098A /* HandEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandEvaluatorTests.swift; sourceTree = "<group>"; };
 		9D694C0DDBBC4FACA4543603 /* UltimateXEKTableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXEKTableTests.swift; sourceTree = "<group>"; };
+		9F62D765B4396467ADCF3478 /* UltimateXStrategyServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXStrategyServiceTests.swift; sourceTree = "<group>"; };
 		2514F49F380F49DEAC52EDBD /* UltimateXPlayModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXPlayModeTests.swift; sourceTree = "<group>"; };
 		49D29DC4D6A6DF4CD2CBF0E6 /* SimulationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationModels.swift; sourceTree = "<group>"; };
 		4CAEB3689258109EA53DE58B /* PlayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayViewModel.swift; sourceTree = "<group>"; };
@@ -317,6 +320,7 @@
 		FCF15F62A67B4B4619550553 /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
 		FD43B3D7AD070484BDDAE526 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FD95619B564F1912B0DB27E7 /* HandAnalyzerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandAnalyzerView.swift; sourceTree = "<group>"; };
+		D28FE906D02246218C8EE340 /* AnalyzerStartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyzerStartView.swift; sourceTree = "<group>"; };
 		FDEE001BA9FF6B423496F786 /* ResponseFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseFormatter.swift; sourceTree = "<group>"; };
 		FED9B359475EA57DDD008492 /* SpeechSynthesisServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechSynthesisServiceTests.swift; sourceTree = "<group>"; };
 		FF1B3E98E1407F5E2DEAD95C /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
@@ -678,6 +682,7 @@
 			isa = PBXGroup;
 			children = (
 				FD95619B564F1912B0DB27E7 /* HandAnalyzerView.swift */,
+				D28FE906D02246218C8EE340 /* AnalyzerStartView.swift */,
 			);
 			path = Analyzer;
 			sourceTree = "<group>";
@@ -702,6 +707,7 @@
 				36DDAACDD282E4126C8E73CC /* ResponseFormatterTests.swift */,
 				FED9B359475EA57DDD008492 /* SpeechSynthesisServiceTests.swift */,
 				9D694C0DDBBC4FACA4543603 /* UltimateXEKTableTests.swift */,
+				9F62D765B4396467ADCF3478 /* UltimateXStrategyServiceTests.swift */,
 				2514F49F380F49DEAC52EDBD /* UltimateXPlayModeTests.swift */,
 			A74BA337321B74B9C1E403A4 /* VoiceServiceTests.swift */,
 			);
@@ -835,6 +841,7 @@
 				C0F65BDF3B126780280F28C1 /* ResponseFormatterTests.swift in Sources */,
 				144F976FD7BBFF5F7E9B959C /* SpeechSynthesisServiceTests.swift in Sources */,
 				8720FF5D6D5648168660707E /* UltimateXEKTableTests.swift in Sources */,
+				7C313BD7433D064BEE34C358 /* UltimateXStrategyServiceTests.swift in Sources */,
 				D8EB5726E611400B977771C1 /* UltimateXPlayModeTests.swift in Sources */,
 			698DDD3FA6BAA41CE5361936 /* VoiceServiceTests.swift in Sources */,
 			);
@@ -873,6 +880,7 @@
 				6D3CFC2FC7702EA266B4AA3C /* GameSelectorView.swift in Sources */,
 				757AF95FBD6D36D570D42A0F /* Hand.swift in Sources */,
 				71B37C150971DA2E0D4CF7EB /* HandAnalyzerView.swift in Sources */,
+				D5AAE0D75CE04121BB2359DA /* AnalyzerStartView.swift in Sources */,
 				E0E0CFF562A4350BB0017A06 /* HandCategory.swift in Sources */,
 				384884ACA8310839577029A6 /* HandEvaluator.swift in Sources */,
 				BBBBCB929328B549BBD651C4 /* HapticService.swift in Sources */,

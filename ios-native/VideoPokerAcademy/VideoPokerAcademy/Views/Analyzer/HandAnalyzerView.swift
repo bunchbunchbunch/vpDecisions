@@ -1,24 +1,13 @@
 import SwiftUI
 
 struct HandAnalyzerView: View {
-    @StateObject private var viewModel = AnalyzerViewModel()
+    @ObservedObject var viewModel: AnalyzerViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedFamily: GameFamily = (PayTable.allPayTables.first(where: { $0.id == PayTable.lastSelectedId }) ?? PayTable.jacksOrBetter96).family
-    @State private var selectedPaytableId: String = PayTable.lastSelectedId
     @State private var showPaytable = false
     @State private var showCasinoSetup = false
 
     let allSuits: [Suit] = [.hearts, .diamonds, .clubs, .spades]
     let allRanks: [Rank] = Rank.allCases
-
-    /// Paytables available for the currently selected family, sorted by return % descending
-    private var paytablesForSelectedFamily: [PayTable] {
-        PayTable.paytables(for: selectedFamily).sorted { a, b in
-            let aReturn = a.returnPercentage ?? -1
-            let bReturn = b.returnPercentage ?? -1
-            return aReturn > bReturn
-        }
-    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -39,15 +28,6 @@ struct HandAnalyzerView: View {
                 }
             }
         }
-        .onAppear {
-            let lastId = PayTable.lastSelectedId
-            if selectedPaytableId != lastId {
-                selectedPaytableId = lastId
-                if let paytable = PayTable.allPayTables.first(where: { $0.id == lastId }) {
-                    selectedFamily = paytable.family
-                }
-            }
-        }
         .withTour(.analyzer)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -60,7 +40,7 @@ struct HandAnalyzerView: View {
             }
         }
         .navigationDestination(isPresented: $showCasinoSetup) {
-            CasinoSetupView(initialPaytableId: selectedPaytableId)
+            CasinoSetupView(initialPaytableId: viewModel.selectedPaytable.id)
         }
         .sheet(isPresented: $showPaytable) {
             AnalyzerPaytableSheet(paytable: viewModel.selectedPaytable, isPresented: $showPaytable)
@@ -83,15 +63,36 @@ struct HandAnalyzerView: View {
 
             Divider()
 
+            if viewModel.isUltimateXMode {
+                multiplierBar
+                Divider()
+            }
+
             // Card grid - 8 rows of 7 cards
             portraitCardGrid
                 .tourTarget("cardGrid")
 
             // Results table (inline, similar to quiz mode)
-            if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
+            if (viewModel.showResults || viewModel.isAnalyzing), let hand = viewModel.hand {
                 Divider()
-                resultsTable(hand: hand, result: result)
-                    .tourTarget("resultsTable")
+                if viewModel.isUltimateXMode {
+                    if let uxResult = viewModel.ultimateXResult {
+                        uxResultsView(hand: hand, uxResult: uxResult)
+                            .tourTarget("resultsTable")
+                    } else if viewModel.isAnalyzing {
+                        HStack(spacing: 8) {
+                            ProgressView().scaleEffect(0.8)
+                            Text("Computing UX strategy…")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .tourTarget("resultsTable")
+                    }
+                } else if let result = viewModel.strategyResult {
+                    resultsTable(hand: hand, result: result)
+                        .tourTarget("resultsTable")
+                }
             }
 
             // Bottom bar with just error message
@@ -104,79 +105,26 @@ struct HandAnalyzerView: View {
     // MARK: - Portrait Header Bar (compact)
 
     private var portraitHeaderBar: some View {
-        HStack(spacing: 6) {
-            // Game family selector
-            Menu {
-                ForEach(GameFamilyCategory.displayOrder) { category in
-                    Section(category.displayName) {
-                        ForEach(GameFamily.families(for: category)) { family in
-                            Button {
-                                selectedFamily = family
-                                let sorted = PayTable.paytables(for: family).sorted { ($0.returnPercentage ?? -1) > ($1.returnPercentage ?? -1) }
-                                if !sorted.contains(where: { $0.id == selectedPaytableId }),
-                                   let first = sorted.first {
-                                    selectedPaytableId = first.id
-                                    viewModel.selectedPaytable = first
-                                }
-                            } label: {
-                                HStack {
-                                    Text(family.displayName)
-                                    if selectedFamily == family {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            } label: {
-                HStack(spacing: 4) {
-                    Text(selectedFamily.shortName)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 9))
-                        .foregroundColor(.white.opacity(0.7))
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .background(Color(hex: "667eea"))
-                .cornerRadius(8)
-            }
+        HStack(spacing: 8) {
+            HStack(spacing: 6) {
+                Text(viewModel.selectedPaytable.name)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
 
-            // Variant selector
-            Menu {
-                ForEach(paytablesForSelectedFamily, id: \.id) { paytable in
-                    Button {
-                        selectedPaytableId = paytable.id
-                        viewModel.selectedPaytable = paytable
-                    } label: {
-                        HStack {
-                            Text(paytable.variantDisplayName)
-                            if selectedPaytableId == paytable.id {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
+                if viewModel.isUltimateXMode {
+                    Text("Ult X")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(Color(hex: "FFD700"))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color(hex: "FFD700").opacity(0.15))
+                        .cornerRadius(4)
                 }
-            } label: {
-                HStack(spacing: 4) {
-                    Text(viewModel.selectedPaytable.variantDisplayName)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 9))
-                        .foregroundColor(.white.opacity(0.7))
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .background(Color(hex: "5a6fd6"))
-                .cornerRadius(8)
             }
 
             Spacer()
 
-            // Paytable button
             Button {
                 showPaytable = true
             } label: {
@@ -188,19 +136,42 @@ struct HandAnalyzerView: View {
                 }
                 .foregroundColor(Color(hex: "3498db"))
             }
-
-            // Clear button
-            if !viewModel.selectedCards.isEmpty {
-                Button("Clear") {
-                    viewModel.clear()
-                }
-                .font(.system(size: 17, weight: .medium))
-                .foregroundColor(.red)
-            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(Color(.systemBackground))
+    }
+
+    // MARK: - Multiplier Bar (UltimateX mode)
+
+    private let multiplierOptions: [Double] = (10...120).map { Double($0) / 10.0 }
+
+    private var multiplierBar: some View {
+        HStack(spacing: 12) {
+            Text("Avg Multiplier")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(.white.opacity(0.7))
+
+            Spacer()
+
+            Menu {
+                ForEach(multiplierOptions, id: \.self) { value in
+                    Button(String(format: "%.1f×", value)) {
+                        viewModel.setUltimateXMultiplier(value)
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(String(format: "%.1f×", viewModel.ultimateXMultiplier))
+                        .font(.system(size: 20, weight: .bold, design: .monospaced))
+                        .foregroundColor(Color(hex: "FFD700"))
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
     }
 
     // MARK: - Portrait Card Grid (8 rows of 7 cards)
@@ -293,10 +264,28 @@ struct HandAnalyzerView: View {
             Divider()
 
             // Right: Results
-            if viewModel.showResults, let hand = viewModel.hand, let result = viewModel.strategyResult {
-                resultsTable(hand: hand, result: result)
-                    .tourTarget("resultsTable")
-                    .frame(width: geometry.size.width * 0.48)
+            if (viewModel.showResults || viewModel.isAnalyzing), let hand = viewModel.hand {
+                Group {
+                    if viewModel.isUltimateXMode {
+                        if let uxResult = viewModel.ultimateXResult {
+                            uxResultsView(hand: hand, uxResult: uxResult)
+                        } else if viewModel.isAnalyzing {
+                            HStack(spacing: 8) {
+                                ProgressView().scaleEffect(0.8)
+                                Text("Computing UX strategy…")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding()
+                        } else {
+                            EmptyView()
+                        }
+                    } else if let result = viewModel.strategyResult {
+                        resultsTable(hand: hand, result: result)
+                    }
+                }
+                .tourTarget("resultsTable")
+                .frame(width: geometry.size.width * 0.48)
             } else {
                 VStack {
                     Spacer()
@@ -310,77 +299,25 @@ struct HandAnalyzerView: View {
         }
     }
 
-    // MARK: - Landscape Combined Header (game selectors + selected cards in one row)
+    // MARK: - Landscape Combined Header (game name + selected cards in one row)
 
     private var landscapeCombinedHeader: some View {
         HStack(spacing: 6) {
-            // Game family selector
-            Menu {
-                ForEach(GameFamilyCategory.displayOrder) { category in
-                    Section(category.displayName) {
-                        ForEach(GameFamily.families(for: category)) { family in
-                            Button {
-                                selectedFamily = family
-                                let sorted = PayTable.paytables(for: family).sorted { ($0.returnPercentage ?? -1) > ($1.returnPercentage ?? -1) }
-                                if !sorted.contains(where: { $0.id == selectedPaytableId }),
-                                   let first = sorted.first {
-                                    selectedPaytableId = first.id
-                                    viewModel.selectedPaytable = first
-                                }
-                            } label: {
-                                HStack {
-                                    Text(family.displayName)
-                                    if selectedFamily == family {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            } label: {
-                HStack(spacing: 2) {
-                    Text(selectedFamily.shortName)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.white)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 7))
-                        .foregroundColor(.white.opacity(0.7))
-                }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 4)
-                .background(Color(hex: "667eea"))
-                .cornerRadius(4)
-            }
+            HStack(spacing: 4) {
+                Text(viewModel.selectedPaytable.name)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
 
-            // Variant selector
-            Menu {
-                ForEach(paytablesForSelectedFamily, id: \.id) { paytable in
-                    Button {
-                        selectedPaytableId = paytable.id
-                        viewModel.selectedPaytable = paytable
-                    } label: {
-                        HStack {
-                            Text(paytable.variantDisplayName)
-                            if selectedPaytableId == paytable.id {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
+                if viewModel.isUltimateXMode {
+                    Text("Ult X")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(Color(hex: "FFD700"))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 1)
+                        .background(Color(hex: "FFD700").opacity(0.15))
+                        .cornerRadius(4)
                 }
-            } label: {
-                HStack(spacing: 2) {
-                    Text(viewModel.selectedPaytable.variantDisplayName)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.white)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 7))
-                        .foregroundColor(.white.opacity(0.7))
-                }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 4)
-                .background(Color(hex: "5a6fd6"))
-                .cornerRadius(4)
             }
 
             // Selected cards inline
@@ -410,6 +347,10 @@ struct HandAnalyzerView: View {
             .tourTarget("selectedCardsBar")
 
             Spacer()
+
+            if viewModel.isUltimateXMode {
+                multiplierBar
+            }
 
             // Paytable button
             Button {
@@ -501,78 +442,14 @@ struct HandAnalyzerView: View {
         .disabled(isDisabled)
     }
 
-    // MARK: - Landscape Header Bar (compact) - kept for reference
+    // MARK: - Landscape Header Bar (compact)
 
     private var landscapeHeaderBar: some View {
         HStack(spacing: 6) {
-            // Game family selector
-            Menu {
-                ForEach(GameFamilyCategory.displayOrder) { category in
-                    Section(category.displayName) {
-                        ForEach(GameFamily.families(for: category)) { family in
-                            Button {
-                                selectedFamily = family
-                                let sorted = PayTable.paytables(for: family).sorted { ($0.returnPercentage ?? -1) > ($1.returnPercentage ?? -1) }
-                                if !sorted.contains(where: { $0.id == selectedPaytableId }),
-                                   let first = sorted.first {
-                                    selectedPaytableId = first.id
-                                    viewModel.selectedPaytable = first
-                                }
-                            } label: {
-                                HStack {
-                                    Text(family.displayName)
-                                    if selectedFamily == family {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            } label: {
-                HStack(spacing: 3) {
-                    Text(selectedFamily.shortName)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.white)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 8))
-                        .foregroundColor(.white.opacity(0.7))
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                .background(Color(hex: "667eea"))
-                .cornerRadius(6)
-            }
-
-            // Variant selector
-            Menu {
-                ForEach(paytablesForSelectedFamily, id: \.id) { paytable in
-                    Button {
-                        selectedPaytableId = paytable.id
-                        viewModel.selectedPaytable = paytable
-                    } label: {
-                        HStack {
-                            Text(paytable.variantDisplayName)
-                            if selectedPaytableId == paytable.id {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
-                }
-            } label: {
-                HStack(spacing: 3) {
-                    Text(viewModel.selectedPaytable.variantDisplayName)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.white)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 8))
-                        .foregroundColor(.white.opacity(0.7))
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                .background(Color(hex: "5a6fd6"))
-                .cornerRadius(6)
-            }
+            Text(viewModel.selectedPaytable.name)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white)
+                .lineLimit(1)
 
             Spacer()
 
@@ -580,9 +457,13 @@ struct HandAnalyzerView: View {
             Button {
                 showPaytable = true
             } label: {
-                Image(systemName: "list.bullet.rectangle")
-                    .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "3498db"))
+                HStack(spacing: 4) {
+                    Image(systemName: "list.bullet.rectangle")
+                        .font(.system(size: 12))
+                    Text("Paytable")
+                        .font(.system(size: 12))
+                }
+                .foregroundColor(Color(hex: "3498db"))
             }
 
             // Clear button
@@ -835,49 +716,6 @@ struct HandAnalyzerView: View {
         .disabled(isDisabled)
     }
 
-    // MARK: - Paytable Picker Bar
-
-    private var paytablePickerBar: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Text("Game")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                Spacer()
-
-                Button {
-                    showPaytable = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "list.bullet.rectangle")
-                            .font(.caption)
-                        Text("Paytable")
-                            .font(.caption)
-                    }
-                    .foregroundColor(Color(hex: "3498db"))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(Color(hex: "3498db").opacity(0.15))
-                    .cornerRadius(6)
-                }
-            }
-
-            GameSelectorView(selectedPaytableId: $selectedPaytableId)
-                .onChange(of: selectedPaytableId) { _, newValue in
-                    if let paytable = PayTable.allPayTables.first(where: { $0.id == newValue }) {
-                        viewModel.selectedPaytable = paytable
-                    }
-                }
-                .onAppear {
-                    selectedPaytableId = viewModel.selectedPaytable.id
-                }
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
-        .background(Color(.systemBackground))
-    }
-
     // MARK: - Bottom Error Bar
 
     private func bottomErrorBar(error: String) -> some View {
@@ -889,6 +727,152 @@ struct HandAnalyzerView: View {
                 .foregroundColor(.red)
         }
         .padding()
+        .background(Color(.systemBackground))
+    }
+
+    // MARK: - Ultimate X Results View
+
+    private func uxResultsView(hand: Hand, uxResult: UltimateXStrategyResult) -> some View {
+        let holdOptions = uxResult.holdOptions(for: hand)
+
+        return ScrollView {
+            VStack(spacing: 12) {
+                // Header: multiplier + play count
+                HStack(spacing: 8) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "multiply.circle.fill")
+                            .foregroundColor(Color(hex: "FFD700"))
+                        Text("\(uxResult.currentMultiplier.truncatingRemainder(dividingBy: 1) == 0 ? String(Int(uxResult.currentMultiplier)) : String(format: "%.1f", uxResult.currentMultiplier))× multiplier")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Color(hex: "FFD700"))
+                    }
+                    Text("·")
+                        .foregroundColor(.secondary)
+                    Text(uxResult.playCount.displayName)
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    if viewModel.uxHoldChangedByMultiplier {
+                        Label("Strategy changed!", systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color(.systemGray5))
+                .cornerRadius(8)
+
+                // Best UX hold summary
+                VStack(spacing: 8) {
+                    Text("Best UX Hold")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+
+                    let bestHoldOriginal = hand.canonicalIndicesToOriginal(uxResult.adjustedBestHoldIndices)
+                    HStack(spacing: 6) {
+                        if bestHoldOriginal.isEmpty {
+                            Text("Draw all 5 cards")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        } else {
+                            ForEach(bestHoldOriginal, id: \.self) { index in
+                                Text(hand.cards[index].displayText)
+                                    .font(.system(.body, design: .monospaced))
+                                    .fontWeight(.bold)
+                                    .foregroundColor(hand.cards[index].suit.color)
+                            }
+                        }
+                    }
+
+                    Text("Score: \(String(format: "%.4f", uxResult.adjustedBestEv))")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(Color(hex: "27ae60"))
+                }
+                .padding()
+                .background(Color(hex: "667eea").opacity(0.1))
+                .cornerRadius(12)
+
+                // 5-column table: Rank / Hold / Base / E[K] / Score
+                VStack(spacing: 8) {
+                    HStack {
+                        Text("Rank")
+                            .font(.caption).fontWeight(.bold)
+                            .frame(width: 40, alignment: .leading)
+                        Text("Hold")
+                            .font(.caption).fontWeight(.bold)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("Base")
+                            .font(.caption).fontWeight(.bold)
+                            .frame(width: 52, alignment: .trailing)
+                        Text("E[K]")
+                            .font(.caption).fontWeight(.bold)
+                            .frame(width: 44, alignment: .trailing)
+                        Text("Score")
+                            .font(.caption).fontWeight(.bold)
+                            .frame(width: 52, alignment: .trailing)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color(.systemGray5))
+                    .cornerRadius(8)
+
+                    VStack(spacing: 4) {
+                        ForEach(Array(holdOptions.prefix(5).enumerated()), id: \.offset) { index, option in
+                            let rank = index + 1
+                            let isBest = rank == 1
+                            let optionCards = option.holdIndices.map { hand.cards[$0] }
+
+                            HStack {
+                                Text("\(rank)")
+                                    .font(.subheadline)
+                                    .fontWeight(isBest ? .bold : .regular)
+                                    .frame(width: 40, alignment: .leading)
+
+                                if optionCards.isEmpty {
+                                    Text("Draw all")
+                                        .font(.subheadline)
+                                        .italic()
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                } else {
+                                    HStack(spacing: 4) {
+                                        ForEach(optionCards, id: \.id) { card in
+                                            Text(card.displayText)
+                                                .font(.subheadline)
+                                                .foregroundColor(card.suit.color)
+                                                .fontWeight(isBest ? .bold : .regular)
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+
+                                Text(String(format: "%.3f", option.baseEV))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .frame(width: 52, alignment: .trailing)
+
+                                Text(String(format: "%.2f×", option.eKAwarded))
+                                    .font(.caption)
+                                    .foregroundColor(Color(hex: "FFD700").opacity(0.85))
+                                    .frame(width: 44, alignment: .trailing)
+
+                                Text(String(format: "%.3f", option.adjustedEV))
+                                    .font(.subheadline)
+                                    .fontWeight(isBest ? .bold : .regular)
+                                    .frame(width: 52, alignment: .trailing)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(isBest ? Color(hex: "667eea").opacity(0.2) : Color(.systemGray6))
+                            .cornerRadius(6)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            .padding()
+        }
         .background(Color(.systemBackground))
     }
 
@@ -1080,6 +1064,6 @@ struct AnalyzerPaytableSheet: View {
 
 #Preview {
     NavigationStack {
-        HandAnalyzerView()
+        HandAnalyzerView(viewModel: AnalyzerViewModel())
     }
 }

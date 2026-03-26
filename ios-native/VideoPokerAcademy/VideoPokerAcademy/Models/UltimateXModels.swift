@@ -7,11 +7,17 @@ enum UltimateXPlayCount: Int, CaseIterable, Identifiable, Codable {
     case three = 3
     case five = 5
     case ten = 10
+    case oneHundred = 100
 
     var id: Int { rawValue }
 
     var displayName: String {
-        "\(rawValue)-Play"
+        switch self {
+        case .three: return "3-Play"
+        case .five: return "5-Play"
+        case .ten: return "10-Play"
+        case .oneHundred: return "100-Play"
+        }
     }
 }
 
@@ -31,6 +37,7 @@ struct UltimateXMultiplierTable {
         case .three: return group.threePlay[normalized] ?? 1
         case .five:  return group.fivePlay[normalized]  ?? 1
         case .ten:   return group.tenPlay[normalized]   ?? 1
+        case .oneHundred: return group.tenPlay[normalized] ?? 1
         }
     }
 
@@ -42,6 +49,7 @@ struct UltimateXMultiplierTable {
         case .three: table = group.threePlay
         case .five:  table = group.fivePlay
         case .ten:   table = group.tenPlay
+        case .oneHundred: table = group.tenPlay
         }
         return Array(Set(table.values)).sorted()
     }
@@ -275,7 +283,7 @@ struct UltimateXStrategyResult {
     let baseResult: StrategyResult
 
     /// The current multiplier being applied
-    let currentMultiplier: Int
+    let currentMultiplier: Double
 
     /// The play count configuration
     let playCount: UltimateXPlayCount
@@ -288,6 +296,9 @@ struct UltimateXStrategyResult {
 
     /// Adjusted EVs for all 32 hold options
     let adjustedHoldEvs: [String: Double]
+
+    /// E[K_awarded] per hold bitmask string key (expected next-hand multiplier for each hold)
+    let holdEKs: [String: Double]
 
     /// Whether the optimal strategy differs from base game strategy
     var strategyDiffers: Bool {
@@ -337,5 +348,21 @@ struct UltimateXStrategyResult {
         let tolerance = 0.0001
         let tiedBitmasks = sorted.filter { abs($0.ev - bestEv) < tolerance }.map { $0.bitmask }
         return tiedBitmasks.contains(userBitmask)
+    }
+
+    /// Build UltimateXHoldOption array sorted by adjustedEV, with original-position hold indices.
+    func holdOptions(for hand: Hand) -> [UltimateXHoldOption] {
+        sortedAdjustedHoldOptions.compactMap { item in
+            guard let baseEV = baseResult.holdEvs[String(item.bitmask)],
+                  let eK = holdEKs[String(item.bitmask)] else { return nil }
+            let originalIndices = hand.canonicalIndicesToOriginal(item.indices).sorted()
+            return UltimateXHoldOption(
+                id: item.bitmask,
+                holdIndices: originalIndices,
+                baseEV: baseEV,
+                eKAwarded: eK,
+                adjustedEV: item.ev
+            )
+        }
     }
 }

@@ -17,8 +17,13 @@ class AnalyzerViewModel: ObservableObject {
     // Ultimate X mode
     @Published var isUltimateXMode = false
     @Published var ultimateXPlayCount: UltimateXPlayCount = .ten
-    @Published var ultimateXMultiplier: Int = 1
+    @Published var ultimateXMultiplier: Double = 1.0
     @Published var ultimateXResult: UltimateXStrategyResult?
+    /// True only when a multiplier change caused the optimal hold to differ from the previous multiplier's hold.
+    @Published var uxHoldChangedByMultiplier: Bool = false
+
+    // Tracks the best hold before a multiplier change so we can detect when the hold actually shifts.
+    private var holdBeforeMultiplierChange: Int? = nil
 
     var canAnalyze: Bool {
         selectedCards.count == 5
@@ -59,6 +64,8 @@ class AnalyzerViewModel: ObservableObject {
         ultimateXResult = nil
         showResults = false
         errorMessage = nil
+        uxHoldChangedByMultiplier = false
+        holdBeforeMultiplierChange = nil
     }
 
     /// Toggle Ultimate X mode
@@ -73,8 +80,9 @@ class AnalyzerViewModel: ObservableObject {
     }
 
     /// Update the Ultimate X multiplier and re-analyze
-    func setUltimateXMultiplier(_ multiplier: Int) {
-        ultimateXMultiplier = max(1, min(multiplier, UltimateXMultiplierTable.maxMultiplier))
+    func setUltimateXMultiplier(_ multiplier: Double) {
+        holdBeforeMultiplierChange = ultimateXResult?.adjustedBestHold
+        ultimateXMultiplier = max(1.0, min(multiplier, Double(UltimateXMultiplierTable.maxMultiplier)))
         if isUltimateXMode && selectedCards.count == 5 {
             Task {
                 await analyze()
@@ -135,6 +143,14 @@ class AnalyzerViewModel: ObservableObject {
             } else {
                 errorMessage = "No strategy found for this hand"
             }
+
+            // Detect if a multiplier change caused the optimal hold to shift
+            if let previous = holdBeforeMultiplierChange, let current = ultimateXResult?.adjustedBestHold {
+                uxHoldChangedByMultiplier = previous != current
+            } else {
+                uxHoldChangedByMultiplier = false
+            }
+            holdBeforeMultiplierChange = nil
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -171,4 +187,14 @@ class AnalyzerViewModel: ObservableObject {
             errorMessage = "Failed to load strategy data"
         }
     }
+}
+
+// MARK: - Hashable (for NavigationPath.append)
+
+extension AnalyzerViewModel: Hashable {
+    // `nonisolated` is required for Swift 6 strict concurrency on @MainActor classes.
+    // Both methods are safe because `===` and `ObjectIdentifier` only read the object's
+    // memory address — they never access any @MainActor-isolated stored properties.
+    nonisolated static func == (lhs: AnalyzerViewModel, rhs: AnalyzerViewModel) -> Bool { lhs === rhs }
+    nonisolated func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 }

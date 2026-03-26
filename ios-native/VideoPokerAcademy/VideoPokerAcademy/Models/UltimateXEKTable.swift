@@ -53,6 +53,7 @@ struct UltimateXEKTable {
         case .three: return 0
         case .five:  return 1
         case .ten:   return 2
+        case .oneHundred: return 2
         }
     }
 

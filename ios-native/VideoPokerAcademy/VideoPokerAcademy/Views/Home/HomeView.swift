@@ -72,6 +72,9 @@ struct HomeView: View {
             .navigationDestination(for: SimulationViewModel.self) { vm in
                 SimulationContainerView(viewModel: vm, navigationPath: $navigationPath)
             }
+            .navigationDestination(for: AnalyzerViewModel.self) { vm in
+                HandAnalyzerView(viewModel: vm)
+            }
             .sheet(isPresented: $ratingPromptService.shouldShowPrompt) {
                 RatingPromptView()
             }
@@ -385,7 +388,7 @@ struct HomeView: View {
                 navigationPath: $navigationPath
             )
         case .analyzer:
-            HandAnalyzerView()
+            AnalyzerStartView(navigationPath: $navigationPath)
         case .settings:
             SettingsView(authViewModel: authViewModel)
         case .weakSpots:
