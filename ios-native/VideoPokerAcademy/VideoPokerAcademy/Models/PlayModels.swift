@@ -5,15 +5,23 @@ import Foundation
 enum PlayVariant: String, Codable, Equatable, Hashable {
     case standard
     case ultimateX
+    case wildWildWild
 
     var isUltimateX: Bool { self == .ultimateX }
+    var isWildWildWild: Bool { self == .wildWildWild }
 
-    var coinsPerLine: Int { isUltimateX ? 10 : 5 }
+    var coinsPerLine: Int {
+        switch self {
+        case .standard: return 5
+        case .ultimateX, .wildWildWild: return 10
+        }
+    }
 
     var displayName: String {
         switch self {
-        case .standard:  return "Standard"
-        case .ultimateX: return "Ult X"
+        case .standard:      return "Standard"
+        case .ultimateX:     return "Ult X"
+        case .wildWildWild:  return "Wild³"
         }
     }
 }
@@ -254,8 +262,9 @@ struct PlaySettings: Codable {
     /// Paytable key for stats storage, incorporating the variant suffix.
     var statsPaytableKey: String {
         switch variant {
-        case .standard:  return selectedPaytableId
-        case .ultimateX: return selectedPaytableId + "-ux-\(effectiveUXPlayCount.rawValue)play"
+        case .standard:      return selectedPaytableId
+        case .ultimateX:     return selectedPaytableId + "-ux-\(effectiveUXPlayCount.rawValue)play"
+        case .wildWildWild:  return selectedPaytableId + "-www"
         }
     }
 

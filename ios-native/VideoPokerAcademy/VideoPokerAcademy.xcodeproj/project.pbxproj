@@ -136,6 +136,8 @@
 		D12B42C22299B1AD05F294CB /* StrategyLookupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD563F6C3B8CF399F50F9CF /* StrategyLookupService.swift */; };
 		D21EDB65179D90204EBA5B8D /* strategy_deuces_wild_nsud.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 5396FE3BB8E3650A6A443F66 /* strategy_deuces_wild_nsud.json.gz */; };
 		BD03FC58D2914DA1B2658D9B /* CardJokerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 687C53C93A6E49EAAEA13B9D /* CardJokerTests.swift */; };
+		AA11BB22CC33DD44EE55FF66 /* WildWildWildModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* WildWildWildModels.swift */; };
+		BB22CC33DD44EE55FF667788 /* WildWildWildModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF667789 /* WildWildWildModelsTests.swift */; };
 		D6674ECAAFC321928364B0DC /* CardParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E122D7986196771F738D2656 /* CardParserTests.swift */; };
 		D79994266A5C67BEEABAFBA2 /* next-hand.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6307EA07886E798392B296BB /* next-hand.mp3 */; };
 		D9F9E7B329D59807D9407120 /* big-win.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A3CA0409D50D835A3342502D /* big-win.mp3 */; };
@@ -232,6 +234,8 @@
 		6002F3C49DEAB543783F3190 /* HapticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticService.swift; sourceTree = "<group>"; };
 		600E895C7F61574DD6406959 /* LessonCompleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonCompleteView.swift; sourceTree = "<group>"; };
 		61449B33F9B4994F10C291CB /* UltimateXModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXModels.swift; sourceTree = "<group>"; };
+		AA11BB22CC33DD44EE55FF67 /* WildWildWildModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WildWildWildModels.swift; sourceTree = "<group>"; };
+		BB22CC33DD44EE55FF667789 /* WildWildWildModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WildWildWildModelsTests.swift; sourceTree = "<group>"; };
 		622995B527494F11A3A75972 /* UltimateXEKTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXEKTable.swift; sourceTree = "<group>"; };
 		6307EA07886E798392B296BB /* next-hand.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "next-hand.mp3"; sourceTree = "<group>"; };
 		64805CE25FB9A31D4B556D1C /* TrainingLessonData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingLessonData.swift; sourceTree = "<group>"; };
@@ -386,6 +390,7 @@
 				64805CE25FB9A31D4B556D1C /* TrainingLessonData.swift */,
 				61449B33F9B4994F10C291CB /* UltimateXModels.swift */,
 			622995B527494F11A3A75972 /* UltimateXEKTable.swift */,
+				AA11BB22CC33DD44EE55FF67 /* WildWildWildModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -722,6 +727,7 @@
 			D3E4F5A6B7C80920415B6C7E /* UltimateXSimulationTests.swift */,
 			E4F5A6B7C80920415B6C7E00 /* UXSimulationStatsTests.swift */,
 			A74BA337321B74B9C1E403A4 /* VoiceServiceTests.swift */,
+				BB22CC33DD44EE55FF667789 /* WildWildWildModelsTests.swift */,
 			);
 			path = VideoPokerAcademyTests;
 			sourceTree = "<group>";
@@ -860,6 +866,7 @@
 			C2D3E4F5A6B70819304A5B6D /* UltimateXSimulationTests.swift in Sources */,
 			D3E4F5A6B7C80920415B6C7F /* UXSimulationStatsTests.swift in Sources */,
 			698DDD3FA6BAA41CE5361936 /* VoiceServiceTests.swift in Sources */,
+				BB22CC33DD44EE55FF667788 /* WildWildWildModelsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -975,6 +982,7 @@
 				4B6BFE7C5F090B8501EEF9A1 /* UltimateXEVBenchmarkViewModel.swift in Sources */,
 				76EE0E0A52404AD3948148EB /* UltimateXEKTable.swift in Sources */,
 			DBA37BC532D1656848592981 /* UltimateXModels.swift in Sources */,
+				AA11BB22CC33DD44EE55FF66 /* WildWildWildModels.swift in Sources */,
 				63DC6FD81016C70566283225 /* UltimateXStrategyService.swift in Sources */,
 				AD4215AF81B26245E14C6917 /* UserDataSyncService.swift in Sources */,
 				40842D36CE4D12F3060C9E0A /* VideoPokerAcademyApp.swift in Sources */,
