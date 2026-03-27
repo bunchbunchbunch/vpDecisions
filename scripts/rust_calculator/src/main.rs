@@ -159,6 +159,10 @@ impl Paytable {
         self.four_aces_with_face.is_some()
     }
 
+    fn is_www(&self) -> bool {
+        self.id.starts_with("www-")
+    }
+
     fn num_jokers(&self) -> u8 {
         if self.id.starts_with("www-") {
             // Extract wild count from ID: "www-{base}-{N}w"
@@ -2311,6 +2315,42 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             min_pair_rank: 0,
         }),
 
+        // WWW (Wild Wild Wild) variants — auto-derived from base paytable
+        // ID format: "www-{base_paytable_id}-{N}w" where N = 0, 1, 2, or 3
+        id if id.starts_with("www-") => {
+            // Strip "www-" prefix and "-Nw" suffix to get base ID
+            let without_prefix = id.trim_start_matches("www-");
+            let base_id = if let Some(pos) = without_prefix.rfind('-') {
+                &without_prefix[..pos]
+            } else {
+                without_prefix
+            };
+
+            if let Some(mut pt) = get_paytable(base_id) {
+                pt.id = id.to_string();
+                pt.name = format!("WWW {}", pt.name);
+
+                // Add Wild Royal if not present (same payout as Natural Royal)
+                if pt.wild_royal.is_none() {
+                    pt.wild_royal = Some(pt.royal_flush);
+                }
+
+                // Add Five of a Kind if not present
+                if pt.five_of_a_kind.is_none() {
+                    pt.five_of_a_kind = Some(
+                        pt.four_aces_with_kicker
+                            .or(pt.four_aces)
+                            .unwrap_or(pt.four_of_a_kind)
+                    );
+                }
+
+                Some(pt)
+            } else {
+                eprintln!("Warning: base paytable '{}' not found for WWW variant '{}'", base_id, id);
+                None
+            }
+        },
+
         _ => None,
     }
 }
@@ -2900,10 +2940,179 @@ fn get_joker_payout(hand: &[Card], paytable: &Paytable) -> f64 {
     0.0
 }
 
+fn get_www_quad_payout(quad_rank: u8, kicker_rank: u8, paytable: &Paytable) -> f64 {
+    // Kicker bonuses (DDB, TDB, TTB): low kicker = 2,3,4 or Ace
+    if paytable.has_kicker_bonus() {
+        let is_low_kicker = kicker_rank <= 2 || kicker_rank == 12;
+        if quad_rank == 12 {
+            if is_low_kicker { if let Some(p) = paytable.four_aces_with_kicker { return p; } }
+            if let Some(p) = paytable.four_aces { return p; }
+        } else if quad_rank <= 2 {
+            if is_low_kicker { if let Some(p) = paytable.four_2_4_with_kicker { return p; } }
+            if let Some(p) = paytable.four_2_4 { return p; }
+        } else {
+            if let Some(p) = paytable.four_5_k { return p; }
+        }
+    }
+
+    // Face kicker bonuses (Double Jackpot, Double Double Jackpot)
+    if paytable.has_face_kicker_bonus() {
+        let is_face_kicker = kicker_rank >= 9;
+        if quad_rank == 12 {
+            if is_face_kicker { if let Some(p) = paytable.four_aces_with_face { return p; } }
+            if let Some(p) = paytable.four_aces { return p; }
+        } else if quad_rank >= 9 && quad_rank <= 11 {
+            if is_face_kicker { if let Some(p) = paytable.four_jqk_with_face { return p; } }
+            if let Some(p) = paytable.four_jqk { return p; }
+        } else {
+            return paytable.four_of_a_kind;
+        }
+    }
+
+    // Standard bonus payouts
+    if quad_rank == 12 { if let Some(p) = paytable.four_aces { return p; } }
+    if quad_rank <= 2 { if let Some(p) = paytable.four_2_4 { return p; } }
+    if quad_rank >= 9 && quad_rank <= 11 { if let Some(p) = paytable.four_jqk { return p; } }
+    if quad_rank == 6 { if let Some(p) = paytable.four_8s { return p; } }
+    if quad_rank == 5 { if let Some(p) = paytable.four_7s { return p; } }
+    if let Some(p) = paytable.four_5_k { return p; }
+    paytable.four_of_a_kind
+}
+
+fn get_www_payout(hand: &[Card], paytable: &Paytable) -> f64 {
+    let num_jokers = hand.iter().filter(|c| c.is_joker()).count() as u8;
+
+    // Determine if base game treats deuces as wild
+    let is_deuces_base = paytable.is_deuces_wild();
+    let non_jokers: Vec<Card> = hand.iter().filter(|c| !c.is_joker()).cloned().collect();
+    let num_deuces = if is_deuces_base { non_jokers.iter().filter(|c| c.rank() == 0).count() as u8 } else { 0 };
+    let total_wilds = num_jokers + num_deuces;
+
+    // Non-wild cards (exclude jokers AND deuces if deuces-base)
+    let naturals: Vec<Card> = non_jokers.iter()
+        .filter(|c| !(is_deuces_base && c.rank() == 0))
+        .cloned()
+        .collect();
+
+    let mut counts = [0u8; 13];
+    for card in &naturals {
+        if card.rank() < 13 {
+            counts[card.rank() as usize] += 1;
+        }
+    }
+    let max_count = *counts.iter().max().unwrap_or(&0);
+
+    let is_flush = is_flush_wild(&naturals);
+    let is_straight = is_straight_wild(&naturals, total_wilds);
+
+    // Deuces-specific: Four Deuces (requires actual deuces, not jokers)
+    if is_deuces_base && num_deuces == 4 {
+        return paytable.four_deuces.unwrap_or(200.0);
+    }
+
+    // Natural Royal (zero wilds of any kind)
+    if total_wilds == 0 && is_flush && is_straight {
+        let mut ranks: Vec<u8> = naturals.iter().map(|c| c.rank()).collect();
+        ranks.sort();
+        if ranks == vec![8, 9, 10, 11, 12] {
+            return paytable.royal_flush;
+        }
+    }
+
+    // Five of a Kind
+    if max_count + total_wilds >= 5 {
+        return paytable.five_of_a_kind.unwrap_or(100.0);
+    }
+
+    // Wild Royal Flush
+    if total_wilds > 0 && is_royal_wild(&naturals, total_wilds) {
+        return paytable.wild_royal.unwrap_or(50.0);
+    }
+
+    // Straight Flush
+    if is_flush && is_straight {
+        return paytable.straight_flush;
+    }
+
+    // Four of a Kind — use bonus-aware resolution for non-deuces bases
+    if max_count + total_wilds >= 4 {
+        if is_deuces_base {
+            return paytable.four_of_a_kind;
+        }
+        // For bonus games: find which rank makes the quad
+        let quad_rank = counts.iter().enumerate()
+            .max_by_key(|(_, &c)| c)
+            .map(|(r, _)| r as u8)
+            .unwrap_or(0);
+        // Kicker = highest non-quad natural card
+        let kicker = naturals.iter()
+            .filter(|c| c.rank() != quad_rank)
+            .map(|c| c.rank())
+            .max()
+            .unwrap_or(0);
+        return get_www_quad_payout(quad_rank, kicker, paytable);
+    }
+
+    // Full House
+    let num_pairs = counts.iter().filter(|&&c| c == 2).count() as u8;
+    if (max_count + total_wilds >= 3) && (num_pairs >= 1 || max_count >= 2) {
+        let mut sorted_counts: Vec<u8> = counts.iter().cloned().filter(|&c| c > 0).collect();
+        sorted_counts.sort();
+        sorted_counts.reverse();
+
+        if sorted_counts.len() >= 2 {
+            let need_for_trips = 3_u8.saturating_sub(sorted_counts[0]);
+            let need_for_pair = 2_u8.saturating_sub(sorted_counts[1]);
+            if need_for_trips + need_for_pair <= total_wilds && max_count + total_wilds < 4 {
+                return paytable.full_house;
+            }
+        }
+    }
+
+    // Flush
+    if is_flush && !is_straight {
+        return paytable.flush;
+    }
+
+    // Straight
+    if is_straight && !is_flush {
+        return paytable.straight;
+    }
+
+    // Three of a Kind
+    if max_count + total_wilds >= 3 {
+        return paytable.three_of_a_kind;
+    }
+
+    // Two Pair
+    if num_pairs >= 2 || (num_pairs == 1 && total_wilds >= 1 && max_count < 3) {
+        if paytable.two_pair > 0.0 {
+            return paytable.two_pair;
+        }
+    }
+
+    // High Pair
+    if num_pairs == 1 || total_wilds >= 1 {
+        let highest_natural = counts.iter().enumerate().rev()
+            .find(|(_, &c)| c >= 1).map(|(r, _)| r as u8).unwrap_or(0);
+        let best_pair_rank = if total_wilds >= 1 { highest_natural.max(12) } else {
+            counts.iter().enumerate().rev()
+                .find(|(_, &c)| c >= 2).map(|(r, _)| r as u8).unwrap_or(0)
+        };
+        if best_pair_rank >= paytable.min_pair_rank {
+            return paytable.high_pair;
+        }
+    }
+
+    0.0
+}
+
 fn get_payout(hand: &[Card], paytable: &Paytable) -> f64 {
     if hand.len() != 5 { return 0.0; }
 
-    if paytable.is_deuces_wild() {
+    if paytable.is_www() {
+        get_www_payout(hand, paytable)
+    } else if paytable.is_deuces_wild() {
         get_deuces_wild_payout(hand, paytable)
     } else if paytable.is_joker_poker() {
         get_joker_payout(hand, paytable)
