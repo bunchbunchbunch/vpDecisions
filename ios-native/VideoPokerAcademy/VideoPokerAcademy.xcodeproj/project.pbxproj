@@ -137,6 +137,7 @@
 		D21EDB65179D90204EBA5B8D /* strategy_deuces_wild_nsud.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 5396FE3BB8E3650A6A443F66 /* strategy_deuces_wild_nsud.json.gz */; };
 		BD03FC58D2914DA1B2658D9B /* CardJokerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 687C53C93A6E49EAAEA13B9D /* CardJokerTests.swift */; };
 		AA11BB22CC33DD44EE55FF66 /* WildWildWildModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* WildWildWildModels.swift */; };
+		CC33DD44EE55FF66778899AA /* HandWWWTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC33DD44EE55FF66778899AB /* HandWWWTests.swift */; };
 		BB22CC33DD44EE55FF667788 /* WildWildWildModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF667789 /* WildWildWildModelsTests.swift */; };
 		D6674ECAAFC321928364B0DC /* CardParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E122D7986196771F738D2656 /* CardParserTests.swift */; };
 		D79994266A5C67BEEABAFBA2 /* next-hand.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6307EA07886E798392B296BB /* next-hand.mp3 */; };
@@ -235,6 +236,7 @@
 		600E895C7F61574DD6406959 /* LessonCompleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonCompleteView.swift; sourceTree = "<group>"; };
 		61449B33F9B4994F10C291CB /* UltimateXModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXModels.swift; sourceTree = "<group>"; };
 		AA11BB22CC33DD44EE55FF67 /* WildWildWildModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WildWildWildModels.swift; sourceTree = "<group>"; };
+		CC33DD44EE55FF66778899AB /* HandWWWTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandWWWTests.swift; sourceTree = "<group>"; };
 		BB22CC33DD44EE55FF667789 /* WildWildWildModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WildWildWildModelsTests.swift; sourceTree = "<group>"; };
 		622995B527494F11A3A75972 /* UltimateXEKTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateXEKTable.swift; sourceTree = "<group>"; };
 		6307EA07886E798392B296BB /* next-hand.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "next-hand.mp3"; sourceTree = "<group>"; };
@@ -716,6 +718,7 @@
 				E122D7986196771F738D2656 /* CardParserTests.swift */,
 				0EADD77F2965DB7E7B82D60E /* CasinoModeViewModelTests.swift */,
 				48012F087B9F057F5D29098A /* HandEvaluatorTests.swift */,
+				CC33DD44EE55FF66778899AB /* HandWWWTests.swift */,
 				3E703C8F2929345AAD856519 /* HoldOutcomeCalculatorTests.swift */,
 				FB91F54C372566A26093CE2C /* RatingPromptServiceTests.swift */,
 				36DDAACDD282E4126C8E73CC /* ResponseFormatterTests.swift */,
@@ -855,6 +858,7 @@
 				D6674ECAAFC321928364B0DC /* CardParserTests.swift in Sources */,
 				22FFD9C0441D50B198CE0E85 /* CasinoModeViewModelTests.swift in Sources */,
 				25008CE2024C3C7BF74ECB32 /* HandEvaluatorTests.swift in Sources */,
+				CC33DD44EE55FF66778899AA /* HandWWWTests.swift in Sources */,
 				0050B21299356E4FB3A2751C /* HoldOutcomeCalculatorTests.swift in Sources */,
 				0D34973C733A0689B3E31F0A /* RatingPromptServiceTests.swift in Sources */,
 				C0F65BDF3B126780280F28C1 /* ResponseFormatterTests.swift in Sources */,

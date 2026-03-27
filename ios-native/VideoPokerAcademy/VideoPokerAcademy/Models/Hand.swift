@@ -11,9 +11,12 @@ struct Hand: Identifiable {
 
     /// Generate canonical key for database lookup
     /// Matches the React Native implementation exactly
+    /// Jokers sort to the end and are encoded as "Ww"
     var canonicalKey: String {
-        // Sort by rank value, then by suit for deterministic ordering
-        let sorted = cards.sorted {
+        let naturals = cards.filter { $0.rank != .joker }
+        let jokerCount = cards.count - naturals.count
+
+        let sorted = naturals.sorted {
             if $0.rank.rawValue != $1.rank.rawValue {
                 return $0.rank.rawValue < $1.rank.rawValue
             }
@@ -32,10 +35,9 @@ struct Hand: Identifiable {
             }
         }
 
-        // Build canonical key
-        return sorted.map { card in
-            "\(card.rank.display)\(suitMap[card.suit]!)"
-        }.joined()
+        let naturalKey = sorted.map { "\($0.rank.display)\(suitMap[$0.suit]!)" }.joined()
+        let jokerSuffix = String(repeating: "Ww", count: jokerCount)
+        return naturalKey + jokerSuffix
     }
 
     /// Deal a random 5-card hand
@@ -74,43 +76,61 @@ struct Hand: Identifiable {
 
     /// Convert indices from canonical (sorted) order to original deal order
     /// The database stores hold bitmasks in sorted order, but we display cards in deal order
+    /// Canonical order: sorted naturals first, then jokers at the end
     func canonicalIndicesToOriginal(_ canonicalIndices: [Int]) -> [Int] {
-        // Get the sorted version of the hand (same sorting used for canonical key)
-        let sorted = cards.sorted {
-            if $0.rank.rawValue != $1.rank.rawValue {
-                return $0.rank.rawValue < $1.rank.rawValue
+        let naturalsWithOriginal = cards.enumerated()
+            .filter { $0.element.rank != .joker }
+            .map { (original: $0.offset, card: $0.element) }
+
+        let sortedNaturals = naturalsWithOriginal.sorted {
+            if $0.card.rank.rawValue != $1.card.rank.rawValue {
+                return $0.card.rank.rawValue < $1.card.rank.rawValue
             }
-            return $0.suit.rawValue < $1.suit.rawValue
+            return $0.card.suit.rawValue < $1.card.suit.rawValue
         }
 
-        // For each canonical index, find the card in sorted order,
-        // then find that card's position in the original deal order
-        return canonicalIndices.compactMap { canonicalIndex -> Int? in
-            guard canonicalIndex >= 0 && canonicalIndex < sorted.count else { return nil }
-            let cardAtCanonicalIndex = sorted[canonicalIndex]
-            // Find this card in the original hand
-            return cards.firstIndex { $0.rank == cardAtCanonicalIndex.rank && $0.suit == cardAtCanonicalIndex.suit }
+        let jokerOriginals = cards.enumerated()
+            .filter { $0.element.rank == .joker }
+            .map { $0.offset }
+
+        // Canonical order: sorted naturals, then jokers
+        let canonicalToOriginal = sortedNaturals.map { $0.original } + jokerOriginals
+
+        return canonicalIndices.compactMap { ci -> Int? in
+            guard ci >= 0 && ci < canonicalToOriginal.count else { return nil }
+            return canonicalToOriginal[ci]
         }
     }
 
     /// Convert indices from original deal order to canonical (sorted) order
     /// Needed when comparing user selection against database best hold
+    /// Canonical order: sorted naturals first, then jokers at the end
     func originalIndicesToCanonical(_ originalIndices: [Int]) -> [Int] {
-        // Get the sorted version of the hand (same sorting used for canonical key)
-        let sorted = cards.sorted {
-            if $0.rank.rawValue != $1.rank.rawValue {
-                return $0.rank.rawValue < $1.rank.rawValue
+        let naturalsWithOriginal = cards.enumerated()
+            .filter { $0.element.rank != .joker }
+            .map { (original: $0.offset, card: $0.element) }
+
+        let sortedNaturals = naturalsWithOriginal.sorted {
+            if $0.card.rank.rawValue != $1.card.rank.rawValue {
+                return $0.card.rank.rawValue < $1.card.rank.rawValue
             }
-            return $0.suit.rawValue < $1.suit.rawValue
+            return $0.card.suit.rawValue < $1.card.suit.rawValue
         }
 
-        // For each original index, find the card in the original hand,
-        // then find that card's position in the sorted order
+        let jokerOriginals = cards.enumerated()
+            .filter { $0.element.rank == .joker }
+            .map { $0.offset }
+
+        // Build reverse mapping: original index -> canonical index
+        let canonicalToOriginal = sortedNaturals.map { $0.original } + jokerOriginals
+        var originalToCanonical: [Int: Int] = [:]
+        for (canonicalIndex, originalIndex) in canonicalToOriginal.enumerated() {
+            originalToCanonical[originalIndex] = canonicalIndex
+        }
+
         return originalIndices.compactMap { originalIndex -> Int? in
             guard originalIndex >= 0 && originalIndex < cards.count else { return nil }
-            let cardAtOriginalIndex = cards[originalIndex]
-            // Find this card in the sorted hand
-            return sorted.firstIndex { $0.rank == cardAtOriginalIndex.rank && $0.suit == cardAtOriginalIndex.suit }
+            return originalToCanonical[originalIndex]
         }
     }
 }

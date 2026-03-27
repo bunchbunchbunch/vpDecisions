@@ -954,6 +954,11 @@ class PlayViewModel: ObservableObject {
     }
 
     private func evaluateFinalHand(_ cards: [Card]) -> HandEvaluation {
+        // WWW mode: use dedicated evaluator
+        if settings.variant.isWildWildWild {
+            return evaluateWWWHand(cards)
+        }
+
         let paytableId = settings.selectedPaytableId
 
         var rankCounts: [Int: Int] = [:]
@@ -1235,6 +1240,154 @@ class PlayViewModel: ObservableObject {
         let neededForPair = max(0, 2 - second)
 
         return neededForTrips + neededForPair <= numDeuces
+    }
+
+    // MARK: - Generic Wild Helpers (for WWW — do NOT filter deuces)
+
+    /// Generic: all naturals same suit (wilds fill suit)
+    private func isFlushWithGenericWilds(_ naturals: [Card]) -> Bool {
+        guard !naturals.isEmpty else { return true }
+        let firstSuit = naturals[0].suit
+        return naturals.allSatisfy { $0.suit == firstSuit }
+    }
+
+    /// Generic: can naturals + wilds form a royal flush?
+    private func isWildRoyalWithGenericWilds(_ naturals: [Card], numWilds: Int) -> Bool {
+        guard numWilds > 0 else { return false }
+        guard isFlushWithGenericWilds(naturals) else { return false }
+        let royalRanks: Set<Int> = [10, 11, 12, 13, 14] // T, J, Q, K, A
+        let naturalRanks = Set(naturals.map { $0.rank.rawValue })
+        guard naturalRanks.isSubset(of: royalRanks) else { return false }
+        return naturalRanks.count + numWilds >= 5
+    }
+
+    /// Generic: can naturals + wilds form a straight?
+    private func canMakeStraightWithGenericWilds(_ naturals: [Card], numWilds: Int) -> Bool {
+        let ranks = naturals.map { $0.rank.rawValue }.sorted()
+        guard ranks.count + numWilds == 5 else { return false }
+        guard Set(ranks).count == ranks.count else { return false } // no duplicates
+        // Try ace-low (A=1) and ace-high (A=14)
+        for aceVal in [14, 1] {
+            let adjusted = ranks.map { $0 == 14 ? aceVal : $0 }.sorted()
+            if adjusted.isEmpty { return true } // all wilds
+            let lo = adjusted.first!
+            let hi = adjusted.last!
+            if hi - lo <= 4 { return true }
+        }
+        return false
+    }
+
+    /// Generic: can naturals + wilds form a straight flush?
+    private func canMakeStraightFlushWithGenericWilds(_ naturals: [Card], numWilds: Int) -> Bool {
+        guard isFlushWithGenericWilds(naturals) else { return false }
+        return canMakeStraightWithGenericWilds(naturals, numWilds: numWilds)
+    }
+
+    /// Generic: can rank counts + wilds form a full house?
+    private func canMakeFullHouseWithGenericWilds(rankCounts: [Int: Int], numWilds: Int) -> Bool {
+        let sorted = rankCounts.values.sorted(by: >)
+        guard sorted.count >= 2 else { return false }
+        let needTrips = max(0, 3 - sorted[0])
+        let needPair = max(0, 2 - sorted[1])
+        return needTrips + needPair <= numWilds
+    }
+
+    // MARK: - WWW Hand Evaluation
+
+    private func evaluateWWWHand(_ cards: [Card]) -> HandEvaluation {
+        let isDeucesBase = settings.selectedPaytableId.hasPrefix("deuces-wild") ||
+                           settings.selectedPaytableId.hasPrefix("loose-deuces")
+
+        let numJokers = cards.filter { $0.rank == .joker }.count
+        let nonJokers = cards.filter { $0.rank != .joker }
+        let numDeuces = isDeucesBase ? nonJokers.filter { $0.rank == .two }.count : 0
+        let totalWilds = numJokers + numDeuces
+
+        let naturals = nonJokers.filter { !isDeucesBase || $0.rank != .two }
+
+        var rankCounts: [Int: Int] = [:]
+        for card in naturals {
+            rankCounts[card.rank.rawValue, default: 0] += 1
+        }
+        let maxCount = rankCounts.values.max() ?? 0
+
+        // Zero wilds — evaluate as standard
+        if totalWilds == 0 {
+            let paytableRowNames = Set(currentPaytable?.rows.map { $0.handName } ?? [])
+            let pairs = rankCounts.filter { $0.value == 2 }.map { $0.key }.sorted(by: >)
+            let trips = rankCounts.filter { $0.value == 3 }.map { $0.key }
+            let quads = rankCounts.filter { $0.value == 4 }.map { $0.key }
+            return evaluateStandardHand(cards: cards, pairs: pairs, trips: trips, quads: quads, paytableRowNames: paytableRowNames)
+        }
+
+        // Deuces-specific: Four Deuces
+        if isDeucesBase && numDeuces == 4 {
+            return HandEvaluation(handName: "Four Deuces", winningIndices: getCardIndices(cards: cards, rank: 2))
+        }
+
+        // Five of a Kind
+        if maxCount + totalWilds >= 5 {
+            return HandEvaluation(handName: "Five of a Kind", winningIndices: Array(0..<5))
+        }
+
+        // Wild Royal Flush — USE GENERIC HELPER
+        if isWildRoyalWithGenericWilds(naturals, numWilds: totalWilds) {
+            return HandEvaluation(handName: "Wild Royal", winningIndices: Array(0..<5))
+        }
+
+        // Straight Flush — USE GENERIC HELPER
+        if canMakeStraightFlushWithGenericWilds(naturals, numWilds: totalWilds) {
+            return HandEvaluation(handName: "Straight Flush", winningIndices: Array(0..<5))
+        }
+
+        // Four of a Kind
+        if maxCount + totalWilds >= 4 {
+            let paytableRowNames = Set(currentPaytable?.rows.map { $0.handName } ?? [])
+            let quadRank = rankCounts.max(by: { $0.value < $1.value })?.key ?? 0
+            let kicker = naturals.first { $0.rank.rawValue != quadRank }?.rank.rawValue ?? 0
+            let handName = HandEvaluator.resolveQuadHandName(quadRank: quadRank, kickerRank: kicker, paytableRowNames: paytableRowNames)
+            return HandEvaluation(handName: handName, winningIndices: Array(0..<5))
+        }
+
+        // Full House — USE GENERIC HELPER
+        if canMakeFullHouseWithGenericWilds(rankCounts: rankCounts, numWilds: totalWilds) {
+            return HandEvaluation(handName: "Full House", winningIndices: Array(0..<5))
+        }
+
+        // Flush and Straight checks — USE GENERIC HELPERS
+        let isFlushResult = isFlushWithGenericWilds(naturals)
+        let isStraightResult = canMakeStraightWithGenericWilds(naturals, numWilds: totalWilds)
+        if isFlushResult && !isStraightResult {
+            return HandEvaluation(handName: "Flush", winningIndices: Array(0..<5))
+        }
+
+        if isStraightResult && !isFlushResult {
+            return HandEvaluation(handName: "Straight", winningIndices: Array(0..<5))
+        }
+
+        // Three of a Kind
+        if maxCount + totalWilds >= 3 {
+            return HandEvaluation(handName: "Three of a Kind", winningIndices: Array(0..<5))
+        }
+
+        // Two Pair
+        let numPairs = rankCounts.filter { $0.value == 2 }.count
+        if numPairs >= 2 {
+            return HandEvaluation(handName: "Two Pair", winningIndices: Array(0..<5))
+        }
+
+        // High Pair
+        if let pairInfo = HandEvaluator.resolveHighPairInfo(paytableRowNames: Set(currentPaytable?.rows.map { $0.handName } ?? [])) {
+            let highestNatural = rankCounts.keys.max() ?? 0
+            if highestNatural >= pairInfo.minRank || totalWilds >= 1 {
+                let bestRank = max(highestNatural, pairInfo.minRank)
+                if bestRank >= pairInfo.minRank {
+                    return HandEvaluation(handName: pairInfo.name, winningIndices: Array(0..<5))
+                }
+            }
+        }
+
+        return HandEvaluation(handName: nil, winningIndices: [])
     }
 
     private func getCardIndices(cards: [Card], rank: Int) -> [Int] {
