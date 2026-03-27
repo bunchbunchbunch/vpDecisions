@@ -50,6 +50,17 @@ struct VideoPokerAcademyApp: App {
                     }
                 }
             }
+            .task {
+                // Pre-warm AudioService on a background thread so the first navigation
+                // to any game mode doesn't block the main thread with audio session
+                // setup and sound file preloading (~400-600ms synchronous work).
+                Task.detached(priority: .background) {
+                    _ = AudioService.shared
+                }
+                // HapticService requires main thread (UIKit); .prepare() calls are ~40ms
+                // and run here after the first frame is already painted.
+                _ = HapticService.shared
+            }
         }
     }
 
