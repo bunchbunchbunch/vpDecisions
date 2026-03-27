@@ -997,7 +997,7 @@
 				CODE_SIGN_ENTITLEMENTS = VideoPokerAcademy/VideoPokerAcademy.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = LDPWY39U2R;
 				INFOPLIST_FILE = VideoPokerAcademy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1037,7 +1037,7 @@
 				CODE_SIGN_ENTITLEMENTS = VideoPokerAcademy/VideoPokerAcademy.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = LDPWY39U2R;
 				INFOPLIST_FILE = VideoPokerAcademy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
