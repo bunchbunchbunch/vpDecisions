@@ -40,9 +40,16 @@ enum Suit: String, CaseIterable, Codable {
     }
 }
 
-enum Rank: Int, CaseIterable, Codable, Comparable {
+enum Rank: Int, Codable, Comparable {
     case two = 2, three, four, five, six, seven, eight, nine, ten
     case jack = 11, queen, king, ace
+    case joker = 15
+
+    // Manual CaseIterable conformance excluding joker
+    static var allCases: [Rank] {
+        [.two, .three, .four, .five, .six, .seven, .eight, .nine, .ten,
+         .jack, .queen, .king, .ace]
+    }
 
     var display: String {
         switch self {
@@ -59,6 +66,7 @@ enum Rank: Int, CaseIterable, Codable, Comparable {
         case .queen: return "Q"
         case .king: return "K"
         case .ace: return "A"
+        case .joker: return "W"
         }
     }
 
@@ -77,6 +85,7 @@ enum Rank: Int, CaseIterable, Codable, Comparable {
         case .queen: return "Q"
         case .king: return "K"
         case .ace: return "A"
+        case .joker: return "Wild"
         }
     }
 
@@ -91,11 +100,13 @@ struct Card: Identifiable, Equatable, Hashable {
     let suit: Suit
 
     var imageName: String {
-        "\(rank.display)\(suit.code)"
+        if rank == .joker { return "1J" }
+        return "\(rank.display)\(suit.code)"
     }
 
     var displayText: String {
-        "\(rank.fullName)\(suit.symbol)"
+        if rank == .joker { return "Wild" }
+        return "\(rank.fullName)\(suit.symbol)"
     }
 
     static func createDeck() -> [Card] {
@@ -110,6 +121,14 @@ struct Card: Identifiable, Equatable, Hashable {
 
     static func shuffledDeck() -> [Card] {
         createDeck().shuffled()
+    }
+
+    static func shuffledDeck(jokerCount: Int) -> [Card] {
+        var deck = createDeck()
+        for _ in 0..<jokerCount {
+            deck.append(Card(rank: .joker, suit: .hearts))
+        }
+        return deck.shuffled()
     }
 
     /// Parse a card string like "Ah", "Kc", "Td", "6h" into a Card.

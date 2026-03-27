@@ -135,6 +135,7 @@
 		D02B6B5CA970F4489167F6F3 /* TrainingHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B545C8A858C0EDF48515FAA /* TrainingHubView.swift */; };
 		D12B42C22299B1AD05F294CB /* StrategyLookupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD563F6C3B8CF399F50F9CF /* StrategyLookupService.swift */; };
 		D21EDB65179D90204EBA5B8D /* strategy_deuces_wild_nsud.json.gz in Resources */ = {isa = PBXBuildFile; fileRef = 5396FE3BB8E3650A6A443F66 /* strategy_deuces_wild_nsud.json.gz */; };
+		BD03FC58D2914DA1B2658D9B /* CardJokerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 687C53C93A6E49EAAEA13B9D /* CardJokerTests.swift */; };
 		D6674ECAAFC321928364B0DC /* CardParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E122D7986196771F738D2656 /* CardParserTests.swift */; };
 		D79994266A5C67BEEABAFBA2 /* next-hand.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6307EA07886E798392B296BB /* next-hand.mp3 */; };
 		D9F9E7B329D59807D9407120 /* big-win.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A3CA0409D50D835A3342502D /* big-win.mp3 */; };
@@ -306,6 +307,7 @@
 		DE7FBC018C0DC89FB51AD0B2 /* SimulationRunningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationRunningView.swift; sourceTree = "<group>"; };
 		DF2171D8966579AC447912EA /* CertificatePinning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificatePinning.swift; sourceTree = "<group>"; };
 		E10D2E88C22D7D578C4E01CC /* SimulationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationViewModel.swift; sourceTree = "<group>"; };
+		687C53C93A6E49EAAEA13B9D /* CardJokerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardJokerTests.swift; sourceTree = "<group>"; };
 		E122D7986196771F738D2656 /* CardParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardParserTests.swift; sourceTree = "<group>"; };
 		E2A1A7FE15ED6DE1CCBACDFB /* QuizResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultsView.swift; sourceTree = "<group>"; };
 		E4ED0C04709900D35DA5047C /* incorrect.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = incorrect.mp3; sourceTree = "<group>"; };
@@ -705,6 +707,7 @@
 			isa = PBXGroup;
 			children = (
 				AF8635E8A809316C73C51A4D /* AudioServiceSuspendTests.swift */,
+				687C53C93A6E49EAAEA13B9D /* CardJokerTests.swift */,
 				E122D7986196771F738D2656 /* CardParserTests.swift */,
 				0EADD77F2965DB7E7B82D60E /* CasinoModeViewModelTests.swift */,
 				48012F087B9F057F5D29098A /* HandEvaluatorTests.swift */,
@@ -842,6 +845,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3155C4163E601DEF9FE3DE5B /* AudioServiceSuspendTests.swift in Sources */,
+				BD03FC58D2914DA1B2658D9B /* CardJokerTests.swift in Sources */,
 				D6674ECAAFC321928364B0DC /* CardParserTests.swift in Sources */,
 				22FFD9C0441D50B198CE0E85 /* CasinoModeViewModelTests.swift in Sources */,
 				25008CE2024C3C7BF74ECB32 /* HandEvaluatorTests.swift in Sources */,
