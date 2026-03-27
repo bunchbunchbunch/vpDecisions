@@ -22,17 +22,17 @@ struct Card(u8);
 
 impl Card {
     fn rank(&self) -> u8 {
-        if self.0 == 52 { return 255; } // Joker has no rank
+        if self.0 >= 52 { return 255; } // All jokers have no rank
         self.0 / 4
     }
 
     fn suit(&self) -> u8 {
-        if self.0 == 52 { return 255; } // Joker has no suit
+        if self.0 >= 52 { return 255; } // All jokers have no suit
         self.0 % 4
     }
 
     fn is_joker(&self) -> bool {
-        self.0 == 52
+        self.0 >= 52
     }
 
     fn rank_char(&self) -> char {
@@ -157,6 +157,22 @@ impl Paytable {
 
     fn has_face_kicker_bonus(&self) -> bool {
         self.four_aces_with_face.is_some()
+    }
+
+    fn num_jokers(&self) -> u8 {
+        if self.id.starts_with("www-") {
+            // Extract wild count from ID: "www-{base}-{N}w"
+            if let Some(suffix) = self.id.rsplit('-').next() {
+                if let Some(n) = suffix.strip_suffix('w').and_then(|s| s.parse::<u8>().ok()) {
+                    return n;
+                }
+            }
+            0
+        } else if self.is_joker_poker() {
+            1
+        } else {
+            0
+        }
     }
 }
 
@@ -2941,7 +2957,7 @@ fn calculate_hold_ev(hand: &Hand, hold_mask: u8, paytable: &Paytable, deck_size:
 }
 
 fn analyze_hand(hand: &Hand, paytable: &Paytable) -> (u8, f64, HashMap<String, f64>) {
-    let deck_size = if paytable.is_joker_poker() { 53 } else { 52 };
+    let deck_size = 52 + paytable.num_jokers();
 
     let mut hold_evs: HashMap<String, f64> = HashMap::new();
     let mut best_hold = 0u8;
@@ -2990,10 +3006,11 @@ fn hand_to_canonical_key(hand: &Hand) -> String {
     key
 }
 
-fn generate_canonical_hands(include_joker: bool) -> Vec<(String, Hand)> {
-    println!("Generating canonical hands{}...", if include_joker { " (with joker)" } else { "" });
+fn generate_canonical_hands(num_jokers: u8) -> Vec<(String, Hand)> {
+    let include_str = if num_jokers > 0 { format!(" (with {} joker(s))", num_jokers) } else { String::new() };
+    println!("Generating canonical hands{}...", include_str);
     let mut seen: HashMap<String, Hand> = HashMap::new();
-    let max_card = if include_joker { 53u8 } else { 52u8 };
+    let max_card = 52 + num_jokers;
 
     for c1 in 0..(max_card - 4) {
         for c2 in (c1 + 1)..(max_card - 3) {
@@ -3075,14 +3092,15 @@ const VPSTRAT_DATA_ENTRY_SIZE: usize = 5;
 
 fn generate_binary_strategy(
     strategies: &HashMap<String, StrategyEntry>,
-    has_joker: bool,
+    num_jokers: u8,
 ) -> Vec<u8> {
-    let key_length: u8 = if has_joker { 12 } else { 10 };
     let entry_count = strategies.len() as u32;
 
     // Sort canonical keys
     let mut sorted_keys: Vec<&String> = strategies.keys().collect();
     sorted_keys.sort();
+
+    let key_length: u8 = sorted_keys.first().map(|k| k.len() as u8).unwrap_or(10);
 
     // Calculate sizes
     let index_size = entry_count as usize * key_length as usize;
@@ -3094,7 +3112,7 @@ fn generate_binary_strategy(
     // Write header
     buffer[0..4].copy_from_slice(VPSTRAT_MAGIC);
     buffer[4..6].copy_from_slice(&VPSTRAT_VERSION.to_le_bytes());
-    let flags: u16 = if has_joker { 1 } else { 0 };
+    let flags: u16 = num_jokers as u16;
     buffer[6..8].copy_from_slice(&flags.to_le_bytes());
     buffer[8..12].copy_from_slice(&entry_count.to_le_bytes());
     buffer[12] = key_length;
@@ -3198,14 +3216,15 @@ fn encode_ev(ev: f64, scale: u8) -> u16 {
 /// Generate VPS2 binary format with full holdEvs
 fn generate_binary_strategy_v2(
     strategies: &HashMap<String, StrategyEntry>,
-    has_joker: bool,
+    num_jokers: u8,
 ) -> Vec<u8> {
-    let key_length: u8 = if has_joker { 12 } else { 10 };
     let entry_count = strategies.len() as u32;
 
     // Sort canonical keys
     let mut sorted_keys: Vec<&String> = strategies.keys().collect();
     sorted_keys.sort();
+
+    let key_length: u8 = sorted_keys.first().map(|k| k.len() as u8).unwrap_or(10);
 
     // Calculate sizes
     let index_size = entry_count as usize * key_length as usize;
@@ -3217,7 +3236,7 @@ fn generate_binary_strategy_v2(
     // Write header
     buffer[0..4].copy_from_slice(VPS2_MAGIC);
     buffer[4..6].copy_from_slice(&VPS2_VERSION.to_le_bytes());
-    let flags: u16 = if has_joker { 1 } else { 0 };
+    let flags: u16 = num_jokers as u16;
     buffer[6..8].copy_from_slice(&flags.to_le_bytes());
     buffer[8..12].copy_from_slice(&entry_count.to_le_bytes());
     buffer[12] = key_length;
@@ -3288,8 +3307,8 @@ fn save_binary_strategy_v2(binary: &[u8], paytable_id: &str, output_dir: &str) -
 
 /// Returns (json_gz_bytes, binary_v1_bytes, binary_v2_bytes, hand_count, version)
 fn generate_strategy_file(paytable: &Paytable) -> (Vec<u8>, Vec<u8>, Vec<u8>, usize, u32) {
-    let include_joker = paytable.is_joker_poker();
-    let all_hands = generate_canonical_hands(include_joker);
+    let num_jokers = paytable.num_jokers();
+    let all_hands = generate_canonical_hands(num_jokers);
     let total = all_hands.len();
 
     println!("\nCalculating {} hands using {} threads...", total, rayon::current_num_threads());
@@ -3339,13 +3358,13 @@ fn generate_strategy_file(paytable: &Paytable) -> (Vec<u8>, Vec<u8>, Vec<u8>, us
     // Generate binary format v1 (bestHold + bestEv only)
     print!("  Generating binary v1... ");
     io::stdout().flush().unwrap();
-    let binary_v1 = generate_binary_strategy(&strategies, include_joker);
+    let binary_v1 = generate_binary_strategy(&strategies, num_jokers);
     println!("Done! ({:.2} MB)", binary_v1.len() as f64 / 1024.0 / 1024.0);
 
     // Generate binary format v2 (full holdEvs)
     print!("  Generating binary v2... ");
     io::stdout().flush().unwrap();
-    let binary_v2 = generate_binary_strategy_v2(&strategies, include_joker);
+    let binary_v2 = generate_binary_strategy_v2(&strategies, num_jokers);
     println!("Done! ({:.2} MB)", binary_v2.len() as f64 / 1024.0 / 1024.0);
 
     // Build the JSON output structure
@@ -4308,15 +4327,24 @@ fn convert_json_to_binary(input_dir: &str) {
             }
         };
 
-        // Detect if joker poker based on paytable ID or hand count
-        let has_joker = strategy_file.paytable_id.contains("joker")
-            || strategy_file.hand_count > 210000;
+        // Detect joker count from paytable ID
+        let num_jokers: u8 = if strategy_file.paytable_id.starts_with("www-") {
+            // Extract wild count from ID: "www-{base}-{N}w"
+            strategy_file.paytable_id.rsplit('-').next()
+                .and_then(|s| s.strip_suffix('w'))
+                .and_then(|s| s.parse::<u8>().ok())
+                .unwrap_or(0)
+        } else if strategy_file.paytable_id.contains("joker") || strategy_file.hand_count > 210000 {
+            1
+        } else {
+            0
+        };
 
         // Generate binary v1
-        let binary_v1 = generate_binary_strategy(&strategy_file.strategies, has_joker);
+        let binary_v1 = generate_binary_strategy(&strategy_file.strategies, num_jokers);
 
         // Generate binary v2 (with full holdEvs)
-        let binary_v2 = generate_binary_strategy_v2(&strategy_file.strategies, has_joker);
+        let binary_v2 = generate_binary_strategy_v2(&strategy_file.strategies, num_jokers);
 
         // Save binary v1 file
         let binary_v1_filename = filename.replace(".json.gz", ".vpstrat");
@@ -4533,8 +4561,8 @@ fn verify_binary_files(input_dir: &str) {
 
 /// Returns (json_gz_bytes, binary_v1_bytes, binary_v2_bytes, hand_count, version)
 fn generate_strategy_file_with_progress(paytable: &Paytable, current_paytable: usize, total_paytables: usize) -> (Vec<u8>, Vec<u8>, Vec<u8>, usize, u32) {
-    let include_joker = paytable.is_joker_poker();
-    let all_hands = generate_canonical_hands(include_joker);
+    let num_jokers = paytable.num_jokers();
+    let all_hands = generate_canonical_hands(num_jokers);
     let total = all_hands.len();
 
     println!("  Calculating {} hands...", total);
@@ -4581,13 +4609,13 @@ fn generate_strategy_file_with_progress(paytable: &Paytable, current_paytable: u
     // Generate binary format v1 (bestHold + bestEv only)
     print!("  Generating binary v1... ");
     io::stdout().flush().unwrap();
-    let binary_v1 = generate_binary_strategy(&strategies, include_joker);
+    let binary_v1 = generate_binary_strategy(&strategies, num_jokers);
     println!("({:.2} MB)", binary_v1.len() as f64 / 1024.0 / 1024.0);
 
     // Generate binary format v2 (full holdEvs)
     print!("  Generating binary v2... ");
     io::stdout().flush().unwrap();
-    let binary_v2 = generate_binary_strategy_v2(&strategies, include_joker);
+    let binary_v2 = generate_binary_strategy_v2(&strategies, num_jokers);
     println!("({:.2} MB)", binary_v2.len() as f64 / 1024.0 / 1024.0);
 
     // Build the JSON output structure
@@ -4930,10 +4958,10 @@ fn read_vpstrat2_holds(path: &str) -> Result<HashMap<String, u8>, String> {
 }
 
 /// Generate canonical hands with multiplicity count
-fn generate_canonical_hands_with_multiplicity(include_joker: bool) -> Vec<(String, Hand, u64)> {
+fn generate_canonical_hands_with_multiplicity(num_jokers: u8) -> Vec<(String, Hand, u64)> {
     println!("  Generating canonical hands with multiplicity...");
     let mut seen: HashMap<String, (Hand, u64)> = HashMap::new();
-    let max_card = if include_joker { 53u8 } else { 52u8 };
+    let max_card = 52 + num_jokers;
 
     for c1 in 0..(max_card - 4) {
         for c2 in (c1 + 1)..(max_card - 3) {
@@ -4962,8 +4990,10 @@ fn compute_distribution(
     holds: &HashMap<String, u8>,
     canonical_hands: &[(String, Hand, u64)],
 ) -> (HashMap<String, (f64, f64, usize)>, f64) {
-    let deck_size: u8 = if paytable.is_joker_poker() { 53 } else { 52 };
-    let total_dealt: f64 = if paytable.is_joker_poker() { 3_325_005.0 } else { 2_598_960.0 };
+    let deck_size: u8 = 52 + paytable.num_jokers();
+    // C(deck_size, 5): total unique 5-card hands that can be dealt
+    let n = deck_size as f64;
+    let total_dealt: f64 = n * (n - 1.0) * (n - 2.0) * (n - 3.0) * (n - 4.0) / 120.0;
 
     let processed = Arc::new(AtomicUsize::new(0));
     let total_hands = canonical_hands.len();
@@ -5274,8 +5304,10 @@ fn run_distribution(strategies_dir: &str, single_paytable: Option<&str>) {
 
     // Pre-generate canonical hands (reuse across paytables of same deck type)
     println!("Pre-generating canonical hands...");
-    let standard_hands = generate_canonical_hands_with_multiplicity(false);
-    let joker_hands = generate_canonical_hands_with_multiplicity(true);
+    let standard_hands = generate_canonical_hands_with_multiplicity(0);
+    let joker_hands_1 = generate_canonical_hands_with_multiplicity(1);
+    let joker_hands_2 = generate_canonical_hands_with_multiplicity(2);
+    let joker_hands_3 = generate_canonical_hands_with_multiplicity(3);
     println!();
 
     for (idx, (paytable_id, strat_path)) in to_process.iter().enumerate() {
@@ -5317,7 +5349,12 @@ fn run_distribution(strategies_dir: &str, single_paytable: Option<&str>) {
             }
         };
 
-        let canonical = if paytable.is_joker_poker() { &joker_hands } else { &standard_hands };
+        let canonical: &Vec<(String, Hand, u64)> = match paytable.num_jokers() {
+            1 => &joker_hands_1,
+            2 => &joker_hands_2,
+            3 => &joker_hands_3,
+            _ => &standard_hands,
+        };
         let total_dealt: u64 = canonical.iter().map(|(_, _, m)| m).sum();
 
         // Compute distribution
