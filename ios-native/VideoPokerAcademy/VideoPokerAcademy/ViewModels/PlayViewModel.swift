@@ -38,6 +38,9 @@ class PlayViewModel: ObservableObject {
     @Published var showDealtWinner = false
     @Published var dealtWinnerName: String? = nil
 
+    // Wild Wild Wild state
+    @Published var wwwWildCount: Int = 0  // Total wilds added to deck (0–3)
+
     // Ultimate X state
     @Published var ultimateXMultipliers: [Int] = []  // per-line, 1–12; empty when standard
     @Published var ultimateXTopHolds: [UltimateXHoldOption] = []
@@ -164,6 +167,31 @@ class PlayViewModel: ObservableObject {
         } else {
             preparationFailed = true
         }
+
+        // For WWW: also prepare all 4 wild-count strategy files
+        if settings.variant.isWildWildWild {
+            isPreparingPaytable = true
+            for n in 0...3 {
+                let wwwId = WildWildWildDistribution.wwwStrategyId(baseId: paytableId, wildCount: n)
+                let ok = await StrategyService.shared.preparePaytable(paytableId: wwwId) { [weak self] status in
+                    guard let self else { return }
+                    switch status {
+                    case .downloading(let progress):
+                        preparationMessage = "Downloading Wild Wild Wild strategies... \(Int(progress * 100))%"
+                    case .ready, .checking:
+                        break
+                    case .failed(let msg):
+                        debugNSLog("⚠️ WWW strategy download failed for %@: %@", wwwId, msg)
+                    }
+                }
+                if !ok {
+                    debugNSLog("⚠️ WWW strategy unavailable for %@", wwwId)
+                }
+            }
+            isPreparingPaytable = false
+            preparationFailed = false
+            preparationMessage = "Ready"
+        }
     }
 
     // MARK: - Game Actions
@@ -185,8 +213,17 @@ class PlayViewModel: ObservableObject {
             sessionStartDate = Date()
         }
 
-        // Deal cards
-        let deck = Card.shuffledDeck()
+        // Create deck — augmented for WWW, standard otherwise
+        let wwwCount: Int
+        if settings.variant.isWildWildWild {
+            let family = currentPaytable?.family ?? .jacksOrBetter
+            wwwCount = WildWildWildDistribution.sampleWildCount(for: family)
+        } else {
+            wwwCount = 0
+        }
+        wwwWildCount = wwwCount
+
+        let deck = Card.shuffledDeck(jokerCount: wwwCount)
         dealtCards = Array(deck.prefix(5))
         remainingDeck = Array(deck.dropFirst(5))
         selectedIndices = []
@@ -380,7 +417,7 @@ class PlayViewModel: ObservableObject {
         // Perform 100 draws
         for i in 0..<100 {
             // Create a fresh deck for each hand (minus dealt cards)
-            var freshDeck = Card.shuffledDeck()
+            var freshDeck = Card.shuffledDeck(jokerCount: wwwWildCount)
             freshDeck.removeAll { card in
                 dealtCards.contains { $0.rank == card.rank && $0.suit == card.suit }
             }
@@ -495,6 +532,7 @@ class PlayViewModel: ObservableObject {
         userEvLost = 0
         showMistakeFeedback = false
         strategyResult = nil
+        wwwWildCount = 0
         ultimateXTopHolds = []
         isComputingUXStrategy = false
         ultimateXUserHold = nil
@@ -537,7 +575,8 @@ class PlayViewModel: ObservableObject {
             selectedIndices: selectedIndices,
             remainingDeck: remainingDeck,
             betAmount: settings.totalBetDollars,
-            settings: settings
+            settings: settings,
+            wwwWildCount: wwwWildCount
         )
         await PlayPersistence.shared.saveActiveHand(state)
         debugNSLog("🎰 Hand state saved for background")
@@ -555,6 +594,7 @@ class PlayViewModel: ObservableObject {
         dealtCards = savedHand.dealtCards.map { $0.toCard() }
         selectedIndices = Set(savedHand.selectedIndices)
         remainingDeck = savedHand.remainingDeck.map { $0.toCard() }
+        wwwWildCount = savedHand.wwwWildCount
         phase = .dealt
 
         // Clear the saved state since we've restored it
@@ -596,6 +636,7 @@ class PlayViewModel: ObservableObject {
         userEvLost = 0
         showMistakeFeedback = false
         strategyResult = nil
+        wwwWildCount = 0
         showDealtWinner = false
         dealtWinnerName = nil
 
@@ -696,7 +737,15 @@ class PlayViewModel: ObservableObject {
         let hand = Hand(cards: dealtCards)
 
         do {
-            if let result = try await StrategyService.shared.lookup(hand: hand, paytableId: settings.selectedPaytableId) {
+            if settings.variant.isWildWildWild {
+                let baseId = settings.selectedPaytableId
+                let wwwId = WildWildWildDistribution.wwwStrategyId(baseId: baseId, wildCount: wwwWildCount)
+                if let result = try await StrategyService.shared.lookup(hand: hand, paytableId: wwwId) {
+                    let canonicalIndices = result.bestHoldIndices
+                    optimalHoldIndices = hand.canonicalIndicesToOriginal(canonicalIndices).sorted()
+                    strategyResult = result
+                }
+            } else if let result = try await StrategyService.shared.lookup(hand: hand, paytableId: settings.selectedPaytableId) {
                 let canonicalIndices = result.bestHoldIndices
                 optimalHoldIndices = hand.canonicalIndicesToOriginal(canonicalIndices).sorted()
                 strategyResult = result
@@ -930,8 +979,15 @@ class PlayViewModel: ObservableObject {
         let hand = Hand(cards: dealtCards)
         let userHold = Array(selectedIndices).sorted()
 
+        let strategyPaytableId: String
+        if settings.variant.isWildWildWild {
+            strategyPaytableId = WildWildWildDistribution.wwwStrategyId(baseId: settings.selectedPaytableId, wildCount: wwwWildCount)
+        } else {
+            strategyPaytableId = settings.selectedPaytableId
+        }
+
         do {
-            if let result = try await StrategyService.shared.lookup(hand: hand, paytableId: settings.selectedPaytableId) {
+            if let result = try await StrategyService.shared.lookup(hand: hand, paytableId: strategyPaytableId) {
                 let userCanonicalHold = hand.originalIndicesToCanonical(userHold)
                 let userBitmask = Hand.bitmaskFromHoldIndices(userCanonicalHold)
 

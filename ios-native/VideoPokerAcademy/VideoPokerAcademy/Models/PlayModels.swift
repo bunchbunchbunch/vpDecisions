@@ -319,14 +319,33 @@ struct ActiveHandState: Codable {
     let betAmount: Double
     let settings: PlaySettings
     let timestamp: Date
+    let wwwWildCount: Int  // Total wilds added to deck (0 if not WWW)
 
-    init(dealtCards: [Card], selectedIndices: Set<Int>, remainingDeck: [Card], betAmount: Double, settings: PlaySettings) {
+    init(dealtCards: [Card], selectedIndices: Set<Int>, remainingDeck: [Card],
+         betAmount: Double, settings: PlaySettings, wwwWildCount: Int = 0) {
         self.dealtCards = dealtCards.map { CardData(rank: $0.rank, suit: $0.suit) }
         self.selectedIndices = Array(selectedIndices)
         self.remainingDeck = remainingDeck.map { CardData(rank: $0.rank, suit: $0.suit) }
         self.betAmount = betAmount
         self.settings = settings
         self.timestamp = Date()
+        self.wwwWildCount = wwwWildCount
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case dealtCards, selectedIndices, remainingDeck, betAmount, settings, timestamp
+        case wwwWildCount
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        dealtCards = try c.decode([CardData].self, forKey: .dealtCards)
+        selectedIndices = try c.decode([Int].self, forKey: .selectedIndices)
+        remainingDeck = try c.decode([CardData].self, forKey: .remainingDeck)
+        betAmount = try c.decode(Double.self, forKey: .betAmount)
+        settings = try c.decode(PlaySettings.self, forKey: .settings)
+        timestamp = try c.decode(Date.self, forKey: .timestamp)
+        wwwWildCount = try c.decodeIfPresent(Int.self, forKey: .wwwWildCount) ?? 0
     }
 }
 
