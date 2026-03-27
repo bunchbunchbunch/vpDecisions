@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.2</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>VP Academy uses the microphone to listen to your hand in Voice Mode, so you can speak cards aloud to get strategy advice.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
@@ -34,7 +34,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>6</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>
