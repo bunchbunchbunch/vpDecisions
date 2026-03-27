@@ -302,76 +302,81 @@ struct HandAnalyzerView: View {
     // MARK: - Landscape Combined Header (game name + selected cards in one row)
 
     private var landscapeCombinedHeader: some View {
-        HStack(spacing: 6) {
-            HStack(spacing: 4) {
-                Text(viewModel.selectedPaytable.name)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
+        VStack(spacing: 0) {
+            // Row 1: game name, selected cards, paytable button, clear
+            HStack(spacing: 6) {
+                HStack(spacing: 4) {
+                    Text(viewModel.selectedPaytable.name)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
 
-                if viewModel.isUltimateXMode {
-                    Text("Ult X")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(Color(hex: "FFD700"))
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 1)
-                        .background(Color(hex: "FFD700").opacity(0.15))
-                        .cornerRadius(4)
-                }
-            }
-
-            // Selected cards inline
-            HStack(spacing: 3) {
-                ForEach(0..<5) { index in
-                    if index < viewModel.selectedCards.count {
-                        let card = viewModel.selectedCards[index]
-                        Text("\(card.rank.display)\(card.suit.symbol)")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(card.suit.color)
-                            .frame(width: 24, height: 20)
-                            .background(
-                                RoundedRectangle(cornerRadius: 3)
-                                    .fill(Color.yellow.opacity(0.2))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 3)
-                                    .stroke(Color.yellow, lineWidth: 1)
-                            )
-                    } else {
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(Color(.systemGray5))
-                            .frame(width: 24, height: 20)
+                    if viewModel.isUltimateXMode {
+                        Text("Ult X")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(Color(hex: "FFD700"))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Color(hex: "FFD700").opacity(0.15))
+                            .cornerRadius(4)
                     }
                 }
+
+                // Selected cards inline
+                HStack(spacing: 3) {
+                    ForEach(0..<5) { index in
+                        if index < viewModel.selectedCards.count {
+                            let card = viewModel.selectedCards[index]
+                            Text("\(card.rank.display)\(card.suit.symbol)")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(card.suit.color)
+                                .frame(width: 24, height: 20)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .fill(Color.yellow.opacity(0.2))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .stroke(Color.yellow, lineWidth: 1)
+                                )
+                        } else {
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(Color(.systemGray5))
+                                .frame(width: 24, height: 20)
+                        }
+                    }
+                }
+                .tourTarget("selectedCardsBar")
+
+                Spacer()
+
+                // Paytable button
+                Button {
+                    showPaytable = true
+                } label: {
+                    Image(systemName: "list.bullet.rectangle")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(hex: "3498db"))
+                }
+
+                // Clear button
+                if !viewModel.selectedCards.isEmpty {
+                    Button("Clear") {
+                        viewModel.clear()
+                    }
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.red)
+                }
             }
-            .tourTarget("selectedCardsBar")
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
 
-            Spacer()
-
+            // Row 2 (UX mode only): multiplier picker on its own line
             if viewModel.isUltimateXMode {
+                Divider()
                 multiplierBar
             }
-
-            // Paytable button
-            Button {
-                showPaytable = true
-            } label: {
-                Image(systemName: "list.bullet.rectangle")
-                    .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "3498db"))
-            }
-
-            // Clear button
-            if !viewModel.selectedCards.isEmpty {
-                Button("Clear") {
-                    viewModel.clear()
-                }
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.red)
-            }
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 4)
         .background(Color(.systemBackground))
     }
 

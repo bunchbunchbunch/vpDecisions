@@ -343,8 +343,9 @@ struct PlayView: View {
                         )
                         .frame(height: 160)
 
-                        if viewModel.settings.variant.isUltimateX && viewModel.phase == .result {
-                            Text(String(format: "Avg next-hand multiplier: %.1f×", viewModel.averageNextHandMultiplier))
+                        if viewModel.settings.variant.isUltimateX {
+                            let multiplierLabel = viewModel.phase == .result ? "Avg next-hand multiplier" : "Current hand multiplier"
+                            Text(String(format: "%@: %.1f×", multiplierLabel, viewModel.averageNextHandMultiplier))
                                 .font(.system(size: 13))
                                 .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.0))
                                 .padding(.top, 4)
@@ -481,8 +482,9 @@ struct PlayView: View {
                         )
                         .frame(maxHeight: 100)
 
-                        if viewModel.settings.variant.isUltimateX && viewModel.phase == .result {
-                            Text(String(format: "Avg next-hand multiplier: %.1f×", viewModel.averageNextHandMultiplier))
+                        if viewModel.settings.variant.isUltimateX {
+                            let multiplierLabel = viewModel.phase == .result ? "Avg next-hand multiplier" : "Current hand multiplier"
+                            Text(String(format: "%@: %.1f×", multiplierLabel, viewModel.averageNextHandMultiplier))
                                 .font(.system(size: 13))
                                 .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.0))
                                 .padding(.top, 4)
@@ -514,7 +516,8 @@ struct PlayView: View {
                         isComputing: viewModel.isComputingUXStrategy,
                         userHold: viewModel.ultimateXUserHold,
                         isComputingUserHold: viewModel.isComputingUXUserHold,
-                        avgMultiplier: viewModel.uxAvgMultiplierUsed
+                        avgMultiplier: viewModel.uxAvgMultiplierUsed,
+                        isLandscape: true
                     )
                     .padding(.horizontal, 8)
                 } else if viewModel.settings.showOptimalFeedback && viewModel.phase == .result {

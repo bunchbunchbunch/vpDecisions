@@ -180,7 +180,7 @@ struct QuizPlayView: View {
                 // EV Options Table (scrollable) - expands to fill remaining space
                 if viewModel.showFeedback, let currentHand = viewModel.currentHand {
                     ScrollView {
-                        evOptionsTable(for: currentHand)
+                        evOptionsTable(for: currentHand, isLandscape: true)
                             .tourTarget("evTable")
                     }
                 } else {
@@ -580,9 +580,9 @@ struct QuizPlayView: View {
     // MARK: - EV Options Table
 
     @ViewBuilder
-    private func evOptionsTable(for quizHand: QuizHand) -> some View {
+    private func evOptionsTable(for quizHand: QuizHand, isLandscape: Bool = false) -> some View {
         if viewModel.isUltimateXMode, let uxResult = quizHand.uxResult {
-            uxEvOptionsTable(for: quizHand, uxResult: uxResult)
+            uxEvOptionsTable(for: quizHand, uxResult: uxResult, isLandscape: isLandscape)
         } else {
             baseEvOptionsTable(for: quizHand)
         }
@@ -670,7 +670,7 @@ struct QuizPlayView: View {
         .padding(.vertical, 4)
     }
 
-    private func uxEvOptionsTable(for quizHand: QuizHand, uxResult: UltimateXStrategyResult) -> some View {
+    private func uxEvOptionsTable(for quizHand: QuizHand, uxResult: UltimateXStrategyResult, isLandscape: Bool = false) -> some View {
         let holdOpts = uxResult.holdOptions(for: quizHand.hand)
         let userCanonicalHold = quizHand.hand.originalIndicesToCanonical(quizHand.userHoldIndices)
         let userBitmask = Hand.bitmaskFromHoldIndices(userCanonicalHold)
@@ -685,31 +685,32 @@ struct QuizPlayView: View {
             displayedOpts = top5
         }
 
-        return VStack(spacing: 8) {
-            // Header
-            HStack {
-                Text("Rank")
-                    .font(.caption).fontWeight(.bold)
-                    .frame(width: 36, alignment: .leading)
-                Text("Hold")
-                    .font(.caption).fontWeight(.bold)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Text("Base")
-                    .font(.caption).fontWeight(.bold)
-                    .foregroundColor(.secondary)
-                    .frame(width: 50, alignment: .trailing)
-                Text("E[K]")
-                    .font(.caption).fontWeight(.bold)
-                    .foregroundColor(Color(hex: "FFD700"))
-                    .frame(width: 44, alignment: .trailing)
-                Text("Adj EV")
-                    .font(.caption).fontWeight(.bold)
-                    .frame(width: 56, alignment: .trailing)
+        return VStack(spacing: isLandscape ? 4 : 8) {
+            if !isLandscape {
+                // Header (portrait only)
+                HStack {
+                    Text("Rank")
+                        .font(.caption).fontWeight(.bold)
+                        .frame(width: 36, alignment: .leading)
+                    Text("Hold")
+                        .font(.caption).fontWeight(.bold)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text("Base")
+                        .font(.caption).fontWeight(.bold)
+                        .foregroundColor(.secondary)
+                        .frame(width: 50, alignment: .trailing)
+                    Text("E[K]")
+                        .font(.caption).fontWeight(.bold)
+                        .foregroundColor(Color(hex: "FFD700"))
+                        .frame(width: 44, alignment: .trailing)
+                    Text("Adj EV")
+                        .font(.caption).fontWeight(.bold)
+                        .frame(width: 56, alignment: .trailing)
+                }
+                .padding(.horizontal, 12).padding(.vertical, 6)
+                .background(Color(.systemGray5)).cornerRadius(8)
             }
-            .padding(.horizontal, 12).padding(.vertical, 6)
-            .background(Color(.systemGray5)).cornerRadius(8)
 
-            // Rows
             VStack(spacing: 4) {
                 ForEach(Array(displayedOpts.enumerated()), id: \.element.id) { idx, option in
                     let actualIndex = holdOpts.firstIndex { $0.id == option.id } ?? idx
@@ -717,49 +718,96 @@ struct QuizPlayView: View {
                     let isUserSelection = viewModel.showFeedback && option.id == userBitmask
                     let optionCards = option.holdIndices.map { quizHand.hand.cards[$0] }
 
-                    HStack(spacing: 8) {
-                        // Rank (handles ties)
-                        Text("\(uxResult.rankForAdjustedOption(at: actualIndex))")
-                            .font(.subheadline)
-                            .fontWeight(isBest ? .bold : .regular)
-                            .frame(width: 36, alignment: .leading)
-
-                        // Hold cards
-                        if optionCards.isEmpty {
-                            Text("Discard All")
-                                .font(.subheadline)
-                                .fontWeight(isBest ? .bold : .regular)
-                                .italic()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        } else {
-                            HStack(spacing: 4) {
-                                ForEach(optionCards, id: \.id) { card in
-                                    Text(card.displayText)
-                                        .font(.subheadline)
-                                        .foregroundColor(card.suit.color)
+                    Group {
+                        if isLandscape {
+                            // 2-line layout (landscape)
+                            VStack(alignment: .leading, spacing: 3) {
+                                // Line 1: rank + cards
+                                HStack(spacing: 6) {
+                                    Text("\(uxResult.rankForAdjustedOption(at: actualIndex))")
+                                        .font(.subheadline.monospacedDigit())
                                         .fontWeight(isBest ? .bold : .regular)
+                                        .frame(width: 20, alignment: .leading)
+                                    if optionCards.isEmpty {
+                                        Text("Discard All")
+                                            .font(.subheadline)
+                                            .fontWeight(isBest ? .bold : .regular)
+                                            .italic()
+                                    } else {
+                                        HStack(spacing: 4) {
+                                            ForEach(optionCards, id: \.id) { card in
+                                                Text(card.displayText)
+                                                    .font(.subheadline)
+                                                    .foregroundColor(card.suit.color)
+                                                    .fontWeight(isBest ? .bold : .regular)
+                                            }
+                                        }
+                                    }
+                                    Spacer()
+                                }
+                                // Line 2: stats
+                                HStack(spacing: 10) {
+                                    Spacer().frame(width: 20)
+                                    Text(String(format: "Base %.3f", option.baseEV))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(String(format: "E[K] %.2f×", option.eKAwarded))
+                                        .font(.caption)
+                                        .foregroundColor(Color(hex: "FFD700"))
+                                    Spacer()
+                                    Text(String(format: "Score %.3f", option.adjustedEV))
+                                        .font(.caption)
+                                        .fontWeight(isBest ? .semibold : .regular)
+                                        .foregroundColor(isBest ? .primary : .secondary)
                                 }
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        } else {
+                            // Original table-row layout (portrait)
+                            HStack(spacing: 8) {
+                                // Rank (handles ties)
+                                Text("\(uxResult.rankForAdjustedOption(at: actualIndex))")
+                                    .font(.subheadline)
+                                    .fontWeight(isBest ? .bold : .regular)
+                                    .frame(width: 36, alignment: .leading)
+
+                                // Hold cards
+                                if optionCards.isEmpty {
+                                    Text("Discard All")
+                                        .font(.subheadline)
+                                        .fontWeight(isBest ? .bold : .regular)
+                                        .italic()
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                } else {
+                                    HStack(spacing: 4) {
+                                        ForEach(optionCards, id: \.id) { card in
+                                            Text(card.displayText)
+                                                .font(.subheadline)
+                                                .foregroundColor(card.suit.color)
+                                                .fontWeight(isBest ? .bold : .regular)
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+
+                                // Base EV
+                                Text(String(format: "%.3f", option.baseEV))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .frame(width: 50, alignment: .trailing)
+
+                                // E[K]
+                                Text(String(format: "%.2f×", option.eKAwarded))
+                                    .font(.caption)
+                                    .foregroundColor(Color(hex: "FFD700"))
+                                    .frame(width: 44, alignment: .trailing)
+
+                                // Adj EV
+                                Text(String(format: "%.3f", option.adjustedEV))
+                                    .font(.subheadline)
+                                    .fontWeight(isBest ? .bold : .regular)
+                                    .frame(width: 56, alignment: .trailing)
+                            }
                         }
-
-                        // Base EV
-                        Text(String(format: "%.3f", option.baseEV))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .frame(width: 50, alignment: .trailing)
-
-                        // E[K] (expected multiplier awarded)
-                        Text(String(format: "%.2f×", option.eKAwarded))
-                            .font(.caption)
-                            .foregroundColor(Color(hex: "FFD700"))
-                            .frame(width: 44, alignment: .trailing)
-
-                        // Adj EV
-                        Text(String(format: "%.3f", option.adjustedEV))
-                            .font(.subheadline)
-                            .fontWeight(isBest ? .bold : .regular)
-                            .frame(width: 56, alignment: .trailing)
                     }
                     .padding(.horizontal, 12).padding(.vertical, 8)
                     .background(
