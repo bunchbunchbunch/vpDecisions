@@ -12,6 +12,9 @@ struct MiniCardView: View {
     /// Returns the appropriate image name, using wild variant for 2s when showAsWild is true
     private var cardImageName: String {
         guard let card = card else { return "1B" }
+        if card.rank == .joker {
+            return "1J"
+        }
         if showAsWild && card.rank == .two {
             return "\(card.rank.display)\(card.suit.code)_wild"
         }

@@ -195,18 +195,29 @@ struct PlayStartView: View {
 
             FlowLayout(spacing: 8) {
                 ForEach(LineCount.allCases, id: \.self) { lineCount in
+                    let isDisabled = lineCount == .oneHundred && settings.variant == .wildWildWild
                     SelectionChip(
                         title: lineCount.displayName,
                         isSelected: settings.lineCount == lineCount
                     ) {
-                        settings.lineCount = lineCount
+                        if !isDisabled {
+                            settings.lineCount = lineCount
+                        }
                     }
+                    .opacity(isDisabled ? 0.4 : 1.0)
+                    .disabled(isDisabled)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .tourTarget("linesSelector")
+    }
+
+    // MARK: - WWW Support
+
+    private var isWWWSupportedForCurrentGame: Bool {
+        WildWildWildDistribution.isSupported(paytableId: settings.selectedPaytableId)
     }
 
     // MARK: - Variant Section
@@ -233,6 +244,14 @@ struct PlayStartView: View {
                 ) {
                     settings.variant = .ultimateX
                 }
+
+                // Wild Wild Wild chip
+                SelectionChip(
+                    title: "Wild³",
+                    isSelected: settings.variant == .wildWildWild
+                ) {
+                    settings.variant = .wildWildWild
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -240,6 +259,18 @@ struct PlayStartView: View {
                 Text("2× bet cost · \(settings.lineCount.rawValue) simultaneous hands")
                     .font(.system(size: 12))
                     .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+
+            if settings.variant == .wildWildWild {
+                if isWWWSupportedForCurrentGame {
+                    Text("2× bet cost · 0–3 wild cards added to deck each deal")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.Colors.textSecondary)
+                } else {
+                    Text("Wild Wild Wild is not available for this game")
+                        .font(.system(size: 12))
+                        .foregroundColor(.orange)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -316,6 +347,7 @@ struct PlayStartView: View {
                 Text("Start Playing")
                     .primaryButton()
             }
+            .disabled(settings.variant == .wildWildWild && !isWWWSupportedForCurrentGame)
 
             Button("Back to Menu") {
                 navigationPath.removeLast()
