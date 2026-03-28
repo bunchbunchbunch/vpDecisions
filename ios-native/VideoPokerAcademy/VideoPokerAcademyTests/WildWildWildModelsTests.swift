@@ -19,7 +19,9 @@ struct WildWildWildModelsTests {
     }
 
     @Test func strategyIdFormat() {
-        #expect(WildWildWildDistribution.wwwStrategyId(baseId: "jacks-or-better-9-6", wildCount: 0) == "www-jacks-or-better-9-6-0w")
+        // 0 wilds uses base strategy file (no separate WWW file needed)
+        #expect(WildWildWildDistribution.wwwStrategyId(baseId: "jacks-or-better-9-6", wildCount: 0) == "jacks-or-better-9-6")
+        #expect(WildWildWildDistribution.wwwStrategyId(baseId: "jacks-or-better-9-6", wildCount: 1) == "www-jacks-or-better-9-6-1w")
         #expect(WildWildWildDistribution.wwwStrategyId(baseId: "jacks-or-better-9-6", wildCount: 2) == "www-jacks-or-better-9-6-2w")
     }
 

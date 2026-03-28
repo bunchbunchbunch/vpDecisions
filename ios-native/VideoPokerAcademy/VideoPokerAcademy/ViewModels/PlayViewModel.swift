@@ -168,10 +168,11 @@ class PlayViewModel: ObservableObject {
             preparationFailed = true
         }
 
-        // For WWW: also prepare all 4 wild-count strategy files
+        // For WWW: prepare the 3 wild-count strategy files (1w, 2w, 3w)
+        // 0w uses the base strategy file (already prepared above)
         if settings.variant.isWildWildWild {
             isPreparingPaytable = true
-            for n in 0...3 {
+            for n in 1...3 {
                 let wwwId = WildWildWildDistribution.wwwStrategyId(baseId: paytableId, wildCount: n)
                 let ok = await StrategyService.shared.preparePaytable(paytableId: wwwId) { [weak self] status in
                     guard let self else { return }
@@ -198,6 +199,11 @@ class PlayViewModel: ObservableObject {
 
     func deal() async {
         guard canDeal else { return }
+
+        // Prevent 100-play for WWW (wilds shared across lines, incompatible with independent decks)
+        if settings.variant.isWildWildWild && settings.lineCount == .oneHundred {
+            settings.lineCount = .ten
+        }
 
         // Deduct bet
         let betAmount = settings.totalBetDollars
@@ -1160,14 +1166,10 @@ class PlayViewModel: ObservableObject {
         guard paytableCoinIndex >= 0,
               paytableCoinIndex < 5 else { return 0 }
 
-        for row in paytable.rows {
-            if row.handName == handName {
-                guard paytableCoinIndex < row.payouts.count else { return 0 }
-                return row.payouts[paytableCoinIndex]
-            }
-        }
-
-        return 0
+        let rows = settings.variant.isWildWildWild ? paytable.wwwRows() : paytable.rows
+        guard let row = rows.first(where: { $0.handName == handName }) else { return 0 }
+        guard paytableCoinIndex < row.payouts.count else { return 0 }
+        return row.payouts[paytableCoinIndex]
     }
 
     // MARK: - Hand Detection Helpers

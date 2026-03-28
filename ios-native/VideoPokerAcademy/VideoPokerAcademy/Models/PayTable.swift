@@ -83,6 +83,28 @@ struct PayTable: Identifiable, Hashable, Codable {
         family == .deucesWild || family == .looseDeuces
     }
 
+    /// Returns pay table rows adjusted for WWW mode.
+    /// For non-wild base games, adds Five of a Kind and Wild Royal rows.
+    /// For Deuces Wild (which already has these), returns rows unchanged.
+    func wwwRows() -> [PayTableRow] {
+        // Deuces Wild already has Wild Royal and Five of a Kind
+        if isDeucesWild { return rows }
+
+        // Check if already has these rows
+        let existingNames = Set(rows.map { $0.handName })
+        if existingNames.contains("Five of a Kind") { return rows }
+
+        // Derive payouts: Wild Royal = Royal Flush payout, Five of a Kind = Four of a Kind payout
+        let royalPayout = rows.first { $0.handName == "Royal Flush" }?.payouts ?? [250, 500, 750, 1000, 4000]
+        let quadPayout = rows.first { $0.handName == "Four of a Kind" }?.payouts ?? [25, 50, 75, 100, 125]
+
+        var wwwRows = rows
+        // Insert after Royal Flush (index 0): Wild Royal, then Five of a Kind
+        wwwRows.insert(PayTableRow(handName: "Wild Royal", payouts: royalPayout), at: 1)
+        wwwRows.insert(PayTableRow(handName: "Five of a Kind", payouts: quadPayout), at: 2)
+        return wwwRows
+    }
+
     /// Returns the top 3 hand names (highest paying) for big win detection
     var topThreeHandNames: [String] {
         Array(rows.prefix(3).map { $0.handName })

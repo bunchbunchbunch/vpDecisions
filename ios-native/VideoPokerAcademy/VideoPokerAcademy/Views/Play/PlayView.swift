@@ -856,7 +856,8 @@ struct PlayView: View {
             HStack(spacing: 0) {
                 if let paytable = viewModel.currentPaytable {
                     // Show top payouts in a row
-                    ForEach(Array(paytable.rows.prefix(4)), id: \.handName) { row in
+                    let displayRows = viewModel.settings.variant.isWildWildWild ? paytable.wwwRows() : paytable.rows
+                    ForEach(Array(displayRows.prefix(4)), id: \.handName) { row in
                         VStack(spacing: 2) {
                             Text(abbreviateHandName(row.handName))
                                 .font(.system(size: 9, weight: .bold))
@@ -991,7 +992,8 @@ struct PlayView: View {
                                 }
                                 // Applied (current hand) multiplier — bottom right
                                 .overlay(alignment: .bottomTrailing) {
-                                    if viewModel.settings.variant.isUltimateX {
+                                    if viewModel.settings.variant.isUltimateX,
+                                       viewModel.settings.lineCount != .oneHundred {
                                         let multiplier: Int = viewModel.phase == .result
                                             ? (viewModel.lineResults.first?.appliedMultiplier ?? 1)
                                             : (viewModel.ultimateXMultipliers.first ?? 1)
@@ -1010,6 +1012,7 @@ struct PlayView: View {
                                 // Next hand multiplier — bottom left (result phase only)
                                 .overlay(alignment: .bottomLeading) {
                                     if viewModel.settings.variant.isUltimateX,
+                                       viewModel.settings.lineCount != .oneHundred,
                                        viewModel.phase == .result,
                                        let earned = viewModel.lineResults.first?.earnedMultiplier,
                                        earned > 1 {
@@ -1540,7 +1543,8 @@ struct PaytableSheet: View {
                             .background(Color(.systemGray5))
                             .cornerRadius(8)
 
-                            ForEach(paytable.rows, id: \.handName) { row in
+                            let displayRows = viewModel.settings.variant.isWildWildWild ? paytable.wwwRows() : paytable.rows
+                            ForEach(displayRows, id: \.handName) { row in
                                 HStack {
                                     Text(row.handName)
                                         .font(.subheadline)

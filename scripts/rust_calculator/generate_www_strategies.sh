@@ -26,7 +26,10 @@ echo "Building calculator..."
 cargo build --release
 
 for base in "${PAYTABLES[@]}"; do
-    for wilds in 0 1 2 3; do
+    # Skip 0w — with 0 jokers the deck is standard 52 cards and the boosted
+    # pay table hands (Five of a Kind, Wild Royal) are unreachable, so EVs are
+    # identical to the base strategy file. The iOS app uses the base file for 0w.
+    for wilds in 1 2 3; do
         id="www-${base}-${wilds}w"
         echo "=== Generating: $id ==="
         cargo run --release -- --paytable "$id"

@@ -51,11 +51,8 @@ struct HundredPlayTallyView: View {
 
             Spacer(minLength: 2)
 
-            // Count × pay [×~mult] = subtotal (compact)
-            let multStr = result.avgAppliedMultiplier > 1.005
-                ? "×\(String(format: "%.2f", result.avgAppliedMultiplier))"
-                : ""
-            Text("\(result.count)×\(result.payPerHand)\(multStr)=\(formatCompactCurrency(subtotalDollars))")
+            // Count × pay = subtotal (compact)
+            Text("\(result.count)×\(result.payPerHand)=\(formatCompactCurrency(subtotalDollars))")
                 .font(.caption2)
                 .foregroundColor(.primary)
                 .lineLimit(1)

@@ -37,6 +37,8 @@ struct WildWildWildDistribution {
     }
 
     static func wwwStrategyId(baseId: String, wildCount: Int) -> String {
+        // 0 wilds = standard 52-card deck, unreachable WWW hands — use base strategy
+        guard wildCount > 0 else { return baseId }
         return "www-\(baseId)-\(wildCount)w"
     }
 
