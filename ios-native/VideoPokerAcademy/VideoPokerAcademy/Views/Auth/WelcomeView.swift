@@ -16,20 +16,11 @@ struct WelcomeView: View {
                     // Landscape: side by side layout
                     HStack(spacing: 32) {
                         // Left: Logo
-                        VStack(spacing: 16) {
-                            Image(systemName: "play.circle.fill")
-                                .font(.system(size: 60))
-                                .foregroundColor(AppTheme.Colors.mintGreen)
-
-                            Text("Video Poker")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.white)
-
-                            Text("Academy")
-                                .font(.system(size: 16, weight: .regular))
-                                .foregroundColor(.white)
-                        }
-                        .frame(maxWidth: .infinity)
+                        Image("logo-transparent")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: 200)
+                            .frame(maxWidth: .infinity)
 
                         // Right: Content + button
                         VStack(spacing: 16) {
@@ -67,19 +58,10 @@ struct WelcomeView: View {
                         Spacer()
 
                         // Logo
-                        VStack(spacing: 16) {
-                            Image(systemName: "play.circle.fill")
-                                .font(.system(size: 80))
-                                .foregroundColor(AppTheme.Colors.mintGreen)
-
-                            Text("Video Poker")
-                                .font(.system(size: 24, weight: .semibold))
-                                .foregroundColor(.white)
-
-                            Text("Academy")
-                                .font(.system(size: 18, weight: .regular))
-                                .foregroundColor(.white)
-                        }
+                        Image("logo-transparent")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: 260)
 
                         Spacer()
 
