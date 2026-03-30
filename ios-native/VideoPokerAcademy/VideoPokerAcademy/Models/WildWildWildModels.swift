@@ -42,15 +42,11 @@ struct WildWildWildDistribution {
         return "www-\(baseId)-\(wildCount)w"
     }
 
+    /// Pay tables with WWW strategies available in Supabase.
+    /// Add new IDs here as strategies are generated and uploaded.
     static let supportedPaytableIds: Set<String> = [
-        "jacks-or-better-9-6", "jacks-or-better-9-5", "jacks-or-better-8-6",
-        "jacks-or-better-8-5", "jacks-or-better-7-5", "jacks-or-better-6-5",
-        "deuces-wild-full-pay", "deuces-wild-nsud", "deuces-wild-illinois",
-        "bonus-poker-8-5", "bonus-poker-7-5",
-        "double-double-bonus-10-6", "double-double-bonus-9-6",
-        "double-bonus-10-7",
-        "triple-double-bonus-9-7", "triple-double-bonus-9-6",
-        "triple-triple-bonus-9-6",
+        "jacks-or-better-9-6",
+        "bonus-poker-8-5",
     ]
 
     static func isSupported(paytableId: String) -> Bool {

@@ -1378,14 +1378,18 @@ class PlayViewModel: ObservableObject {
             return HandEvaluation(handName: "Four Deuces", winningIndices: getCardIndices(cards: cards, rank: 2))
         }
 
-        // Five of a Kind
+        // Five of a Kind — resolve to rank-specific tier name (e.g., "5 Aces")
         if maxCount + totalWilds >= 5 {
-            return HandEvaluation(handName: "Five of a Kind", winningIndices: Array(0..<5))
+            let fiveRank = rankCounts.max(by: { $0.value < $1.value })?.key ?? 0
+            let handName = WWWPayTableData.fiveOfAKindHandName(for: fiveRank, paytableId: settings.selectedPaytableId)
+            return HandEvaluation(handName: handName, winningIndices: Array(0..<5))
         }
 
-        // Wild Royal Flush — USE GENERIC HELPER
+        // Wild Royal Flush — only use "Wild Royal" if pay table has that row,
+        // otherwise treat as "Royal Flush" (e.g., JoB WWW pays the same for both)
         if isWildRoyalWithGenericWilds(naturals, numWilds: totalWilds) {
-            return HandEvaluation(handName: "Wild Royal", winningIndices: Array(0..<5))
+            let handName = WWWPayTableData.hasWildRoyalRow(for: settings.selectedPaytableId) ? "Wild Royal" : "Royal Flush"
+            return HandEvaluation(handName: handName, winningIndices: Array(0..<5))
         }
 
         // Straight Flush — USE GENERIC HELPER

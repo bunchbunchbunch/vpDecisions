@@ -695,15 +695,15 @@ struct QuizPlayView: View {
                     Text("Hold")
                         .font(.caption).fontWeight(.bold)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Text("Base")
+                    Text("EV")
                         .font(.caption).fontWeight(.bold)
                         .foregroundColor(.secondary)
                         .frame(width: 50, alignment: .trailing)
-                    Text("E[K]")
+                    Text("NH Mult")
                         .font(.caption).fontWeight(.bold)
                         .foregroundColor(Color(hex: "FFD700"))
-                        .frame(width: 44, alignment: .trailing)
-                    Text("Adj EV")
+                        .frame(width: 50, alignment: .trailing)
+                    Text("Score")
                         .font(.caption).fontWeight(.bold)
                         .frame(width: 56, alignment: .trailing)
                 }
@@ -748,12 +748,12 @@ struct QuizPlayView: View {
                                 // Line 2: stats
                                 HStack(spacing: 10) {
                                     Spacer().frame(width: 20)
-                                    Text(String(format: "Base %.3f", option.baseEV))
+                                    Text(String(format: "EV %.3f", option.baseEV * uxResult.currentMultiplier * 2.0))
                                         .font(.caption)
                                         .foregroundColor(.secondary)
-                                    Text(String(format: "E[K] %.2f×", option.eKAwarded))
+                                    Text(String(format: "NH %.3f", option.eKAwarded))
                                         .font(.caption)
-                                        .foregroundColor(Color(hex: "FFD700"))
+                                        .foregroundColor(option.eKAwarded > 0.005 ? Color(hex: "FFD700") : .secondary)
                                     Spacer()
                                     Text(String(format: "Score %.3f", option.adjustedEV))
                                         .font(.caption)
@@ -789,19 +789,19 @@ struct QuizPlayView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 }
 
-                                // Base EV
-                                Text(String(format: "%.3f", option.baseEV))
+                                // EV
+                                Text(String(format: "%.3f", option.baseEV * uxResult.currentMultiplier * 2.0))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .frame(width: 50, alignment: .trailing)
 
-                                // E[K]
-                                Text(String(format: "%.2f×", option.eKAwarded))
+                                // NH Mult
+                                Text(String(format: "%.3f", option.eKAwarded))
                                     .font(.caption)
-                                    .foregroundColor(Color(hex: "FFD700"))
-                                    .frame(width: 44, alignment: .trailing)
+                                    .foregroundColor(option.eKAwarded > 0.005 ? Color(hex: "FFD700") : .secondary)
+                                    .frame(width: 50, alignment: .trailing)
 
-                                // Adj EV
+                                // Score
                                 Text(String(format: "%.3f", option.adjustedEV))
                                     .font(.subheadline)
                                     .fontWeight(isBest ? .bold : .regular)

@@ -67,6 +67,7 @@
 		57355753AD255936E1F55327 /* PlayStartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B63F67879FD54C6B02456 /* PlayStartView.swift */; };
 		58B9DCD74F66F2B70DEB9B4D /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9185EC480DFA6023916C3B3F /* NetworkMonitor.swift */; };
 		5E4C4E3C2358DDA6483D8AA5 /* PayTableData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DAC740E7E004BBA3165E81B /* PayTableData.swift */; };
+		DC33F15EF1FB2AEE97D99FF2 /* WWWPayTableData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD0B88CC2019B5E72131D848 /* WWWPayTableData.swift */; };
 		5E569342FB6F6B871CC2EE40 /* strategy_double_bonus_10_7.vpstrat2 in Resources */ = {isa = PBXBuildFile; fileRef = 3B46A2A5E6813351ED7C1329 /* strategy_double_bonus_10_7.vpstrat2 */; };
 		5F06C63330559882EF1A75D4 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 1E518AB2432F83AD56457390 /* Supabase */; };
 		6056B217B5591AB68B8C7792 /* TrainingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070DAE9C15127D9377416569 /* TrainingService.swift */; };
@@ -208,6 +209,7 @@
 		23BCDCB40917EDC8ED7B5AB4 /* ResetPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResetPasswordView.swift; sourceTree = "<group>"; };
 		2D36054A6EE20D406B54987D /* job-made-hands.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "job-made-hands.json"; sourceTree = "<group>"; };
 		2DAC740E7E004BBA3165E81B /* PayTableData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayTableData.swift; sourceTree = "<group>"; };
+		BD0B88CC2019B5E72131D848 /* WWWPayTableData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WWWPayTableData.swift; sourceTree = "<group>"; };
 		3140B0170FB1BDF34F61E5F8 /* ReviewQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewQueueView.swift; sourceTree = "<group>"; };
 		36DDAACDD282E4126C8E73CC /* ResponseFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseFormatterTests.swift; sourceTree = "<group>"; };
 		3B46A2A5E6813351ED7C1329 /* strategy_double_bonus_10_7.vpstrat2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = strategy_double_bonus_10_7.vpstrat2; sourceTree = "<group>"; };
@@ -385,6 +387,7 @@
 				F8A03D085E934C121689C54B /* MasteryScore.swift */,
 				B03466959AE852F4EB0BE0E7 /* PayTable.swift */,
 				2DAC740E7E004BBA3165E81B /* PayTableData.swift */,
+				BD0B88CC2019B5E72131D848 /* WWWPayTableData.swift */,
 				A245364B7651E1CFC1436B52 /* PlayModels.swift */,
 				D1E6A89D0E2C7B69601E44D5 /* ReviewItem.swift */,
 				49D29DC4D6A6DF4CD2CBF0E6 /* SimulationModels.swift */,
@@ -934,6 +937,7 @@
 				F53C79B9350F1FFE402037AF /* OfflineDataView.swift in Sources */,
 				B2F1C28C6CAAE17C84B5FA29 /* PayTable.swift in Sources */,
 				5E4C4E3C2358DDA6483D8AA5 /* PayTableData.swift in Sources */,
+				DC33F15EF1FB2AEE97D99FF2 /* WWWPayTableData.swift in Sources */,
 				1C1CDCD801C4668B440B5803 /* PendingAttemptsStore.swift in Sources */,
 				FDBE359F3B9E83614F1633FD /* PlayModels.swift in Sources */,
 				57355753AD255936E1F55327 /* PlayStartView.swift in Sources */,

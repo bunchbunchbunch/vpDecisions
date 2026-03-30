@@ -240,12 +240,14 @@ struct PlayStartView: View {
                     settings.variant = .ultimateX
                 }
 
-                // Wild Wild Wild chip
-                SelectionChip(
-                    title: "Wild³",
-                    isSelected: settings.variant == .wildWildWild
-                ) {
-                    settings.variant = .wildWildWild
+                // Wild Wild Wild chip — only shown when strategy is available
+                if isWWWSupportedForCurrentGame {
+                    SelectionChip(
+                        title: "Wild³",
+                        isSelected: settings.variant == .wildWildWild
+                    ) {
+                        settings.variant = .wildWildWild
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -257,15 +259,9 @@ struct PlayStartView: View {
             }
 
             if settings.variant == .wildWildWild {
-                if isWWWSupportedForCurrentGame {
-                    Text("2× bet cost · 0–3 wild cards added to deck each deal")
-                        .font(.system(size: 12))
-                        .foregroundColor(AppTheme.Colors.textSecondary)
-                } else {
-                    Text("Wild Wild Wild is not available for this game")
-                        .font(.system(size: 12))
-                        .foregroundColor(.orange)
-                }
+                Text("2× bet cost · 0–3 wild cards added to deck each deal")
+                    .font(.system(size: 12))
+                    .foregroundColor(AppTheme.Colors.textSecondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -342,7 +338,11 @@ struct PlayStartView: View {
                 Text("Start Playing")
                     .primaryButton()
             }
-            .disabled(settings.variant == .wildWildWild && !isWWWSupportedForCurrentGame)
+            .onChange(of: settings.selectedPaytableId) {
+                if settings.variant == .wildWildWild && !isWWWSupportedForCurrentGame {
+                    settings.variant = .standard
+                }
+            }
 
             Button("Back to Menu") {
                 navigationPath.removeLast()
