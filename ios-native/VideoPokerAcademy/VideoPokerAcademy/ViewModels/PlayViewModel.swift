@@ -200,11 +200,6 @@ class PlayViewModel: ObservableObject {
     func deal() async {
         guard canDeal else { return }
 
-        // Prevent 100-play for WWW (wilds shared across lines, incompatible with independent decks)
-        if settings.variant.isWildWildWild && settings.lineCount == .oneHundred {
-            settings.lineCount = .ten
-        }
-
         // Deduct bet
         let betAmount = settings.totalBetDollars
         guard balance.bet(betAmount) else { return }

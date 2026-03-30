@@ -84,6 +84,13 @@ struct Paytable {
     four_deuces: Option<f64>,
     wild_royal: Option<f64>,
     five_of_a_kind: Option<f64>,
+    // Tiered Five of a Kind payouts (for WWW)
+    five_aces: Option<f64>,       // Five Aces
+    five_2_4: Option<f64>,        // Five 2s,3s,4s (or 3s,4s,5s for deuces games)
+    five_5_k: Option<f64>,        // Five 5s thru Ks (catch-all mid/low tier)
+    five_jqk: Option<f64>,        // Five Js,Qs,Ks (SDB, SDDB)
+    five_5_10: Option<f64>,       // Five 5s thru 10s (when five_jqk splits the range)
+    five_deuces: Option<f64>,     // Five Deuces (4 natural + joker, WWW deuces games)
     // Joker Poker specific (uses wild_royal, five_of_a_kind from above)
     // Minimum winning hand
     min_pair_rank: u8,        // 9=Jacks, 8=Tens, 11=Kings, 0=Two Pair minimum
@@ -184,6 +191,152 @@ impl Paytable {
 // PAYTABLE DEFINITIONS
 // ============================================================================
 
+/// Apply WWW-specific pay table overrides for the max-bet feature.
+/// Values are per-coin max-bet payouts from docs/www-pay-tables.md.
+fn apply_www_overrides(base_id: &str, pt: &mut Paytable) {
+    // Always set wild royal to natural royal payout
+    if pt.wild_royal.is_none() {
+        pt.wild_royal = Some(pt.royal_flush);
+    }
+
+    match base_id {
+        // === JACKS OR BETTER 9-6 ===
+        // Boosted: 4oK 25→30, FH 9→11, ST 4→5
+        "jacks-or-better-9-6" => {
+            pt.four_of_a_kind = 30.0;
+            pt.full_house = 11.0;
+            pt.straight = 5.0;
+            pt.five_aces = Some(800.0);
+            pt.five_2_4 = Some(320.0);
+            pt.five_5_k = Some(100.0);
+            pt.five_of_a_kind = Some(100.0); // fallback
+        },
+
+        // === BONUS POKER 8-5 ===
+        // Boosted: four_5_k 25→29, FH 8→9, FL 5→6
+        "bonus-poker-8-5" => {
+            pt.four_5_k = Some(29.0);
+            pt.full_house = 9.0;
+            pt.flush = 6.0;
+            pt.five_aces = Some(800.0);
+            pt.five_2_4 = Some(320.0);
+            pt.five_5_k = Some(100.0);
+            pt.five_of_a_kind = Some(100.0);
+        },
+
+        // === BONUS POKER DELUXE 9-6 ===
+        // No boosts to standard hands
+        "bonus-poker-deluxe-9-6" => {
+            pt.five_aces = Some(800.0);
+            pt.five_2_4 = Some(320.0);
+            pt.five_5_k = Some(100.0);
+            pt.five_of_a_kind = Some(100.0);
+        },
+
+        // === DOUBLE BONUS 9-7-5 ===
+        // No boosts to standard hands
+        "double-bonus-9-7-5" => {
+            pt.five_aces = Some(800.0);
+            pt.five_2_4 = Some(320.0);
+            pt.five_5_k = Some(100.0);
+            pt.five_of_a_kind = Some(100.0);
+        },
+
+        // === DOUBLE DOUBLE BONUS 9-6 ===
+        // No boosts to standard hands
+        "double-double-bonus-9-6" => {
+            pt.five_aces = Some(800.0);
+            pt.five_2_4 = Some(320.0);
+            pt.five_5_k = Some(100.0);
+            pt.five_of_a_kind = Some(100.0);
+        },
+
+        // === TRIPLE DOUBLE BONUS 9-7 ===
+        // Boosted: 3oK 2→3
+        "triple-double-bonus-9-7" => {
+            pt.three_of_a_kind = 3.0;
+            pt.five_aces = Some(800.0);
+            pt.five_2_4 = Some(400.0); // TDB unique: higher than standard 320
+            pt.five_5_k = Some(100.0);
+            pt.five_of_a_kind = Some(100.0);
+        },
+
+        // === DEUCES WILD (NSUD / Illinois) ===
+        // Boosted: four_deuces 200→250, SF 10→11, 4oK 4→5
+        "deuces-wild-nsud" | "deuces-wild-illinois" => {
+            pt.four_deuces = Some(250.0);
+            pt.straight_flush = 11.0;
+            pt.four_of_a_kind = 5.0;
+            pt.five_deuces = Some(800.0);
+            // 5oK stays at 16 (no boost)
+        },
+
+        // === DEUCES WILD BONUS 9/4/4/3 (Bonus Deuces Wild) ===
+        // Boosted: four_deuces 400→500, SF 9→12
+        // Tiered 5oK: 5 Aces=80, 5 3s-5s=40, 5 6s-Ks=20
+        "deuces-wild-bonus-9-4" => {
+            pt.four_deuces = Some(500.0);
+            pt.straight_flush = 12.0;
+            pt.five_deuces = Some(800.0);
+            pt.five_aces = Some(80.0);
+            pt.five_2_4 = Some(40.0);  // 3s,4s,5s in deuces context
+            pt.five_5_k = Some(20.0);  // 6s thru Ks
+            pt.five_of_a_kind = Some(20.0); // fallback
+        },
+
+        // === SUPER DOUBLE BONUS 9-5 ===
+        // No boosts to standard hands; 4-tier 5oK
+        "super-double-bonus-9-5" => {
+            pt.five_aces = Some(400.0);
+            pt.five_jqk = Some(240.0);
+            pt.five_2_4 = Some(160.0);
+            pt.five_5_10 = Some(100.0);
+            pt.five_5_k = Some(100.0); // fallback
+            pt.five_of_a_kind = Some(100.0);
+        },
+
+        // === SUPER DOUBLE DOUBLE BONUS 8-5 ===
+        // No boosts to standard hands; 4-tier 5oK
+        "super-double-double-bonus-8-5" => {
+            pt.five_aces = Some(800.0);
+            pt.five_jqk = Some(640.0);
+            pt.five_2_4 = Some(320.0);
+            pt.five_5_10 = Some(100.0);
+            pt.five_5_k = Some(100.0);
+            pt.five_of_a_kind = Some(100.0);
+        },
+
+        // === DOUBLE DOUBLE BONUS PLUS 9-6 ===
+        // No boosts to standard hands
+        "ddb-plus-9-6" => {
+            pt.five_aces = Some(800.0);
+            pt.five_2_4 = Some(320.0);
+            pt.five_5_k = Some(100.0);
+            pt.five_of_a_kind = Some(100.0);
+        },
+
+        // === SUPER BONUS DEUCES WILD ===
+        // No boosts to standard hands
+        "super-bonus-deuces-10" | "super-bonus-deuces-9" | "super-bonus-deuces-8" => {
+            pt.five_deuces = Some(800.0);
+            // five_of_a_kind stays at 160 (5oK with deuce)
+            // Plain 5oK (no deuce) = 15, stored as five_5_k fallback
+            pt.five_5_k = Some(15.0);
+        },
+
+        // Fallback: derive 5oK from best bonus quad payout (existing behavior)
+        _ => {
+            if pt.five_of_a_kind.is_none() {
+                pt.five_of_a_kind = Some(
+                    pt.four_aces_with_kicker
+                        .or(pt.four_aces)
+                        .unwrap_or(pt.four_of_a_kind)
+                );
+            }
+        },
+    }
+}
+
 fn get_paytable(id: &str) -> Option<Paytable> {
     match id {
         // ====== JACKS OR BETTER ======
@@ -199,6 +352,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "jacks-or-better-9-5" => Some(Paytable {
@@ -213,6 +367,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "jacks-or-better-8-6" => Some(Paytable {
@@ -227,6 +382,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "jacks-or-better-8-5" => Some(Paytable {
@@ -241,6 +397,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "jacks-or-better-7-5" => Some(Paytable {
@@ -255,6 +412,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "jacks-or-better-6-5" => Some(Paytable {
@@ -269,6 +427,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -285,6 +444,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "jacks-or-better-9-6-940" => Some(Paytable {
@@ -299,6 +459,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "jacks-or-better-8-5-35" => Some(Paytable {
@@ -313,6 +474,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -329,6 +491,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 8,
         }),
 
@@ -345,6 +508,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "bonus-poker-7-5" => Some(Paytable {
@@ -359,6 +523,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "bonus-poker-6-5" => Some(Paytable {
@@ -373,6 +538,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -389,6 +555,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -405,6 +572,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "bonus-poker-deluxe-8-6" => Some(Paytable {
@@ -419,6 +587,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "bonus-poker-deluxe-8-5" => Some(Paytable {
@@ -433,6 +602,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "bonus-poker-deluxe-7-5" => Some(Paytable {
@@ -447,6 +617,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "bonus-poker-deluxe-6-5" => Some(Paytable {
@@ -461,6 +632,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -477,6 +649,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "aces-and-faces-7-6" => Some(Paytable {
@@ -491,6 +664,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "aces-and-faces-7-5" => Some(Paytable {
@@ -505,6 +679,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "aces-and-faces-6-5" => Some(Paytable {
@@ -519,6 +694,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -535,6 +711,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "aces-and-eights-7-5" => Some(Paytable {
@@ -549,6 +726,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -565,6 +743,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11, // Kings or Better
         }),
         "triple-bonus-8-5" => Some(Paytable {
@@ -579,6 +758,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11, // Kings or Better
         }),
         "triple-bonus-7-5" => Some(Paytable {
@@ -593,6 +773,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11, // Kings or Better
         }),
 
@@ -610,6 +791,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9, // Jacks or Better
         }),
         "triple-bonus-plus-8-5" => Some(Paytable {
@@ -624,6 +806,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9, // Jacks or Better
         }),
         "triple-bonus-plus-7-5" => Some(Paytable {
@@ -638,6 +821,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9, // Jacks or Better
         }),
 
@@ -654,6 +838,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "super-aces-7-5" => Some(Paytable {
@@ -668,6 +853,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "super-aces-6-5" => Some(Paytable {
@@ -682,6 +868,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -698,6 +885,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "bonus-poker-plus-9-6" => Some(Paytable {
@@ -712,6 +900,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -729,6 +918,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: Some(160.0), four_jqk_with_face: Some(80.0),
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-jackpot-7-5" => Some(Paytable {
@@ -743,6 +933,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: Some(160.0), four_jqk_with_face: Some(80.0),
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -759,6 +950,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: Some(320.0), four_jqk_with_face: Some(160.0),
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-double-jackpot-9-6" => Some(Paytable {
@@ -773,6 +965,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: Some(320.0), four_jqk_with_face: Some(160.0),
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -789,6 +982,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "bonus-poker-deluxe-8-6-100" => Some(Paytable {
@@ -803,6 +997,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -819,6 +1014,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-bonus-10-7-100" => Some(Paytable {
@@ -833,6 +1029,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-bonus-10-7-80" => Some(Paytable {
@@ -847,6 +1044,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-bonus-10-6" => Some(Paytable {
@@ -861,6 +1059,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-bonus-10-7-4" => Some(Paytable {
@@ -875,6 +1074,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-bonus-9-7-5" => Some(Paytable {
@@ -889,6 +1089,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-bonus-9-6-5" => Some(Paytable {
@@ -903,6 +1104,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-bonus-9-6-4" => Some(Paytable {
@@ -917,6 +1119,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -928,11 +1131,12 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             royal_flush: 800.0, straight_flush: 80.0, four_of_a_kind: 50.0,
             full_house: 9.0, flush: 5.0, straight: 4.0,
             three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
-            four_aces: Some(160.0), four_2_4: None, four_5_k: Some(50.0), four_jqk: Some(120.0),
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: Some(120.0),
             four_8s: None, four_7s: None,
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "super-double-bonus-8-5" => Some(Paytable {
@@ -942,11 +1146,12 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             royal_flush: 800.0, straight_flush: 80.0, four_of_a_kind: 50.0,
             full_house: 8.0, flush: 5.0, straight: 4.0,
             three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
-            four_aces: Some(160.0), four_2_4: None, four_5_k: Some(50.0), four_jqk: Some(120.0),
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: Some(120.0),
             four_8s: None, four_7s: None,
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "super-double-bonus-7-5" => Some(Paytable {
@@ -956,11 +1161,12 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             royal_flush: 800.0, straight_flush: 80.0, four_of_a_kind: 50.0,
             full_house: 7.0, flush: 5.0, straight: 4.0,
             three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
-            four_aces: Some(160.0), four_2_4: None, four_5_k: Some(50.0), four_jqk: Some(120.0),
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: Some(120.0),
             four_8s: None, four_7s: None,
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "super-double-bonus-6-5" => Some(Paytable {
@@ -970,11 +1176,29 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             royal_flush: 800.0, straight_flush: 80.0, four_of_a_kind: 50.0,
             full_house: 6.0, flush: 5.0, straight: 4.0,
             three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
-            four_aces: Some(160.0), four_2_4: None, four_5_k: Some(50.0), four_jqk: Some(120.0),
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: Some(120.0),
             four_8s: None, four_7s: None,
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
+            min_pair_rank: 9,
+        }),
+
+        // ====== SUPER DOUBLE DOUBLE BONUS (SDDB) ======
+        "super-double-double-bonus-8-5" => Some(Paytable {
+            id: id.to_string(),
+            name: "Super Double Double Bonus 8/5".to_string(),
+            game_family: GameFamily::SuperDoubleDoubleBonus,
+            royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
+            full_house: 8.0, flush: 5.0, straight: 4.0,
+            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
+            four_aces_with_face: Some(320.0), four_jqk_with_face: Some(160.0),
+            four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -991,6 +1215,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-double-bonus-10-6" => Some(Paytable {
@@ -1005,6 +1230,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-double-bonus-7-5" => Some(Paytable {
@@ -1019,6 +1245,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-double-bonus-6-5" => Some(Paytable {
@@ -1033,6 +1260,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-double-bonus-9-6" => Some(Paytable {
@@ -1047,6 +1275,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-double-bonus-9-5" => Some(Paytable {
@@ -1061,6 +1290,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "double-double-bonus-8-5" => Some(Paytable {
@@ -1075,6 +1305,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -1091,6 +1322,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "white-hot-aces-8-5" => Some(Paytable {
@@ -1105,6 +1337,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "white-hot-aces-7-5" => Some(Paytable {
@@ -1119,6 +1352,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "white-hot-aces-6-5" => Some(Paytable {
@@ -1133,6 +1367,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -1143,12 +1378,13 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             game_family: GameFamily::TripleDoubleBonus,
             royal_flush: 800.0, straight_flush: 50.0, four_of_a_kind: 50.0,
             full_house: 9.0, flush: 7.0, straight: 4.0,
-            three_of_a_kind: 3.0, two_pair: 1.0, high_pair: 1.0,
+            three_of_a_kind: 2.0, two_pair: 1.0, high_pair: 1.0,
             four_aces: Some(160.0), four_2_4: Some(80.0), four_5_k: Some(50.0), four_jqk: None,
             four_8s: None, four_7s: None,
             four_aces_with_kicker: Some(800.0), four_2_4_with_kicker: Some(400.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "triple-double-bonus-9-6" => Some(Paytable {
@@ -1163,6 +1399,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(800.0), four_2_4_with_kicker: Some(400.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "triple-double-bonus-8-5" => Some(Paytable {
@@ -1177,6 +1414,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(800.0), four_2_4_with_kicker: Some(400.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -1193,6 +1431,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "all-american-30-8" => Some(Paytable {
@@ -1207,6 +1446,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "all-american-25-8" => Some(Paytable {
@@ -1221,6 +1461,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "all-american-40-7" => Some(Paytable {
@@ -1235,6 +1476,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -1251,6 +1493,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(15.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0, // Three of a kind minimum
         }),
         "deuces-wild-nsud" => Some(Paytable {
@@ -1265,6 +1508,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(16.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "deuces-wild-illinois" => Some(Paytable {
@@ -1279,6 +1523,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(15.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "deuces-wild-20-12-9" => Some(Paytable {
@@ -1293,6 +1538,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(20.0), five_of_a_kind: Some(12.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -1309,6 +1555,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(15.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "deuces-wild-20-15-9" => Some(Paytable {
@@ -1323,6 +1570,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(20.0), five_of_a_kind: Some(15.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "deuces-wild-25-12-9" => Some(Paytable {
@@ -1337,6 +1585,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(12.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "deuces-wild-colorado" => Some(Paytable {
@@ -1351,6 +1600,24 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(16.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
+            min_pair_rank: 0,
+        }),
+
+        // ====== DEUCES WILD BONUS (Bonus Deuces Wild) ======
+        "deuces-wild-bonus-9-4" => Some(Paytable {
+            id: id.to_string(),
+            name: "Deuces Wild Bonus 9/4/4/3".to_string(),
+            game_family: GameFamily::DeucesWildBonusPoker,
+            royal_flush: 800.0, straight_flush: 9.0, four_of_a_kind: 4.0,
+            full_house: 4.0, flush: 3.0, straight: 1.0,
+            three_of_a_kind: 1.0, two_pair: 0.0, high_pair: 0.0,
+            four_aces: None, four_2_4: None, four_5_k: None, four_jqk: None,
+            four_8s: None, four_7s: None,
+            four_aces_with_kicker: None, four_2_4_with_kicker: None,
+            four_aces_with_face: None, four_jqk_with_face: None,
+            four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(15.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -1367,6 +1634,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(500.0), wild_royal: Some(25.0), five_of_a_kind: Some(17.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "loose-deuces-500-15" => Some(Paytable {
@@ -1381,6 +1649,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(500.0), wild_royal: Some(25.0), five_of_a_kind: Some(15.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "loose-deuces-500-12" => Some(Paytable {
@@ -1395,6 +1664,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(500.0), wild_royal: Some(25.0), five_of_a_kind: Some(12.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "loose-deuces-400-12" => Some(Paytable {
@@ -1409,6 +1679,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(12.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -1425,6 +1696,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(400.0), wild_royal: Some(20.0), five_of_a_kind: Some(10.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "double-deuces-wild-16-13" => Some(Paytable {
@@ -1439,6 +1711,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(16.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -1455,6 +1728,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(400.0), wild_royal: Some(20.0), five_of_a_kind: Some(10.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "double-deuces-wild-downtown" => Some(Paytable {
@@ -1469,6 +1743,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(16.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "double-deuces-wild-16-11" => Some(Paytable {
@@ -1483,6 +1758,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(16.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "double-deuces-wild-16-10" => Some(Paytable {
@@ -1497,6 +1773,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(16.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -1514,6 +1791,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(600.0), wild_royal: Some(20.0), five_of_a_kind: Some(9.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "triple-deuces-wild-11-8" => Some(Paytable {
@@ -1528,6 +1806,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(600.0), wild_royal: Some(20.0), five_of_a_kind: Some(11.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "triple-deuces-wild-10-8" => Some(Paytable {
@@ -1542,6 +1821,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(600.0), wild_royal: Some(20.0), five_of_a_kind: Some(10.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -1559,6 +1839,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(50.0), five_of_a_kind: Some(25.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "deluxe-deuces-wild-800" => Some(Paytable {
@@ -1573,6 +1854,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(50.0), five_of_a_kind: Some(25.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -1589,6 +1871,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11, // Kings or better
         }),
         "joker-poker-kings-98-60" => Some(Paytable {
@@ -1603,6 +1886,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(50.0), five_of_a_kind: Some(100.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11,
         }),
         "joker-poker-kings-97-58" => Some(Paytable {
@@ -1617,6 +1901,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(50.0), five_of_a_kind: Some(100.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11,
         }),
 
@@ -1633,6 +1918,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(50.0), five_of_a_kind: Some(100.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0, // Two pair minimum
         }),
         "joker-poker-two-pair-98-59" => Some(Paytable {
@@ -1647,6 +1933,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(800.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -1664,6 +1951,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(25.0), five_of_a_kind: Some(100.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11, // Kings or Better
         }),
         "double-joker-5-4" => Some(Paytable {
@@ -1678,6 +1966,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(25.0), five_of_a_kind: Some(100.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11, // Kings or Better
         }),
 
@@ -1695,6 +1984,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(800.0), four_2_4_with_kicker: Some(400.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "triple-triple-bonus-9-5" => Some(Paytable {
@@ -1709,6 +1999,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(800.0), four_2_4_with_kicker: Some(400.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "triple-triple-bonus-8-5" => Some(Paytable {
@@ -1723,6 +2014,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(800.0), four_2_4_with_kicker: Some(400.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "triple-triple-bonus-7-5" => Some(Paytable {
@@ -1737,6 +2029,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(800.0), four_2_4_with_kicker: Some(400.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -1754,6 +2047,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 12, // Aces or better
         }),
         "royal-aces-bonus-10-5" => Some(Paytable {
@@ -1768,6 +2062,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 12,
         }),
         "royal-aces-bonus-8-6" => Some(Paytable {
@@ -1782,6 +2077,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 12,
         }),
         "royal-aces-bonus-9-5" => Some(Paytable {
@@ -1796,6 +2092,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 12,
         }),
 
@@ -1813,6 +2110,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "aces-bonus-7-5" => Some(Paytable {
@@ -1827,6 +2125,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "aces-bonus-6-5" => Some(Paytable {
@@ -1841,6 +2140,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -1857,6 +2157,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "bonus-aces-faces-7-5" => Some(Paytable {
@@ -1871,6 +2172,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "bonus-aces-faces-6-5" => Some(Paytable {
@@ -1885,6 +2187,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -1901,6 +2204,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
             four_aces_with_face: None, four_jqk_with_face: Some(160.0),
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "ddb-aces-faces-9-5" => Some(Paytable {
@@ -1915,6 +2219,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
             four_aces_with_face: None, four_jqk_with_face: Some(160.0),
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -1932,6 +2237,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "ddb-plus-9-5" => Some(Paytable {
@@ -1946,6 +2252,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
         "ddb-plus-8-5" => Some(Paytable {
@@ -1960,6 +2267,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: Some(400.0), four_2_4_with_kicker: Some(160.0),
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: None, five_of_a_kind: None,
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 9,
         }),
 
@@ -1977,6 +2285,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(15.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "deuces-wild-44-nsud" => Some(Paytable {
@@ -1991,6 +2300,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(16.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "deuces-wild-44-illinois" => Some(Paytable {
@@ -2005,6 +2315,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(200.0), wild_royal: Some(25.0), five_of_a_kind: Some(15.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -2022,6 +2333,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(25.0), wild_royal: Some(12.0), five_of_a_kind: Some(9.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "deuces-joker-wild-10-8" => Some(Paytable {
@@ -2036,6 +2348,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(25.0), wild_royal: Some(10.0), five_of_a_kind: Some(8.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -2052,6 +2365,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(160.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "double-bonus-deuces-9" => Some(Paytable {
@@ -2066,6 +2380,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(160.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -2082,6 +2397,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(160.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "super-bonus-deuces-9" => Some(Paytable {
@@ -2096,6 +2412,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(160.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "super-bonus-deuces-8" => Some(Paytable {
@@ -2110,6 +2427,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: Some(400.0), wild_royal: Some(25.0), five_of_a_kind: Some(160.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -2126,6 +2444,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11,
         }),
         "joker-poker-kings-940-20" => Some(Paytable {
@@ -2140,6 +2459,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11,
         }),
         "joker-poker-kings-20-6" => Some(Paytable {
@@ -2154,6 +2474,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11,
         }),
         "joker-poker-kings-18-7" => Some(Paytable {
@@ -2168,6 +2489,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11,
         }),
         "joker-poker-kings-17-7" => Some(Paytable {
@@ -2182,6 +2504,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11,
         }),
         "joker-poker-kings-15-7" => Some(Paytable {
@@ -2196,6 +2519,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(200.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 11,
         }),
 
@@ -2212,6 +2536,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(50.0), five_of_a_kind: Some(100.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "joker-poker-two-pair-20-8" => Some(Paytable {
@@ -2226,6 +2551,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(50.0), five_of_a_kind: Some(100.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "joker-poker-two-pair-20-9" => Some(Paytable {
@@ -2240,6 +2566,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(50.0), five_of_a_kind: Some(100.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -2256,6 +2583,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(50.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "double-joker-9-6-800" => Some(Paytable {
@@ -2270,6 +2598,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(50.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "double-joker-9-5-4" => Some(Paytable {
@@ -2284,6 +2613,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(50.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "double-joker-8-6-4" => Some(Paytable {
@@ -2298,6 +2628,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(50.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
         "double-joker-8-5-4" => Some(Paytable {
@@ -2312,6 +2643,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             four_aces_with_kicker: None, four_2_4_with_kicker: None,
             four_aces_with_face: None, four_jqk_with_face: None,
             four_deuces: None, wild_royal: Some(100.0), five_of_a_kind: Some(50.0),
+            five_aces: None, five_2_4: None, five_5_k: None, five_jqk: None, five_5_10: None, five_deuces: None,
             min_pair_rank: 0,
         }),
 
@@ -2329,21 +2661,7 @@ fn get_paytable(id: &str) -> Option<Paytable> {
             if let Some(mut pt) = get_paytable(base_id) {
                 pt.id = id.to_string();
                 pt.name = format!("WWW {}", pt.name);
-
-                // Add Wild Royal if not present (same payout as Natural Royal)
-                if pt.wild_royal.is_none() {
-                    pt.wild_royal = Some(pt.royal_flush);
-                }
-
-                // Add Five of a Kind if not present
-                if pt.five_of_a_kind.is_none() {
-                    pt.five_of_a_kind = Some(
-                        pt.four_aces_with_kicker
-                            .or(pt.four_aces)
-                            .unwrap_or(pt.four_of_a_kind)
-                    );
-                }
-
+                apply_www_overrides(base_id, &mut pt);
                 Some(pt)
             } else {
                 eprintln!("Warning: base paytable '{}' not found for WWW variant '{}'", base_id, id);
@@ -2387,6 +2705,8 @@ fn get_all_paytable_ids() -> Vec<&'static str> {
         "double-bonus-10-7-4", "double-bonus-9-7-5", "double-bonus-9-6-5", "double-bonus-9-6-4",
         // Super Double Bonus
         "super-double-bonus-9-5", "super-double-bonus-8-5", "super-double-bonus-7-5", "super-double-bonus-6-5",
+        // Super Double Double Bonus
+        "super-double-double-bonus-8-5",
         // Double Double Bonus
         "double-double-bonus-10-6-100", "double-double-bonus-10-6", "double-double-bonus-9-6",
         "double-double-bonus-9-5", "double-double-bonus-8-5", "double-double-bonus-7-5", "double-double-bonus-6-5",
@@ -2413,6 +2733,8 @@ fn get_all_paytable_ids() -> Vec<&'static str> {
         "deuces-wild-25-15-8", "deuces-wild-20-15-9", "deuces-wild-25-12-9", "deuces-wild-colorado",
         // Deuces Wild 44
         "deuces-wild-44-apdw", "deuces-wild-44-nsud", "deuces-wild-44-illinois",
+        // Deuces Wild Bonus
+        "deuces-wild-bonus-9-4",
         // Loose Deuces
         "loose-deuces-500-17", "loose-deuces-500-15", "loose-deuces-500-12", "loose-deuces-400-12",
         // Bonus Poker Plus
@@ -2979,6 +3301,46 @@ fn get_www_quad_payout(quad_rank: u8, kicker_rank: u8, paytable: &Paytable) -> f
     paytable.four_of_a_kind
 }
 
+/// Resolve tiered five-of-a-kind payout by rank.
+/// For deuces games, rank grouping shifts: five_2_4 covers 3s,4s,5s (since 2s are wild).
+fn get_www_five_of_a_kind_payout(rank: u8, paytable: &Paytable) -> f64 {
+    let is_deuces = paytable.is_deuces_wild();
+    let fallback = paytable.five_of_a_kind.unwrap_or(100.0);
+
+    if rank == 12 {
+        // Aces
+        return paytable.five_aces.unwrap_or(fallback);
+    }
+
+    if is_deuces {
+        // Deuces games: five_2_4 covers 3s,4s,5s (ranks 1,2,3)
+        if rank >= 1 && rank <= 3 {
+            return paytable.five_2_4.unwrap_or(fallback);
+        }
+        // Everything else (6s thru Ks, ranks 4-11)
+        return paytable.five_5_k.unwrap_or(fallback);
+    }
+
+    // Non-deuces games: five_2_4 covers 2s,3s,4s (ranks 0,1,2)
+    if rank <= 2 {
+        return paytable.five_2_4.unwrap_or(fallback);
+    }
+
+    // Js,Qs,Ks (ranks 9,10,11) — only meaningful for SDB/SDDB
+    if rank >= 9 && rank <= 11 {
+        return paytable.five_jqk
+            .or(paytable.five_5_k)
+            .unwrap_or(fallback);
+    }
+
+    // 5s thru 10s (ranks 3-8) — or 5s thru Ks if no five_jqk
+    if paytable.five_5_10.is_some() && rank >= 3 && rank <= 8 {
+        return paytable.five_5_10.unwrap_or(fallback);
+    }
+
+    paytable.five_5_k.unwrap_or(fallback)
+}
+
 fn get_www_payout(hand: &[Card], paytable: &Paytable) -> f64 {
     let num_jokers = hand.iter().filter(|c| c.is_joker()).count() as u8;
 
@@ -3005,6 +3367,13 @@ fn get_www_payout(hand: &[Card], paytable: &Paytable) -> f64 {
     let is_flush = is_flush_wild(&naturals);
     let is_straight = is_straight_wild(&naturals, total_wilds);
 
+    // Five Deuces (4 natural deuces + joker)
+    if is_deuces_base && num_deuces == 4 && num_jokers >= 1 {
+        if let Some(five_d) = paytable.five_deuces {
+            return five_d;
+        }
+    }
+
     // Deuces-specific: Four Deuces (requires actual deuces, not jokers)
     if is_deuces_base && num_deuces == 4 {
         return paytable.four_deuces.unwrap_or(200.0);
@@ -3019,9 +3388,14 @@ fn get_www_payout(hand: &[Card], paytable: &Paytable) -> f64 {
         }
     }
 
-    // Five of a Kind
+    // Five of a Kind — use tiered payout by rank
     if max_count + total_wilds >= 5 {
-        return paytable.five_of_a_kind.unwrap_or(100.0);
+        // Find the rank that forms the five-of-a-kind
+        let five_rank = counts.iter().enumerate()
+            .max_by_key(|(_, &c)| c)
+            .map(|(r, _)| r as u8)
+            .unwrap_or(0);
+        return get_www_five_of_a_kind_payout(five_rank, paytable);
     }
 
     // Wild Royal Flush
@@ -4152,6 +4526,82 @@ fn run_tests(filter: Option<&str>) {
             tests: vec![
                 ("joker-poker-kings-100-64", 1.0),  // Still just pays as high pair
                 ("joker-poker-two-pair-99-92", 1.0), // Minimum winning hand
+            ],
+        },
+        // ============= WWW TIERED FIVE OF A KIND =============
+        TestCase {
+            name: "WWW: Five Aces (Ah Ad Ac As Joker) - JoB",
+            hand: make_hand([(12, 0), (12, 1), (12, 2), (12, 3), (255, 0)]),
+            tests: vec![
+                ("www-jacks-or-better-9-6-1w", 800.0),  // Five Aces = 800
+            ],
+        },
+        TestCase {
+            name: "WWW: Five 3s (3h 3d 3c 3s Joker) - JoB",
+            hand: make_hand([(1, 0), (1, 1), (1, 2), (1, 3), (255, 0)]),
+            tests: vec![
+                ("www-jacks-or-better-9-6-1w", 320.0),  // Five 2s-4s = 320
+            ],
+        },
+        TestCase {
+            name: "WWW: Five Kings (Kh Kd Kc Ks Joker) - JoB",
+            hand: make_hand([(11, 0), (11, 1), (11, 2), (11, 3), (255, 0)]),
+            tests: vec![
+                ("www-jacks-or-better-9-6-1w", 100.0),  // Five 5s-Ks = 100
+            ],
+        },
+        // ============= WWW BOOSTED STANDARD HANDS =============
+        TestCase {
+            name: "WWW: Four of a Kind (7h 7d 7c 7s 5h) - JoB boosted",
+            hand: make_hand([(5, 0), (5, 1), (5, 2), (5, 3), (3, 0)]),
+            tests: vec![
+                ("www-jacks-or-better-9-6-0w", 30.0),   // 4oK boosted from 25 to 30
+            ],
+        },
+        TestCase {
+            name: "WWW: Full House (Ah Ad Ac 5s 5h) - JoB boosted",
+            hand: make_hand([(12, 0), (12, 1), (12, 2), (3, 3), (3, 0)]),
+            tests: vec![
+                ("www-jacks-or-better-9-6-0w", 11.0),   // FH boosted from 9 to 11
+            ],
+        },
+        TestCase {
+            name: "WWW: Straight (5h 6d 7c 8s 9h) - JoB boosted",
+            hand: make_hand([(3, 0), (4, 1), (5, 2), (6, 3), (7, 0)]),
+            tests: vec![
+                ("www-jacks-or-better-9-6-0w", 5.0),    // ST boosted from 4 to 5
+            ],
+        },
+        // ============= WWW SDB 4-TIER 5OK =============
+        TestCase {
+            name: "WWW: Five Jacks (Jh Jd Jc Js Joker) - SDB 4-tier",
+            hand: make_hand([(9, 0), (9, 1), (9, 2), (9, 3), (255, 0)]),
+            tests: vec![
+                ("www-super-double-bonus-9-5-1w", 240.0), // Five JQK = 240
+            ],
+        },
+        TestCase {
+            name: "WWW: Five 7s (7h 7d 7c 7s Joker) - SDB 4-tier",
+            hand: make_hand([(5, 0), (5, 1), (5, 2), (5, 3), (255, 0)]),
+            tests: vec![
+                ("www-super-double-bonus-9-5-1w", 100.0), // Five 5s-10s = 100
+            ],
+        },
+        // ============= WWW DEUCES =============
+        TestCase {
+            name: "WWW: Five Deuces (2h 2d 2c 2s Joker) - DW",
+            hand: make_hand([(0, 0), (0, 1), (0, 2), (0, 3), (255, 0)]),
+            tests: vec![
+                ("www-deuces-wild-nsud-1w", 800.0), // Five Deuces = 800
+            ],
+        },
+        // ============= WWW TDB UNIQUE 5OK TIER =============
+        TestCase {
+            name: "WWW: Five 4s (4h 4d 4c 4s Joker) - TDB higher tier",
+            hand: make_hand([(2, 0), (2, 1), (2, 2), (2, 3), (255, 0)]),
+            tests: vec![
+                ("www-triple-double-bonus-9-7-1w", 400.0), // TDB Five 2s-4s = 400 (not 320)
+                ("www-jacks-or-better-9-6-1w", 320.0),     // JoB Five 2s-4s = 320
             ],
         },
     ];

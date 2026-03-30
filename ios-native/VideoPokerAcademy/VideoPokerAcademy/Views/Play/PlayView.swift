@@ -375,12 +375,6 @@ struct PlayView: View {
                     .padding(.horizontal, 8)
                     .padding(.top, 8)
 
-                // WWW wild count banner (shown after dealing in Wild Wild Wild mode)
-                if viewModel.settings.variant.isWildWildWild && viewModel.phase != .betting {
-                    wwwWildCountBanner
-                        .padding(.top, 4)
-                }
-
                 // Balance, Bet, Win Display Bar (below cards)
                 creditsBar(isLandscape: false)
                     .padding(.top, 8)
@@ -460,12 +454,6 @@ struct PlayView: View {
                 // Machine frame with cards - main focus, directly above deal button
                 landscapeMachineFrame(geometry: geometry)
                     .padding(.horizontal, 4)
-
-                // WWW wild count banner (shown after dealing in Wild Wild Wild mode)
-                if viewModel.settings.variant.isWildWildWild && viewModel.phase != .betting {
-                    wwwWildCountBanner
-                        .padding(.top, 2)
-                }
 
                 // Action button at bottom right
                 casinoButtonBar(isLandscape: true)
@@ -962,8 +950,22 @@ struct PlayView: View {
                     )
 
                 VStack(spacing: isLandscape ? 4 : 8) {
-                    // Dealt winner indicator or spacer
-                    if viewModel.phase == .dealt, let handName = viewModel.dealtWinnerName {
+                    // Dealt winner indicator (with WWW wild count prefix), or spacer
+                    if viewModel.settings.variant.isWildWildWild && viewModel.phase != .betting {
+                        let wildText = viewModel.wwwWildCount == 0 ? "NO WILDS ADDED" :
+                                       viewModel.wwwWildCount == 1 ? "1 WILD IN DECK" :
+                                       "\(viewModel.wwwWildCount) WILDS IN DECK"
+                        if viewModel.phase == .dealt, let handName = viewModel.dealtWinnerName {
+                            Text("\(wildText) — \(handName.uppercased())")
+                                .font(.system(size: titleFontSize, weight: .black))
+                                .foregroundColor(Color(hex: "FFD700"))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
+                                .padding(.top, isLandscape ? 4 : 8)
+                        } else {
+                            wwwWildCountLabel(isLandscape: isLandscape)
+                        }
+                    } else if viewModel.phase == .dealt, let handName = viewModel.dealtWinnerName {
                         Text(handName.uppercased())
                             .font(.system(size: titleFontSize, weight: .black))
                             .foregroundColor(Color(hex: "FFD700"))
@@ -1165,24 +1167,20 @@ struct PlayView: View {
         }
     }
 
-    // MARK: - WWW Wild Count Banner
+    // MARK: - WWW Wild Count Label (inline, inside machine frame)
 
-    private var wwwWildCountBanner: some View {
+    private func wwwWildCountLabel(isLandscape: Bool) -> some View {
         let count = viewModel.wwwWildCount
-        let text = count == 0 ? "No Wilds Added" :
-                   count == 1 ? "1 Wild Added to Deck" :
-                   "\(count) Wilds Added to Deck"
-        let color: Color = count == 0 ? .gray : .yellow
+        let text = count == 0 ? "NO WILDS ADDED" :
+                   count == 1 ? "1 WILD IN DECK" :
+                   "\(count) WILDS IN DECK"
+        let color: Color = count == 0 ? Color(hex: "888888") : Color(hex: "FFD700")
+        let fontSize: CGFloat = isLandscape ? 11 : 13
 
         return Text(text)
-            .font(.system(size: 14, weight: .bold))
+            .font(.system(size: fontSize, weight: .black))
             .foregroundColor(color)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(color.opacity(0.2))
-            )
+            .padding(.top, isLandscape ? 4 : 8)
     }
 
     // MARK: - Casino Button Bar

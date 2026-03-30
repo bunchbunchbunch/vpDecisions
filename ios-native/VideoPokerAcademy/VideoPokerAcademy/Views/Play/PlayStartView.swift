@@ -195,17 +195,12 @@ struct PlayStartView: View {
 
             FlowLayout(spacing: 8) {
                 ForEach(LineCount.allCases, id: \.self) { lineCount in
-                    let isDisabled = lineCount == .oneHundred && settings.variant == .wildWildWild
                     SelectionChip(
                         title: lineCount.displayName,
                         isSelected: settings.lineCount == lineCount
                     ) {
-                        if !isDisabled {
-                            settings.lineCount = lineCount
-                        }
+                        settings.lineCount = lineCount
                     }
-                    .opacity(isDisabled ? 0.4 : 1.0)
-                    .disabled(isDisabled)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

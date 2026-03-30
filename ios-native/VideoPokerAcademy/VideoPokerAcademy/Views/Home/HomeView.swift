@@ -230,14 +230,22 @@ struct HomeView: View {
         Button {
             navigationPath.append(AppScreen.settings)
         } label: {
-            Circle()
-                .fill(AppTheme.Colors.cardBackground)
-                .frame(width: 36, height: 36)
-                .overlay(
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 16))
-                        .foregroundColor(AppTheme.Colors.textSecondary)
-                )
+            if #available(iOS 26.0, *) {
+                Image(systemName: "person.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(.white)
+                    .frame(width: 36, height: 36)
+                    .glassEffect(.regular, in: .circle)
+            } else {
+                Circle()
+                    .fill(AppTheme.Colors.cardBackground)
+                    .frame(width: 36, height: 36)
+                    .overlay(
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(AppTheme.Colors.textSecondary)
+                    )
+            }
         }
     }
 

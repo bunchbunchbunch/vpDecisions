@@ -1,39 +1,235 @@
 #!/bin/bash
 # generate_www_strategies.sh — Generate WWW strategy files for all supported paytables
+#
+# Prioritizes the 12 games from the in-game screenshots (WWWPayouts),
+# then generates alternate pay table variants.
 
 set -e
 cd "$(dirname "$0")"
 
-# Base paytable IDs that support WWW
-PAYTABLES=(
+# ── Configuration ─────────────────────────────────────────────────────────────
+
+OUTPUT_DIR="../../supabase-uploads"
+SKIP_EXISTING=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --skip-existing) SKIP_EXISTING=true ;;
+        --help|-h)
+            echo "Usage: $0 [--skip-existing]"
+            echo "  --skip-existing  Skip strategies that already have .vpstrat2 files"
+            exit 0
+            ;;
+    esac
+done
+
+# ── Pay table groups ──────────────────────────────────────────────────────────
+
+# PRIMARY: The 12 games from the WWWPayouts screenshots (known pay tables)
+# Ordered to start with 9/6 Jacks or Better
+PRIMARY_PAYTABLES=(
     "jacks-or-better-9-6"
+    "bonus-poker-8-5"
+    "bonus-poker-deluxe-9-6"
+    "double-bonus-9-7-5"
+    "double-double-bonus-9-6"
+    "triple-double-bonus-9-7"
+    "deuces-wild-nsud"
+    "deuces-wild-bonus-9-4"
+    "super-double-bonus-9-5"
+    "super-double-double-bonus-8-5"
+    "ddb-plus-9-6"
+    "super-bonus-deuces-9"
+)
+
+# ALTERNATE: Other pay table variants (use fallback WWW overrides — less accurate)
+ALTERNATE_PAYTABLES=(
     "jacks-or-better-9-5"
     "jacks-or-better-8-6"
     "jacks-or-better-8-5"
     "jacks-or-better-7-5"
-    "bonus-poker-8-5"
     "bonus-poker-7-5"
     "double-bonus-10-7"
     "double-double-bonus-10-6"
-    "double-double-bonus-9-6"
-    "triple-double-bonus-9-7"
     "triple-double-bonus-9-6"
     "deuces-wild-full-pay"
-    "deuces-wild-nsud"
 )
 
-echo "Building calculator..."
-cargo build --release
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
-for base in "${PAYTABLES[@]}"; do
-    # Skip 0w — with 0 jokers the deck is standard 52 cards and the boosted
-    # pay table hands (Five of a Kind, Wild Royal) are unreachable, so EVs are
-    # identical to the base strategy file. The iOS app uses the base file for 0w.
-    for wilds in 1 2 3; do
-        id="www-${base}-${wilds}w"
-        echo "=== Generating: $id ==="
-        cargo run --release -- --paytable "$id"
+TOTAL_GENERATED=0
+TOTAL_SKIPPED=0
+TOTAL_FAILED=0
+FILE_TIMES=()       # Array of elapsed seconds per strategy file
+OVERALL_START=$(date +%s)
+
+format_duration() {
+    local secs=$1
+    local hrs=$((secs / 3600))
+    local mins=$(( (secs % 3600) / 60 ))
+    local s=$((secs % 60))
+    if [ "$hrs" -gt 0 ]; then
+        printf "%dh %02dm %02ds" "$hrs" "$mins" "$s"
+    elif [ "$mins" -gt 0 ]; then
+        printf "%dm %02ds" "$mins" "$s"
+    else
+        printf "%ds" "$s"
+    fi
+}
+
+avg_file_time() {
+    local count=${#FILE_TIMES[@]}
+    if [ "$count" -eq 0 ]; then echo 0; return; fi
+    local sum=0
+    for t in "${FILE_TIMES[@]}"; do sum=$((sum + t)); done
+    echo $((sum / count))
+}
+
+print_separator() {
+    echo ""
+    echo "════════════════════════════════════════════════════════════════════════"
+}
+
+# ── Build ─────────────────────────────────────────────────────────────────────
+
+echo "Building calculator (release)..."
+cargo build --release 2>&1
+echo ""
+
+# ── Generate strategies for a list of paytables ───────────────────────────────
+
+generate_group() {
+    local group_name="$1"
+    shift
+    local paytables=("$@")
+    local group_count=${#paytables[@]}
+    local strategies_per_game=3  # 1w, 2w, 3w
+    local total_files=$((group_count * strategies_per_game))
+    local group_done=0
+    local group_start=$(date +%s)
+
+    print_separator
+    echo "  $group_name"
+    echo "  $group_count games × 3 wild counts = $total_files strategy files"
+    print_separator
+    echo ""
+
+    for idx in "${!paytables[@]}"; do
+        local base="${paytables[$idx]}"
+        local game_num=$((idx + 1))
+        local game_start=$(date +%s)
+
+        echo "┌─── Game $game_num/$group_count: $base ───"
+        echo "│"
+
+        for wilds in 1 2 3; do
+            local id="www-${base}-${wilds}w"
+            local file_id=$(echo "$id" | tr '-' '_')
+            local outfile="$OUTPUT_DIR/strategy_${file_id}.vpstrat2"
+
+            # Skip if file exists and --skip-existing is set
+            if [ "$SKIP_EXISTING" = true ] && [ -f "$outfile" ]; then
+                echo "│  ⏭  ${wilds}w — already exists, skipping"
+                TOTAL_SKIPPED=$((TOTAL_SKIPPED + 1))
+                group_done=$((group_done + 1))
+                continue
+            fi
+
+            local file_start=$(date +%s)
+            echo "│  ⏳ ${wilds}w — generating $id"
+
+            if ./target/release/vp_calculator "$id" --no-upload --output "$OUTPUT_DIR" 2>&1 | sed 's/^/│     /'; then
+                local file_end=$(date +%s)
+                local file_elapsed=$((file_end - file_start))
+                FILE_TIMES+=("$file_elapsed")
+                TOTAL_GENERATED=$((TOTAL_GENERATED + 1))
+                group_done=$((group_done + 1))
+
+                echo "│  ✅ ${wilds}w done in $(format_duration $file_elapsed)"
+            else
+                local file_end=$(date +%s)
+                local file_elapsed=$((file_end - file_start))
+                TOTAL_FAILED=$((TOTAL_FAILED + 1))
+                group_done=$((group_done + 1))
+
+                echo "│  ❌ ${wilds}w FAILED after $(format_duration $file_elapsed)"
+            fi
+
+            # Progress + ETA after each file
+            local now=$(date +%s)
+            local overall_elapsed=$((now - OVERALL_START))
+            local overall_done=$((TOTAL_GENERATED + TOTAL_SKIPPED + TOTAL_FAILED))
+            local avg=$(avg_file_time)
+
+            if [ "$avg" -gt 0 ] && [ "$TOTAL_GENERATED" -gt 0 ]; then
+                local remaining_in_group=$((total_files - group_done))
+                local est_group_remaining=$((remaining_in_group * avg))
+
+                echo "│     Avg: $(format_duration $avg)/file · Group remaining: ~$(format_duration $est_group_remaining)"
+            fi
+        done
+
+        local game_end=$(date +%s)
+        local game_elapsed=$((game_end - game_start))
+        echo "│"
+        echo "└─── $base done in $(format_duration $game_elapsed)"
+        echo ""
     done
-done
 
-echo "Done! Generated $(ls strategies/strategy_www_* 2>/dev/null | wc -l) WWW strategy files."
+    local group_end=$(date +%s)
+    local group_elapsed=$((group_end - group_start))
+    echo "  $group_name complete: $(format_duration $group_elapsed)"
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+GRAND_TOTAL=$(( (${#PRIMARY_PAYTABLES[@]} + ${#ALTERNATE_PAYTABLES[@]}) * 3 ))
+
+echo "╔══════════════════════════════════════════════════════════════════════╗"
+echo "║              WWW Strategy Generator                                ║"
+echo "╠══════════════════════════════════════════════════════════════════════╣"
+echo "║  Primary games (from screenshots):  ${#PRIMARY_PAYTABLES[@]} games ($(( ${#PRIMARY_PAYTABLES[@]} * 3 )) files)         ║"
+echo "║  Alternate pay tables:              ${#ALTERNATE_PAYTABLES[@]} games ($(( ${#ALTERNATE_PAYTABLES[@]} * 3 )) files)          ║"
+echo "║  Total strategy files:              $GRAND_TOTAL                             ║"
+echo "║  Skip existing:                     $SKIP_EXISTING                          ║"
+echo "╚══════════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "Started at: $(date '+%Y-%m-%d %H:%M:%S')"
+
+generate_group "PRIMARY — Screenshot Pay Tables (starting with 9/6 JoB)" "${PRIMARY_PAYTABLES[@]}"
+
+# Show projection before starting alternates
+if [ ${#FILE_TIMES[@]} -gt 0 ]; then
+    avg=$(avg_file_time)
+    alt_files=$(( ${#ALTERNATE_PAYTABLES[@]} * 3 ))
+    est_alt=$((alt_files * avg))
+    print_separator
+    echo "  Primary group done. Estimated time for alternate group: ~$(format_duration $est_alt)"
+    print_separator
+fi
+
+generate_group "ALTERNATE — Other Pay Table Variants" "${ALTERNATE_PAYTABLES[@]}"
+
+# ── Summary ───────────────────────────────────────────────────────────────────
+
+OVERALL_END=$(date +%s)
+OVERALL_ELAPSED=$((OVERALL_END - OVERALL_START))
+
+print_separator
+echo "  COMPLETE"
+print_separator
+echo ""
+echo "  Finished at: $(date '+%Y-%m-%d %H:%M:%S')"
+echo "  Total time:  $(format_duration $OVERALL_ELAPSED)"
+echo ""
+echo "  Generated:   $TOTAL_GENERATED files"
+echo "  Skipped:     $TOTAL_SKIPPED files"
+echo "  Failed:      $TOTAL_FAILED files"
+
+if [ ${#FILE_TIMES[@]} -gt 0 ]; then
+    echo "  Avg/file:    $(format_duration $(avg_file_time))"
+fi
+
+echo ""
+echo "  Output: $OUTPUT_DIR"
+echo ""
