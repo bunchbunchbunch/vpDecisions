@@ -5,6 +5,7 @@ struct HandAnalyzerView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showPaytable = false
     @State private var showCasinoSetup = false
+    @State private var showGameInfo = false
 
     let allSuits: [Suit] = [.hearts, .diamonds, .clubs, .spades]
     let allRanks: [Rank] = Rank.allCases
@@ -32,15 +33,30 @@ struct HandAnalyzerView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showCasinoSetup = true
-                } label: {
-                    Image(systemName: "mic.fill")
+                HStack(spacing: 16) {
+                    Button {
+                        showGameInfo = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                    }
+
+                    Button {
+                        showCasinoSetup = true
+                    } label: {
+                        Image(systemName: "mic.fill")
+                    }
                 }
             }
         }
         .navigationDestination(isPresented: $showCasinoSetup) {
             CasinoSetupView(initialPaytableId: viewModel.selectedPaytable.id)
+        }
+        .sheet(isPresented: $showGameInfo) {
+            GameInfoSheet(
+                paytableId: viewModel.selectedPaytable.id,
+                variant: GameInfoVariant(isUltimateX: viewModel.isUltimateXMode),
+                isPresented: $showGameInfo
+            )
         }
         .sheet(isPresented: $showPaytable) {
             AnalyzerPaytableSheet(paytable: viewModel.selectedPaytable, isPresented: $showPaytable)

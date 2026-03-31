@@ -3,10 +3,14 @@ import SwiftUI
 struct TrainingHubView: View {
     @StateObject private var viewModel: TrainingHubViewModel
     @Binding var navigationPath: NavigationPath
+    @State private var showGameInfo = false
+
+    private let paytableId: String
 
     init(navigationPath: Binding<NavigationPath>, paytableId: String = PayTable.jacksOrBetter96.id) {
         self._navigationPath = navigationPath
         self._viewModel = StateObject(wrappedValue: TrainingHubViewModel(paytableId: paytableId))
+        self.paytableId = paytableId
     }
 
     var body: some View {
@@ -37,6 +41,21 @@ struct TrainingHubView: View {
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(.white)
             }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showGameInfo = true
+                } label: {
+                    Image(systemName: "info.circle")
+                        .foregroundColor(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showGameInfo) {
+            GameInfoSheet(
+                paytableId: paytableId,
+                variant: .standard,
+                isPresented: $showGameInfo
+            )
         }
         .task {
             await viewModel.load()

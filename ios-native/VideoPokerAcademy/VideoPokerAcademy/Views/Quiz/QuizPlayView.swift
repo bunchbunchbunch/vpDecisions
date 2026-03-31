@@ -8,6 +8,7 @@ struct QuizPlayView: View {
     @State private var isDragging = false
     @State private var dragStartLocation: CGPoint?
     @State private var isLandscape = false
+    @State private var showGameInfo = false
 
     var body: some View {
         Group {
@@ -31,6 +32,21 @@ struct QuizPlayView: View {
                         .foregroundColor(.white)
                 }
             }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showGameInfo = true
+                } label: {
+                    Image(systemName: "info.circle")
+                        .foregroundColor(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showGameInfo) {
+            GameInfoSheet(
+                paytableId: viewModel.paytableId,
+                variant: GameInfoVariant(isUltimateX: viewModel.isUltimateXMode),
+                isPresented: $showGameInfo
+            )
         }
         .task {
             await viewModel.loadQuiz()

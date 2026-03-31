@@ -11,6 +11,7 @@ struct PlayView: View {
     @State private var showStats = false
     @State private var showAddFunds = false
     @State private var showPaytable = false
+    @State private var showGameInfo = false
     @State private var fundsToAdd: String = ""
 
     // Swipe gesture state
@@ -72,6 +73,13 @@ struct PlayView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
                     Button {
+                        showGameInfo = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .foregroundColor(.white)
+                    }
+
+                    Button {
                         showStats = true
                     } label: {
                         Image(systemName: "chart.bar.fill")
@@ -88,6 +96,13 @@ struct PlayView: View {
             }
         }
         .toolbar(isLandscape ? .hidden : .visible, for: .navigationBar)
+        .sheet(isPresented: $showGameInfo) {
+            GameInfoSheet(
+                paytableId: viewModel.settings.selectedPaytableId,
+                variant: GameInfoVariant(from: viewModel.settings.variant),
+                isPresented: $showGameInfo
+            )
+        }
         .sheet(isPresented: $showSettings) {
             PlaySettingsSheet(viewModel: viewModel, isPresented: $showSettings)
         }
@@ -1194,6 +1209,11 @@ struct PlayView: View {
             // Skip win animation if user presses DEAL while counting
             skipWinAnimation()
 
+            if !viewModel.canDeal && (viewModel.phase == .betting || viewModel.phase == .result) {
+                showAddFunds = true
+                return
+            }
+
             Task {
                 switch viewModel.phase {
                 case .betting, .result:
@@ -1232,7 +1252,7 @@ struct PlayView: View {
                     .shadow(color: actionButtonEnabled ? Color(hex: "00ff00").opacity(0.3) : .clear, radius: 8)
             )
         }
-        .disabled(!actionButtonEnabled)
+        .disabled(viewModel.phase == .drawing)
         .tourTarget("actionButton")
         .padding(.horizontal, isLandscape ? 4 : 16)
     }
@@ -1251,7 +1271,7 @@ struct PlayView: View {
     private var actionButtonEnabled: Bool {
         switch viewModel.phase {
         case .betting, .result:
-            return viewModel.canDeal
+            return true  // Always enabled — shows DEAL or ADD FUNDS
         case .dealt:
             return true
         case .drawing:
@@ -1588,6 +1608,8 @@ struct PlaySettingsSheet: View {
     @State private var selectedDenomination: BetDenomination = .one
     @State private var selectedLineCount: LineCount = .one
     @State private var showOptimalFeedback: Bool = false
+    @State private var showAddFunds: Bool = false
+    @State private var fundsToAdd: String = ""
 
     var body: some View {
         NavigationStack {
@@ -1627,6 +1649,42 @@ struct PlaySettingsSheet: View {
                             .fontWeight(.bold)
                     }
                 }
+
+                Section("Balance") {
+                    HStack {
+                        Text("Current Balance")
+                        Spacer()
+                        Text(formatCurrency(viewModel.balance.balance))
+                            .fontWeight(.bold)
+                    }
+
+                    Button {
+                        showAddFunds = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Add Funds")
+                        }
+                    }
+                }
+            }
+            .alert("Add Funds", isPresented: $showAddFunds) {
+                TextField("Amount", text: $fundsToAdd)
+                    .keyboardType(.decimalPad)
+                Button("Cancel", role: .cancel) {
+                    fundsToAdd = ""
+                }
+                Button("Add") {
+                    if let amount = Double(fundsToAdd), amount > 0 {
+                        Task {
+                            await viewModel.addFunds(amount)
+                        }
+                    }
+                    fundsToAdd = ""
+                }
+            } message: {
+                Text("Enter amount to add to your balance")
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)

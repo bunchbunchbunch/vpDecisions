@@ -3,6 +3,7 @@ import SwiftUI
 struct SimulationRunningView: View {
     @ObservedObject var viewModel: SimulationViewModel
     @Binding var navigationPath: NavigationPath
+    @State private var showGameInfo = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -124,6 +125,22 @@ struct SimulationRunningView: View {
         .navigationTitle("Running Simulation")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showGameInfo = true
+                } label: {
+                    Image(systemName: "info.circle")
+                }
+            }
+        }
+        .sheet(isPresented: $showGameInfo) {
+            GameInfoSheet(
+                paytableId: viewModel.selectedPaytableId,
+                variant: GameInfoVariant(isUltimateX: viewModel.isUltimateXMode),
+                isPresented: $showGameInfo
+            )
+        }
         .task {
             await viewModel.startSimulation()
         }

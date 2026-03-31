@@ -105,6 +105,7 @@
 		987C9C647870AA3E016A056D /* quiz-complete.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7E08F3595F299121A7328097 /* quiz-complete.mp3 */; };
 		996FA0D13E2FEDD300776CEF /* TrainingHubViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30C8681CDCFD847A79A6AF4 /* TrainingHubViewModel.swift */; };
 		99A63C73626C735A01699414 /* CardGlowEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 805680B4A7E99743493EB4C3 /* CardGlowEffect.swift */; };
+		C45D8F1BBF9CEEC515EA1787 /* GameInfoSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 730EF33BCFF3310940AD425F /* GameInfoSheet.swift */; };
 		9E681CA9243B71BB4ADE1394 /* Drill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A9D90A4E1557A1120CA33F2 /* Drill.swift */; };
 		A0CD46E5C148763CA36F5B74 /* strategy_deuces_wild_nsud.vpstrat2 in Resources */ = {isa = PBXBuildFile; fileRef = 5466288ABB4693DDA0CD0795 /* strategy_deuces_wild_nsud.vpstrat2 */; };
 		A28AFD2E6D4235F45C93697A /* CasinoModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE2C923F3715B4AF08DDDDE /* CasinoModeView.swift */; };
@@ -261,6 +262,7 @@
 		8E6AC0A86CC9410293EB55DD /* EKTableGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EKTableGenerator.swift; sourceTree = "<group>"; };
 		7E08F3595F299121A7328097 /* quiz-complete.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "quiz-complete.mp3"; sourceTree = "<group>"; };
 		805680B4A7E99743493EB4C3 /* CardGlowEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardGlowEffect.swift; sourceTree = "<group>"; };
+		730EF33BCFF3310940AD425F /* GameInfoSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameInfoSheet.swift; sourceTree = "<group>"; };
 		811F5197F5A99BAF1E888136 /* Tour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tour.swift; sourceTree = "<group>"; };
 		8389B02C3EA6EE14EEA16970 /* PopularGameButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopularGameButton.swift; sourceTree = "<group>"; };
 		8931B86F921F98C5CC2FCAE6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -467,6 +469,7 @@
 			children = (
 				7A3AA5EB3F8AEB08D4548731 /* AppTheme.swift */,
 				805680B4A7E99743493EB4C3 /* CardGlowEffect.swift */,
+				730EF33BCFF3310940AD425F /* GameInfoSheet.swift */,
 				B0C1CCDF429157ED4A26DF3F /* CardView.swift */,
 				6C8F96D380AE3B69A4657DDF /* CompactPayTableView.swift */,
 				A673BBD6C664E52E3B5BB191 /* DealtWinnerBanner.swift */,
@@ -893,6 +896,7 @@
 				3B428D7C617D2DD10638AB1C /* BinaryStrategyStoreV2.swift in Sources */,
 				E6FEA6DC40C24EB0C3224CEF /* Card.swift in Sources */,
 				99A63C73626C735A01699414 /* CardGlowEffect.swift in Sources */,
+				C45D8F1BBF9CEEC515EA1787 /* GameInfoSheet.swift in Sources */,
 				BB553A07D2A089D9D4E76E8F /* CardParser.swift in Sources */,
 				3A5A83E12D6DE13F44E7FFE0 /* CardView.swift in Sources */,
 				A28AFD2E6D4235F45C93697A /* CasinoModeView.swift in Sources */,
@@ -1021,14 +1025,14 @@
 				CODE_SIGN_ENTITLEMENTS = VideoPokerAcademy/VideoPokerAcademy.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = LDPWY39U2R;
 				INFOPLIST_FILE = VideoPokerAcademy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.4;
+				MARKETING_VERSION = 1.0.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thoughtfulorg.vpacademy;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -1061,14 +1065,14 @@
 				CODE_SIGN_ENTITLEMENTS = VideoPokerAcademy/VideoPokerAcademy.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = LDPWY39U2R;
 				INFOPLIST_FILE = VideoPokerAcademy/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.4;
+				MARKETING_VERSION = 1.0.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thoughtfulorg.vpacademy;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
