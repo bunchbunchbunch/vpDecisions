@@ -47,6 +47,11 @@ struct WildWildWildDistribution {
     static let supportedPaytableIds: Set<String> = [
         "jacks-or-better-9-6",
         "bonus-poker-8-5",
+        "bonus-poker-deluxe-9-6",
+        "double-bonus-9-7-5",
+        "double-double-bonus-9-6",
+        "triple-double-bonus-9-7",
+        "deuces-wild-nsud",
     ]
 
     static func isSupported(paytableId: String) -> Bool {

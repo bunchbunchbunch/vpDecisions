@@ -891,15 +891,35 @@ class PlayViewModel: ObservableObject {
     private func checkForMistake() {
         let userHold = Array(selectedIndices).sorted()
 
-        // For UX: use the top hold from adjustedEV-ranked list; fall back to base EV if not yet computed
-        let optimal: [Int]
+        // Check if user's hold is correct, accounting for ties at the top rank
+        let isCorrect: Bool
         if settings.variant.isUltimateX, let topHold = ultimateXTopHolds.first {
-            optimal = topHold.holdIndices.sorted()
+            let optimal = topHold.holdIndices.sorted()
+            if userHold == optimal {
+                isCorrect = true
+            } else {
+                // Check if user's hold is tied for best adjusted EV
+                let tolerance = 0.0001
+                let bestAdjEV = topHold.adjustedEV
+                isCorrect = ultimateXTopHolds.contains { hold in
+                    hold.holdIndices.sorted() == userHold && abs(hold.adjustedEV - bestAdjEV) < tolerance
+                }
+            }
+        } else if let result = strategyResult {
+            let optimal = optimalHoldIndices.sorted()
+            if userHold == optimal {
+                isCorrect = true
+            } else {
+                // Check if user's hold is tied for best EV
+                let hand = Hand(cards: dealtCards)
+                let userCanonical = hand.originalIndicesToCanonical(userHold)
+                isCorrect = result.isHoldTiedForBest(userCanonical)
+            }
         } else {
-            optimal = optimalHoldIndices.sorted()
+            isCorrect = userHold == optimalHoldIndices.sorted()
         }
 
-        if userHold != optimal {
+        if !isCorrect {
             showMistakeFeedback = true
             currentStats.mistakesMade += 1
             currentStats.mistakeHands += 1
@@ -912,7 +932,7 @@ class PlayViewModel: ObservableObject {
 
         // Save hand attempt (for all hands, not just mistakes)
         Task {
-            await saveHandAttempt(isCorrect: userHold == optimal)
+            await saveHandAttempt(isCorrect: isCorrect)
         }
     }
 
@@ -995,7 +1015,7 @@ class PlayViewModel: ObservableObject {
                 if let userEv = result.holdEvs[String(userBitmask)] {
                     let evLost = result.bestEv - userEv
                     userEvLost = evLost
-                    currentStats.totalEvLost += evLost * settings.totalBetDollars
+                    currentStats.totalEvLost += evLost * settings.evScaleDollars
                 }
             }
         } catch {
@@ -1371,6 +1391,11 @@ class PlayViewModel: ObservableObject {
             let trips = rankCounts.filter { $0.value == 3 }.map { $0.key }
             let quads = rankCounts.filter { $0.value == 4 }.map { $0.key }
             return evaluateStandardHand(cards: cards, pairs: pairs, trips: trips, quads: quads, paytableRowNames: paytableRowNames)
+        }
+
+        // Deuces-specific: Five Deuces (4 natural deuces + joker)
+        if isDeucesBase && numDeuces == 4 && numJokers >= 1 {
+            return HandEvaluation(handName: "Five Deuces", winningIndices: Array(0..<5))
         }
 
         // Deuces-specific: Four Deuces

@@ -259,6 +259,14 @@ struct PlaySettings: Codable {
         Double(totalBetCredits) * denomination.rawValue
     }
 
+    /// The dollar amount that strategy EVs should be scaled by.
+    /// Strategy file EVs are per-coin based on the 5-coin pay table column,
+    /// so this always uses 5 coins per line regardless of variant (WWW/UX bet 10 coins
+    /// but payouts still come from the 5-coin column).
+    var evScaleDollars: Double {
+        Double(effectiveLineCount * 5) * denomination.rawValue
+    }
+
     /// Paytable key for stats storage, incorporating the variant suffix.
     var statsPaytableKey: String {
         switch variant {

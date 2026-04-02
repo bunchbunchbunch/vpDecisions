@@ -1161,7 +1161,7 @@ struct PlayView: View {
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(Color(hex: "FFA726"))
                         if viewModel.userEvLost > 0 {
-                            let dollarEvLost = viewModel.userEvLost * viewModel.settings.totalBetDollars
+                            let dollarEvLost = viewModel.userEvLost * viewModel.settings.evScaleDollars
                             Text("(-\(formatCurrency(dollarEvLost)) EV)")
                                 .font(.system(size: 11))
                                 .foregroundColor(Color(hex: "FFA726"))
@@ -1501,7 +1501,7 @@ struct PlayView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            let dollarEv = option.ev * viewModel.settings.totalBetDollars
+            let dollarEv = option.ev * viewModel.settings.evScaleDollars
             Text(formatCurrency(dollarEv))
                 .font(.system(size: fontSize, weight: isBest ? .bold : .medium, design: .monospaced))
                 .frame(width: evWidth, alignment: .trailing)
