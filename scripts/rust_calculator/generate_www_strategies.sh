@@ -1,8 +1,19 @@
 #!/bin/bash
 # generate_www_strategies.sh — Generate WWW strategy files for all supported paytables
 #
-# Prioritizes the 12 games from the in-game screenshots (WWWPayouts),
-# then generates alternate pay table variants.
+# Generates strategies for every pay table in every game family that has a
+# known WWW wild card distribution. Only families with confirmed distributions
+# are included — no default/fallback distributions.
+#
+# Families with known distributions (from WildWildWildModels.swift):
+#   JoB/Tens/AllAmerican    — 40% / 19% / 21% / 20%
+#   Deuces Wild / Loose     — 40% / 18.3% / 21.7% / 20%
+#   Bonus Poker / BP Plus   — 35.6% / 10.1% / 44.2% / 10.1%
+#   Bonus Poker Deluxe      — 49% / 20.8% / 25.2% / 5%
+#   Double Bonus            — 49% / 15% / 31% / 5%
+#   DDB / DDB A&F / DDB+    — 49% / 22% / 24% / 5%
+#   Triple Double Bonus     — 49% / 32.9% / 14.1% / 4%
+#   Triple Triple Bonus     — 49% / 33.8% / 16.2% / 1%
 
 set -e
 cd "$(dirname "$0")"
@@ -24,35 +35,149 @@ for arg in "$@"; do
 done
 
 # ── Pay table groups ──────────────────────────────────────────────────────────
+# Only game families with known WWW wild card distributions are included.
 
-# PRIMARY: The 12 games from the WWWPayouts screenshots (known pay tables)
-# Ordered to start with 9/6 Jacks or Better
-PRIMARY_PAYTABLES=(
+# Jacks or Better family — distribution: 40/19/21/20
+JACKS_OR_BETTER=(
+    "jacks-or-better-6-5"
+    "jacks-or-better-7-5"
+    "jacks-or-better-8-5"
+    "jacks-or-better-8-5-35"
+    "jacks-or-better-8-6"
+    "jacks-or-better-9-5"
     "jacks-or-better-9-6"
-    "bonus-poker-8-5"
-    "bonus-poker-deluxe-9-6"
-    "double-bonus-9-7-5"
-    "double-double-bonus-9-6"
-    "triple-double-bonus-9-7"
-    "deuces-wild-nsud"
-    "deuces-wild-bonus-9-4"
-    "super-double-bonus-9-5"
-    "super-double-double-bonus-8-5"
-    "ddb-plus-9-6"
-    "super-bonus-deuces-9"
+    "jacks-or-better-9-6-90"
+    "jacks-or-better-9-6-940"
 )
 
-# ALTERNATE: Other pay table variants (use fallback WWW overrides — less accurate)
-ALTERNATE_PAYTABLES=(
-    "jacks-or-better-9-5"
-    "jacks-or-better-8-6"
-    "jacks-or-better-8-5"
-    "jacks-or-better-7-5"
+# Tens or Better family — distribution: 40/19/21/20 (same as JoB)
+TENS_OR_BETTER=(
+    "tens-or-better-6-5"
+)
+
+# All American family — distribution: 40/19/21/20 (same as JoB)
+ALL_AMERICAN=(
+    "all-american-25-8"
+    "all-american-30-8"
+    "all-american-35-8"
+    "all-american-40-7"
+)
+
+# Bonus Poker family — distribution: 35.6/10.1/44.2/10.1
+BONUS_POKER=(
+    "bonus-poker-6-5"
     "bonus-poker-7-5"
+    "bonus-poker-7-5-1200"
+    "bonus-poker-8-5"
+)
+
+# Bonus Poker Plus family — distribution: 35.6/10.1/44.2/10.1 (same as Bonus Poker)
+BONUS_POKER_PLUS=(
+    "bonus-poker-plus-9-6"
+    "bonus-poker-plus-10-7"
+)
+
+# Bonus Poker Deluxe family — distribution: 49/20.8/25.2/5
+BONUS_POKER_DELUXE=(
+    "bonus-poker-deluxe-6-5"
+    "bonus-poker-deluxe-7-5"
+    "bonus-poker-deluxe-8-5"
+    "bonus-poker-deluxe-8-6"
+    "bonus-poker-deluxe-8-6-100"
+    "bonus-poker-deluxe-9-5"
+    "bonus-poker-deluxe-9-6"
+)
+
+# Double Bonus family — distribution: 49/15/31/5
+DOUBLE_BONUS=(
+    "double-bonus-9-6-4"
+    "double-bonus-9-6-5"
+    "double-bonus-9-7-5"
+    "double-bonus-10-6"
     "double-bonus-10-7"
+    "double-bonus-10-7-4"
+    "double-bonus-10-7-80"
+    "double-bonus-10-7-100"
+)
+
+# Double Double Bonus family — distribution: 49/22/24/5
+DOUBLE_DOUBLE_BONUS=(
+    "double-double-bonus-6-5"
+    "double-double-bonus-7-5"
+    "double-double-bonus-8-5"
+    "double-double-bonus-9-5"
+    "double-double-bonus-9-6"
     "double-double-bonus-10-6"
+    "double-double-bonus-10-6-100"
+)
+
+# DDB Aces & Faces family — distribution: 49/22/24/5 (same as DDB)
+DDB_ACES_FACES=(
+    "ddb-aces-faces-9-5"
+    "ddb-aces-faces-9-6"
+)
+
+# DDB Plus family — distribution: 49/22/24/5 (same as DDB)
+DDB_PLUS=(
+    "ddb-plus-8-5"
+    "ddb-plus-9-5"
+    "ddb-plus-9-6"
+)
+
+# Triple Double Bonus family — distribution: 49/32.9/14.1/4
+TRIPLE_DOUBLE_BONUS=(
+    "triple-double-bonus-8-5"
     "triple-double-bonus-9-6"
+    "triple-double-bonus-9-7"
+)
+
+# Triple Triple Bonus family — distribution: 49/33.8/16.2/1
+TRIPLE_TRIPLE_BONUS=(
+    "triple-triple-bonus-7-5"
+    "triple-triple-bonus-8-5"
+    "triple-triple-bonus-9-5"
+    "triple-triple-bonus-9-6"
+)
+
+# Deuces Wild family — distribution: 40/18.3/21.7/20
+DEUCES_WILD=(
+    "deuces-wild-20-12-9"
+    "deuces-wild-20-15-9"
+    "deuces-wild-25-12-9"
+    "deuces-wild-25-15-8"
+    "deuces-wild-44-apdw"
+    "deuces-wild-44-illinois"
+    "deuces-wild-44-nsud"
+    "deuces-wild-colorado"
     "deuces-wild-full-pay"
+    "deuces-wild-illinois"
+    "deuces-wild-nsud"
+)
+
+# Loose Deuces family — distribution: 40/18.3/21.7/20 (same as Deuces Wild)
+LOOSE_DEUCES=(
+    "loose-deuces-400-12"
+    "loose-deuces-500-12"
+    "loose-deuces-500-15"
+    "loose-deuces-500-17"
+)
+
+# All pay tables combined (73 total)
+ALL_PAYTABLES=(
+    "${JACKS_OR_BETTER[@]}"
+    "${TENS_OR_BETTER[@]}"
+    "${ALL_AMERICAN[@]}"
+    "${BONUS_POKER[@]}"
+    "${BONUS_POKER_PLUS[@]}"
+    "${BONUS_POKER_DELUXE[@]}"
+    "${DOUBLE_BONUS[@]}"
+    "${DOUBLE_DOUBLE_BONUS[@]}"
+    "${DDB_ACES_FACES[@]}"
+    "${DDB_PLUS[@]}"
+    "${TRIPLE_DOUBLE_BONUS[@]}"
+    "${TRIPLE_TRIPLE_BONUS[@]}"
+    "${DEUCES_WILD[@]}"
+    "${LOOSE_DEUCES[@]}"
 )
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -183,32 +308,20 @@ generate_group() {
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-GRAND_TOTAL=$(( (${#PRIMARY_PAYTABLES[@]} + ${#ALTERNATE_PAYTABLES[@]}) * 3 ))
+GRAND_TOTAL=$(( ${#ALL_PAYTABLES[@]} * 3 ))
 
 echo "╔══════════════════════════════════════════════════════════════════════╗"
 echo "║              WWW Strategy Generator                                ║"
 echo "╠══════════════════════════════════════════════════════════════════════╣"
-echo "║  Primary games (from screenshots):  ${#PRIMARY_PAYTABLES[@]} games ($(( ${#PRIMARY_PAYTABLES[@]} * 3 )) files)         ║"
-echo "║  Alternate pay tables:              ${#ALTERNATE_PAYTABLES[@]} games ($(( ${#ALTERNATE_PAYTABLES[@]} * 3 )) files)          ║"
-echo "║  Total strategy files:              $GRAND_TOTAL                             ║"
-echo "║  Skip existing:                     $SKIP_EXISTING                          ║"
+echo "║  Game families:        14                                          ║"
+echo "║  Pay tables:           ${#ALL_PAYTABLES[@]}                                          ║"
+printf "║  Strategy files:       %-3d (× 3 wild counts)                       ║\n" "$GRAND_TOTAL"
+echo "║  Skip existing:        $SKIP_EXISTING                                       ║"
 echo "╚══════════════════════════════════════════════════════════════════════╝"
 echo ""
 echo "Started at: $(date '+%Y-%m-%d %H:%M:%S')"
 
-generate_group "PRIMARY — Screenshot Pay Tables (starting with 9/6 JoB)" "${PRIMARY_PAYTABLES[@]}"
-
-# Show projection before starting alternates
-if [ ${#FILE_TIMES[@]} -gt 0 ]; then
-    avg=$(avg_file_time)
-    alt_files=$(( ${#ALTERNATE_PAYTABLES[@]} * 3 ))
-    est_alt=$((alt_files * avg))
-    print_separator
-    echo "  Primary group done. Estimated time for alternate group: ~$(format_duration $est_alt)"
-    print_separator
-fi
-
-generate_group "ALTERNATE — Other Pay Table Variants" "${ALTERNATE_PAYTABLES[@]}"
+generate_group "All WWW Strategies (14 families, ${#ALL_PAYTABLES[@]} pay tables)" "${ALL_PAYTABLES[@]}"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
